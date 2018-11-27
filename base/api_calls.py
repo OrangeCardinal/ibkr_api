@@ -18,18 +18,18 @@ The user just needs to override EWrapper methods to receive the answers.
 import logging
 import socket
 
-from enum import Enum
-
 from base.message_parser import MessageParser
 from base.constants import *
 
 from base.bridge_connection import BridgeConnection
-from base.errors import CONNECT_FAIL, NOT_CONNECTED, UPDATE_TWS
+from base.errors import CONNECT_FAIL, NOT_CONNECTED, UPDATE_TWS, Errors
 from base.message import OUT
 
+from classes.bar_size import BarSize
 from classes.contracts.contract import Contract
 from classes.order import Order
 from classes.scanner import ScannerSubscription
+
 #from utils import (current_fn_name)
 
 logger = logging.getLogger(__name__)
@@ -62,14 +62,14 @@ class ApiCalls(object):
         if not self.conn.is_connected() and self.response_handler:
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
         elif not self.conn.is_connected():
-            logger.error(NOT_CONNECTED.msg())
+            logger.error(Errors.connect_fail()['message'])
         else:
             self.conn.send_message(fields)
 
     ####################
     # Public Functions #
     ####################
-    def get_request_id(self):
+    def get_local_request_id(self):
         request_id = self.request_id
         self.request_id += 1
         return request_id
@@ -454,7 +454,7 @@ class ApiCalls(object):
         insert_offset = 0
         message_version = 2
 
-        fields = [OUT.EXERCISE_OPTIONS, message_version, request_id, contract.symbol, contract.secType,
+        fields = [OUT.EXERCISE_OPTIONS, message_version, request_id, contract.symbol, contract.security_type,
                   contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
                   contract.exchange,
                   contract.currency, contract.local_symbol, exercize_action, exercize_quantity, account, override]
@@ -578,7 +578,7 @@ class ApiCalls(object):
                                                 "ProfitOffset, AutoReset, InitPosition, InitFillQty and RandomPercent")
                     return
 
-        if self.server_version() < MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE and contract.secType == "BAG":
+        if self.server_version() < MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE and contract.security_type == "BAG":
             if order.orderComboLegs:
                 for orderComboLeg in order.orderComboLegs:
                     if orderComboLeg.price != UNSET_DOUBLE:
@@ -677,7 +677,7 @@ class ApiCalls(object):
             fields.append(contract.id)
 
         fields += [contract.symbol,
-                   contract.secType,
+                   contract.security_type,
                    contract.last_trade_date_or_contract_month,
                    contract.strike,
                    contract.right,
@@ -730,7 +730,7 @@ class ApiCalls(object):
                        order.hidden]  # srv v7 and above
 
         # Send combo legs for BAG requests (srv v8 and above)
-        if contract.secType == "BAG":
+        if contract.security_type == "BAG":
             comboLegsCount = len(contract.comboLegs) if contract.comboLegs else 0
             fields.append(comboLegsCount)
             if comboLegsCount > 0:
@@ -747,7 +747,7 @@ class ApiCalls(object):
                         fields.append(comboLeg.exemptCode)
 
         # Send order combo legs for BAG requests
-        if self.server_version() >= MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE and contract.secType == "BAG":
+        if self.server_version() >= MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE and contract.security_type == "BAG":
             orderComboLegsCount = len(order.orderComboLegs) if order.orderComboLegs else 0
             fields.append(orderComboLegsCount)
 
@@ -756,7 +756,7 @@ class ApiCalls(object):
                     assert orderComboLeg
                     fields.append(self.conn.make_field_handle_empty(orderComboLeg.price))
 
-        if self.server_version() >= MIN_SERVER_VER_SMART_COMBO_ROUTING_PARAMS and contract.secType == "BAG":
+        if self.server_version() >= MIN_SERVER_VER_SMART_COMBO_ROUTING_PARAMS and contract.security_type == "BAG":
             smartComboRoutingParamsCount = len(order.smartComboRoutingParams) if order.smartComboRoutingParams else 0
             fields.append(smartComboRoutingParamsCount)
             if smartComboRoutingParamsCount > 0:
@@ -1118,6 +1118,38 @@ class ApiCalls(object):
         fields = [OUT.REQ_AUTO_OPEN_ORDERS, message_version, auto_bind]
         message_sent = self.conn.send_message(fields)
         return message_sent
+
+    def request_contract_details(self, contract: Contract, request_id=None):
+        """Call this function to download all details for a particular
+        underlying. The contract details will be received via the contractDetails()
+        function on the EWrapper.
+
+        request_id:int - The ID of the data request. Ensures that responses are
+            make_fieldatched to requests if several requests are in process.
+        contract:Contract - The summary description of the contract being looked
+            up."""
+
+        if request_id is None:
+           request_id = self.get_local_request_id()
+
+        # send req mkt data msg
+        message_version = 8
+        fields = [OUT.REQ_CONTRACT_DATA, message_version, request_id, contract.id, contract.symbol,
+                  contract.security_type, contract.last_trade_date_or_contract_month,contract.strike, contract.right,
+                  contract.multiplier,contract.exchange, contract.primary_exchange]
+
+        # Format the exchange field as required
+        if (contract.primary_exchange and (contract.exchange == "BEST" or contract.exchange == "SMART")):
+            field = contract.exchange + ":" + contract.primary_exchange
+        else:
+            field = contract.exchange
+        fields.append(field)
+
+        fields += [contract.currency, contract.local_symbol,contract.trading_class,contract.include_expired,
+                   contract.security_id_type, contract.security_id]
+
+        self._send_message(fields)
+        return request_id
 
     def request_current_time(self):
         """Asks the current system time on the server side.
@@ -1512,72 +1544,7 @@ class ApiCalls(object):
             else:
                 print(e)
 
-    #################
-    ### API Calls ###
-    #################
-    def request_contract_details(self, request_id: int, contract: Contract):
-        """Call this function to download all details for a particular
-        underlying. The contract details will be received via the contractDetails()
-        function on the EWrapper.
 
-        request_id:int - The ID of the data request. Ensures that responses are
-            make_fieldatched to requests if several requests are in process.
-        contract:Contract - The summary description of the contract being looked
-            up."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-        if self.server_version() < MIN_SERVER_VER_SEC_ID_TYPE:
-            if contract.security_id_type or contract.security_id:
-                self.response_handler.error(request_id, UPDATE_TWS.code(),
-                                            UPDATE_TWS.msg('security_id_type and security_id'))
-                return
-
-        if self.server_version() < MIN_SERVER_VER_TRADING_CLASS:
-            if contract.trading_class:
-                self.response_handler.error(request_id, UPDATE_TWS.code(), UPDATE_TWS.msg('trading_class'))
-                return
-
-        if self.server_version() < MIN_SERVER_VER_LINKING:
-            if contract.primary_exchange:
-                self.response_handler.error(request_id, UPDATE_TWS.code(), UPDATE_TWS.msg('primary_exchange'))
-                return
-
-        message_version = 8
-
-        # send req mkt data msg
-        fields = [OUT.REQ_CONTRACT_DATA, message_version]
-
-        if self.server_version() >= MIN_SERVER_VER_CONTRACT_DATA_CHAIN:
-            fields.append(request_id)
-
-        # send contract fields
-        fields.extend([contract.id, contract.symbol, contract.secType, contract.last_trade_date_or_contract_month,
-                       contract.strike, contract.right, contract.multiplier])
-
-        if self.server_version() >= MIN_SERVER_VER_PRIMARYEXCH:
-            fields.extend([contract.exchange, contract.primary_exchange])
-
-        elif self.server_version() >= MIN_SERVER_VER_LINKING:
-            if (contract.primary_exchange and
-                    (contract.exchange == "BEST" or contract.exchange == "SMART")):
-                field = contract.exchange + ":" + contract.primary_exchange
-            else:
-                field = contract.exchange
-            fields.append(field)
-
-        fields += [contract.currency, contract.local_symbol]
-        if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
-            fields.append(contract.trading_class)
-
-        fields.append(contract.include_expired)  # srv v31 and above
-
-        if self.server_version() >= MIN_SERVER_VER_SEC_ID_TYPE:
-            fields.extend([contract.security_id_type, contract.security_id])
-
-        self.conn.send_message(fields)
 
     def request_historical_data(self, contract: Contract, end_date_time: str,
                                 duration: str, bar_size_setting: str, what_to_show: str,
@@ -1637,69 +1604,38 @@ class ApiCalls(object):
         chartOptions:list - For internal use only. Use default value XYZ. """
 
         # Get the request id for this work
-        request_id = self.conn.generate_request_id()
-
-        # Check that we are connected to the bridge
-        if not self.conn.is_connected():
-            self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-        # TODO: Add better check message here
-        if self.server_version() < MIN_SERVER_VER_TRADING_CLASS:
-            if contract.trading_class or contract.id > 0:
-                self.response_handler.error(request_id, UPDATE_TWS.code(),
-                                            UPDATE_TWS.msg() + "  It does not support id and trading_class parameters in reqHistoricalData.")
-                return
+        #request_id = self.conn.generate_request_id()
 
         # Create Message
-        insert_offset = 0  # Used to calculate the list insert positions
-        message_fields = [OUT.REQ_HISTORICAL_DATA, request_id, contract.symbol, contract.secType,
-                          contract.last_trade_date_or_contract_month,
-                          contract.strike, contract.right, contract.multiplier, contract.exchange,
-                          contract.primary_exchange,
-                          contract.currency, contract.local_symbol, contract.include_expired, end_date_time,
-                          bar_size_setting,
-                          duration, use_rth, what_to_show, format_date]
+        request_id = 29
+        fields = [OUT.REQ_HISTORICAL_DATA, request_id, contract.id, contract.symbol, contract.security_type,
+                    contract.last_trade_date_or_contract_month,
+                    contract.strike, contract.right, contract.multiplier, contract.exchange,
+                    contract.primary_exchange, contract.currency, contract.local_symbol, contract.trading_class,
+                    contract.include_expired,end_date_time, bar_size_setting, duration, use_rth, what_to_show, format_date]
 
-        if self.server_version() < MIN_SERVER_VER_SYNT_REALTIME_BARS:
-            message_version = 6
-            insert_offset += 1
-            message_fields.insert(1, message_version)
 
-        # IF Server version allows, send the contract id
-        if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
-            insert_pos = 2 + insert_offset
-            insert_offset += 1
-            message_fields.insert(insert_pos, contract.id)
-
-        if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
-            insert_pos = 12 + insert_offset
-            insert_offset += 1
-            message_fields.insert(insert_pos, contract.trading_class)
-
-        # Send combo legs for BAG requests
-        if contract.secType == "BAG":
-            message_fields.append(len(contract.comboLegs))
+       # Send combo legs for BAG requests
+        if contract.security_type == "BAG":
+            fields.append(len(contract.comboLegs))
             for comboLeg in contract.comboLegs:
-                message_fields.append(comboLeg.conId)
-                message_fields.append(comboLeg.ratio)
-                message_fields.append(comboLeg.action)
-                message_fields.append(comboLeg.exchange)
+                fields.append(comboLeg.contract_id)
+                fields.append(comboLeg.ratio)
+                fields.append(comboLeg.action)
+                fields.append(comboLeg.exchange)
 
-        if self.server_version() >= MIN_SERVER_VER_SYNT_REALTIME_BARS:
-            message_fields.append(keep_up_to_date)
 
+        fields.append(keep_up_to_date)
         # send chartOptions parameter
-        if self.server_version() >= MIN_SERVER_VER_LINKING:
-            chartOptionsStr = ""
-            if chart_options:
-                for tagValue in chart_options:
-                    chartOptionsStr += str(tagValue)
-            message_fields.append(chartOptionsStr)
+        chart_options_str = ""
+        if chart_options:
+            for tagValue in chart_options:
+                chart_options_str += str(tagValue)
+        fields.append(chart_options_str)
 
         # Send the Message
-        message = self.conn.make_message(message_fields)
-        self.conn.send_message(message)
+        self._send_message(fields)
+
 
     def request_news_bulletins(self, allMsgs: bool):
         """Call this function to start receiving news bulletins. Each bulletin
@@ -1765,7 +1701,7 @@ class ApiCalls(object):
                                         "in tick-by-tick data requests.")
             return
 
-        fields = [OUT.REQ_TICK_BY_TICK_DATA, request_id, contract.id, contract.symbol, contract.secType,
+        fields = [OUT.REQ_TICK_BY_TICK_DATA, request_id, contract.id, contract.symbol, contract.security_type,
                   contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
                   contract.exchange, contract.primary_exchange, contract.currency, contract.local_symbol,
                   contract.trading_class, tick_type
@@ -1783,26 +1719,19 @@ class ApiCalls(object):
         return self.server_version_
 
     def verify_request(self, apiName: str, api_version: str):
-        """For IB's internal purpose. Allows to provide means of verification
-        between the TWS and third party programs."""
+        """
+        Allows for an application to request what the correct message should be for a given api/version.
+        """
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
 
-        if self.server_version() < MIN_SERVER_VER_LINKING:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support verification request.")
-            return
-
-        if not self.extraAuth:
-            self.response_handler.error(NO_VALID_ID, BAD_MESSAGE.code(), BAD_MESSAGE.msg() +
-                                        "  Intent to authenticate needs to be expressed during initial connect request.")
-            return
+        #if not self.extraAuth:
+        #    self.response_handler.error(NO_VALID_ID, BAD_MESSAGE.code(), BAD_MESSAGE.msg() +
+        #                                "  Intent to authenticate needs to be expressed during initial connect request.")
+        #    return
 
         message_version = 1
         fields = [OUT.VERIFY_REQUEST, message_version, apiName, api_version]
-        self.conn.send_message(fields)
+        self._send_message(fields)
 
     def request_market_data(self, request_id: int, contract: Contract, generic_tick_list: str,
                             snapshot: bool, regulatory_snapshot: bool, market_data_options: list):
@@ -1853,7 +1782,7 @@ class ApiCalls(object):
 
         # send req mkt data msg
         insert_offset = 0
-        message_fields = [OUT.REQ_MKT_DATA, message_version, request_id, contract.symbol, contract.secType,
+        fields = [OUT.REQ_MKT_DATA, message_version, request_id, contract.symbol, contract.security_type,
                           contract.last_trade_date_or_contract_month,
                           contract.strike, contract.right, contract.multiplier, contract.exchange,
                           contract.primary_exchange,
@@ -1861,38 +1790,38 @@ class ApiCalls(object):
 
         # Send Contract Fields
         if self.server_version() >= MIN_SERVER_VER_REQ_MKT_DATA_CONID:
-            message_fields.insert(3, contract.id)
+            fields.insert(3, contract.id)
             insert_offset += 1
 
         if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
-            message_fields.append(contract.trading_class)
+            fields.append(contract.trading_class)
             insert_offset += 1
 
         # Send combo legs for BAG requests (srv v8 and above)
-        if contract.secType == "BAG":
+        if contract.security_type == "BAG":
             combo_leg_count = len(contract.comboLegs) if contract.comboLegs else 0
-            message_fields.append(combo_leg_count)
+            fields.append(combo_leg_count)
             for comboLeg in contract.comboLegs:
-                message_fields.append(comboLeg.conId)
-                message_fields.append(comboLeg.ratio)
-                message_fields.append(comboLeg.action)
-                message_fields.append(comboLeg.exchange)
+                fields.append(comboLeg.conId)
+                fields.append(comboLeg.ratio)
+                fields.append(comboLeg.action)
+                fields.append(comboLeg.exchange)
 
         # Send Delta Neutral Contract Fields
         if self.server_version() >= MIN_SERVER_VER_DELTA_NEUTRAL:
             if contract.deltaNeutralContract:
-                message_fields.append(True)
-                message_fields.append(contract.deltaNeutralContract.conId)
-                message_fields.append(contract.deltaNeutralContract.delta)
-                message_fields.append(contract.deltaNeutralContract.price)
+                fields.append(True)
+                fields.append(contract.deltaNeutralContract.conId)
+                fields.append(contract.deltaNeutralContract.delta)
+                fields.append(contract.deltaNeutralContract.price)
             else:
-                message_fields.append(False)
+                fields.append(False)
 
-        message_fields.append(generic_tick_list)
-        message_fields.append(snapshot)
+        fields.append(generic_tick_list)
+        fields.append(snapshot)
 
         if self.server_version() >= MIN_SERVER_VER_REQ_SMART_COMPONENTS:
-            message_fields.append(regulatory_snapshot)
+            fields.append(regulatory_snapshot)
 
         # send mktDataOptions parameter
         # TODO: Clarify if the code is beneficial
@@ -1903,7 +1832,7 @@ class ApiCalls(object):
         #    mktDataOptionsStr = ""
         #    fields += [mktDataOptionsStr), ]
 
-        message = self.conn.make_message(message_fields)
+        message = self.conn.make_message(fields)
         self.conn.send_message(message)
 
     def twsConnectionTime(self):
@@ -1973,7 +1902,7 @@ class ApiCalls(object):
         if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
             fields += [contract.id, ]
         fields += [contract.symbol,
-                   contract.secType,
+                   contract.security_type,
                    contract.last_trade_date_or_contract_month,
                    contract.strike,
                    contract.right,
@@ -2071,7 +2000,7 @@ class ApiCalls(object):
                                         "  It does not support histogram requests..")
             return
 
-        fields = [OUT.REQ_HISTOGRAM_DATA, tickerId, contract.id, contract.symbol, contract.secType,
+        fields = [OUT.REQ_HISTOGRAM_DATA, tickerId, contract.id, contract.symbol, contract.security_type,
                   contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
                   contract.exchange, contract.primary_exchange, contract.currency, contract.local_symbol,
                   contract.trading_class, contract.include_expired, useRTH,
