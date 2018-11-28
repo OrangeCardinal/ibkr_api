@@ -21,10 +21,9 @@ The user just needs to override EWrapper methods to receive the answers.
 import time
 
 from base.api_calls import ApiCalls
-from ibkr_api.classes.contracts.contract import Contract
-from ibkr_api.classes.order import Order
-from ibkr_api.classes.execution_filter import ExecutionFilter
-from ibkr_api.classes.scanner import ScannerSubscription
+from classes.contracts.contract import Contract
+from classes.order import Order
+from classes.scanner import ScannerSubscription
 
 
 class IBKR_API(ApiCalls):
@@ -311,7 +310,8 @@ class IBKR_API(ApiCalls):
 
         return timestamp
 
-    def request_executions(self, request_id: int, execFilter: ExecutionFilter):
+    def request_executions(self, request_id: int, client_id="", account_code="", time="",
+                           symbol="", security_type="", exchange="", side=""):
         """When this function is called, the execution reports that meet the
         filter criteria are downloaded to the client via the execDetails()
         function. To view executions beyond the past 24 hours, open the
@@ -325,6 +325,8 @@ class IBKR_API(ApiCalls):
             reports are returned.
 
         NOTE: Time format must be 'yyyymmdd-hh:mm:ss' Eg: '20030702-14:55'"""
+
+        super().request_executions(request_id, client_id, account_code, time, symbol, security_type, exchange, side)
         pass
 
     def request_global_cancel(self):
@@ -428,36 +430,34 @@ class IBKR_API(ApiCalls):
             This is the display group subscription request sent by the API to TWS."""
         pass
 
-    # Not Alphabetically\\
-    def connect(self, host, port, clientId):
-        """This function must be called before any other. There is no
-        feedback for a successful connection, but a subsequent attempt to
-        connect will return the message \"Already connected.\"
-
-        host:str - The host name or IP address of the machine where TWS is
-            running. Leave blank to connect to the local host.
-        port:int - Must match the port specified in TWS on the
-            Configure>API>Socket Port field.
-        clientId:int - A number used to identify this client connection. All
-            orders placed/modified from this client will be associated with
-            this client identifier.
-
-            Note: Each client MUST connect with a unique clientId."""
-        pass
-
     #################
     ### API Calls ###
     #################
-    def request_contract_details(self, request_id: int, contract: Contract):
-        """Call this function to download all details for a particular
-        underlying. The contract details will be received via the contractDetails()
-        function on the EWrapper.
+    def request_contract_details(self, contract: Contract):
+        """
 
-        request_id:int - The ID of the data request. Ensures that responses are
-            make_fieldatched to requests if several requests are in process.
-        contract:Contract - The summary description of the contract being looked
-            up."""
-        pass
+        :param contract:
+        :return:
+        """
+        #"""Call this function to download all details for a particular
+        #underlying. The contract details will be received via the contractDetails()
+        #function on the EWrapper.
+
+        #request_id:int - The ID of the data request. Ensures that responses are
+        #    make_fieldatched to requests if several requests are in process.
+        #contract:Contract - The summary description of the contract being looked
+        #    up."""
+        super().request_contract_details(contract)
+        # Receive the response
+        while True:
+            message = self.conn.receive_messages()
+            print(message)
+            time.sleep(1)
+
+        # Call the message parser to get extract the data
+        action_func = getattr(self.message_parser, message['action'])
+        #(request_id, timestamp) = action_func(message)
+        #pass
 
     def request_historical_data(self, contract: Contract, end_date_time: str,
                                 duration: str, bar_size_setting: str, what_to_show: str,
@@ -515,7 +515,12 @@ class IBKR_API(ApiCalls):
             2 - dates are returned as a long integer specifying the number of seconds since
                 1/1/1970 GMT.
         chartOptions:list - For internal use only. Use default value XYZ. """
-        pass
+        super().request_historical_data(contract,end_date_time,duration, bar_size_setting, what_to_show, use_rth,
+                                        format_date, keep_up_to_date, chart_options)
+        while True:
+            messages = self.conn.receive_messages()
+            print(messages)
+            time.sleep(2)
 
     def request_news_bulletins(self, allMsgs: bool):
         """Call this function to start receiving news bulletins. Each bulletin
@@ -693,7 +698,7 @@ class IBKR_API(ApiCalls):
             RESC (analyst estimates)
             CalendarReport (company calendar) """
         # Make the Request
-        request_id = self.get_request_id()
+        request_id = self.get_local_request_id()
         super().request_fundamental_data(request_id, contract, report_type, request_options)
         time.sleep(5)
         messages = self.conn.receive_messages()
@@ -741,10 +746,15 @@ class IBKR_API(ApiCalls):
         between the TWS and third party programs."""
         pass
 
-    def verify_request(self, apiName: str, api_version: str):
+    def verify_request(self, api_name: str, api_version: str):
         """For IB's internal purpose. Allows to provide means of verification
         between the TWS and third party programs."""
-        pass
+        super().verify_request(api_name, api_version)
+        while True:
+            messages = self.conn.receive_messages()
+            print(messages)
+            time.sleep(1)
+
 
     def request_sec_def_opt_params(self, request_id: int, underlying_symbol: str,
                                    futFopExchange: str, underlyingSecType: str,
