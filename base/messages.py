@@ -1,4 +1,9 @@
+from enum import Enum
 class Messages(object):
+
+        field_types = Enum( INTEGER=1,
+                            STRING = 2,
+                            FLOAT = 3)
         inbound = {
             'tick_price':1,'tick_size':2,'order_status':3,'err_msg':4,'open_order':5,
             'acct_value':6,'portfolio_value':7,'acct_update_time':8,'next_valid_id':9,
