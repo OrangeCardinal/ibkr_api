@@ -20,9 +20,10 @@ import struct
 import threading
 
 
-from base.constants import DISCONNECTED, UNKNOWN, CONNECTED, message_id_response_map
-from base.errors import FAIL_CREATE_SOCK, CONNECT_FAIL
 
+from base.constants import DISCONNECTED, UNKNOWN, CONNECTED, message_id_response_map
+from base.errors import FAIL_CREATE_SOCK, Errors
+from base.messages import Messages
 import sys
 
 #TODO: support SSL !!
@@ -42,7 +43,6 @@ class BridgeConnection:
 
 
     def connect(self):
-        logger.debug("Connecting to bridge")
         self.status = CONNECTED
 
         # Create the socket itself
@@ -57,7 +57,7 @@ class BridgeConnection:
         try:
             self.socket.connect((self.host, self.port))
         except socket.error as e:
-            logger.error(CONNECT_FAIL.msg())
+            logger.error(Errors.connect_fail()['message'])
             self.status = DISCONNECTED
             raise e
 
@@ -71,7 +71,6 @@ class BridgeConnection:
             self.socket = None
             self.status = DISCONNECTED
             logger.debug("disconnected")
-            #self.connectionClosed()
         finally:
             self.lock.release()
 
@@ -96,7 +95,13 @@ class BridgeConnection:
         msg = struct.pack("!I%ds" % len(text), len(text), str.encode(text))
         return msg
 
-    def receive_messages(self):
+    def receive_messages(self, parse_message=True):
+        """
+        Read all data from the socket
+        Parse the socket data into messages
+        :param parse_message: False -> returns un-formatted data True -> returns msg dictionaries
+        :return: messages:list All messages in the socket
+        """
         """
         1. Receives any data available from the socket
         2. Split the received data into messages
@@ -127,12 +132,18 @@ class BridgeConnection:
             logger.error("Exception raised from receive_message %s", sys.exc_info())
 
 
+        # Split the socket data into messages that can be passed back
         while socket_data != b"":
-            (size, message, remaining_data) = self.read_msg(socket_data)
-            fields = self.read_fields(message)
-            function_name = message_id_response_map[fields[0]]
-            msg = {'size':size, 'text':message, 'fields':fields, 'id':fields[0], 'action':function_name}
-            messages.append(msg)
+            (size, message, remaining_data) = self.read_message(socket_data)
+            fields = Messages.parse_message(message)
+            if parse_message == False:
+                messages.append(fields)
+            elif fields[0] in message_id_response_map:
+                function_name = message_id_response_map[fields[0]]
+                msg = {'size':size, 'text':message, 'fields':fields, 'id':fields[0], 'action':function_name}
+                messages.append(msg)
+            else:
+                logger.error("Message ID: {0} has not been mapped".format(fields[0]))
             socket_data = remaining_data
 
         return messages
@@ -156,15 +167,15 @@ class BridgeConnection:
             msg = self.make_message(msg)
 
         # Send data, and release the lock
-        try:
-            if make_msg:
-                msg = self.make_msg(msg)
-            nSent = self.socket.send(msg)
-            logger.debug("Message Sent: {0}".format(msg))
-        except Exception as e:
-            logger.error(e)
-        finally:
-            self.lock.release()
+        #try:
+        if make_msg:
+            msg = self.make_msg(msg)
+        nSent = self.socket.send(msg)
+        logger.debug("Message Sent: {0}".format(msg))
+        #except Exception as e:
+        #    logger.error(e)
+        #finally:
+        self.lock.release()
 
         return nSent
 
@@ -208,24 +219,14 @@ class BridgeConnection:
 
         return self.make_field(val)
 
-    def read_msg(self, buf: bytes) -> tuple:
+    def read_message(self, buf: bytes) -> tuple:
         """ first the size prefix and then the corresponding msg payload """
         if len(buf) < 4:
             return (0, "", buf)
         size = struct.unpack("!I", buf[0:4])[0]
-        logger.debug("read_msg: size: %d", size)
+        logger.debug("read_message: size: %d", size)
         if len(buf) - 4 >= size:
             text = struct.unpack("!%ds" % size, buf[4:4 + size])[0]
             return (size, text, buf[4 + size:])
         else:
             return (size, "", buf)
-
-    def read_fields(self, buf: bytes) -> tuple:
-        if isinstance(buf, str):
-            buf = buf.encode()
-
-        """ msg payload is made of fields terminated/separated by NULL chars """
-        fields = buf.split(b"\0")
-        fields[0] = int(fields[0])
-        return tuple(fields[0:-1])  # last one is empty; this may slow dow things though, TODO
-
