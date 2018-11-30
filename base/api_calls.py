@@ -1,41 +1,27 @@
-"""
-Copyright (C) 2018 Interactive Brokers LLC. All rights reserved. This code is subject to the terms
-and conditions of the IB API Non-Commercial License or the IB API Commercial License, as applicable.
-"""
-import time
-
-# TODO: Update the message below
-"""
-TODO: 
-The main class to use from API user's point of view.
-It takes care of almost everything:
-- implementing the requests
-- creating the answer Message Router
-- creating the connection to TWS/IBGW
-The user just needs to override EWrapper methods to receive the answers.
-"""
-
 import logging
-import socket
-
-from base.message_parser import MessageParser
-from base.constants import *
 
 from base.bridge_connection import BridgeConnection
-from base.errors import CONNECT_FAIL, NOT_CONNECTED, UPDATE_TWS, Errors
-from base.message import OUT
+from base.constants import *
+from base.errors import NOT_CONNECTED, UPDATE_TWS, Errors
+from base.messages import Messages
+from base.message_parser import MessageParser
 
-from classes.bar_size import BarSize
 from classes.contracts.contract import Contract
 from classes.order import Order
 from classes.scanner import ScannerSubscription
-
-#from utils import (current_fn_name)
 
 logger = logging.getLogger(__name__)
 
 
 class ApiCalls(object):
+    """
+    Encapsulates all the requests that are available via the API
+
+    ## Responsibilities
+    Call the underlying API call
+    Call any user defined request_handler function as needed
+    """
+
 
     def __init__(self, response_handler=None, request_handler=None):
         self.application_state = "Detached from Bridge"
@@ -104,9 +90,10 @@ class ApiCalls(object):
                 return
 
         message_version = 3
-        fields = []
+
         # send req mkt data msg
-        fields = [OUT.REQ_CALC_IMPLIED_VOLAT, message_version, request_id, contract.id, contract.symbol,
+        message_id = Messages.outbound['request_calc_implied_volat']
+        fields = [message_id, message_version, request_id, contract.id, contract.symbol,
                   contract.security_type, contract.last_trade_date_or_contract_month, contract.strike,
                   contract.right, contract.multiplier, contract.exchange, contract.primary_exchange,
                   contract.currency, contract.local_symbol]
@@ -155,7 +142,8 @@ class ApiCalls(object):
         message_version = 3
 
         # send req mkt data msg
-        fields = [OUT.REQ_CALC_OPTION_PRICE, message_version, request_id, contract.id, contract.symbol,
+        message_id = Messages.outbound['request_calc_option_price']
+        fields = [message_id, message_version, request_id, contract.id, contract.symbol,
                   contract.security_type, contract.last_trade_date_or_contract_month, contract.strike,
                   contract.right, contract.multiplier, contract.exchange, contract.currency, contract.local_symbol]
 
@@ -184,7 +172,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.CANCEL_ACCOUNT_SUMMARY, message_version, request_id]
+        message_id = Messages.outbound['cancel_account_summary']
+        fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
     def cancel_account_updates_multi(self, request_id: int):
@@ -199,7 +188,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.CANCEL_ACCOUNT_UPDATES_MULTI, message_version, request_id]
+        message_id = Messages.outbound['cancel_account_updates_multi']
+        fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
     def cancel_calculate_implied_volatility(self, request_id: int):
@@ -220,7 +210,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.CANCEL_CALC_IMPLIED_VOLAT, message_version, request_id]
+        message_id = Messages.outbound['cancel_calc_implied_volat']
+        fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
     def cancel_calculate_option_price(self, request_id: int):
@@ -241,7 +232,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.CANCEL_CALC_OPTION_PRICE, message_version, request_id]
+        message_id = Messages.outbound['cancel_calc_option_price']
+        fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
     def cancel_fundamental_data(self, request_id: int):
@@ -259,7 +251,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.CANCEL_FUNDAMENTAL_DATA, message_version, request_id]
+        message_id = Messages.outbound['cancel_fundamental_data']
+        fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
     def cancel_market_data(self, request_id: int):
@@ -275,7 +268,8 @@ class ApiCalls(object):
 
         # send req mkt data msg
         message_version = 2
-        fields = [OUT.CANCEL_MKT_DATA, message_version, request_id]
+        message_id = Messages.outbound['cancel_mkt_data']
+        fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
     def cancel_market_depth(self, request_id: int, isSmartDepth: bool):
@@ -298,7 +292,8 @@ class ApiCalls(object):
         message_version = 1
 
         # send cancel mkt depth msg
-        fields = [OUT.CANCEL_MKT_DEPTH, message_version, request_id]
+        message_id = Messages.outbound['cancel_mkt_depth']
+        fields = [message_id, message_version, request_id]
 
         if self.server_version() >= MIN_SERVER_VER_SMART_DEPTH:
             fields.append(isSmartDepth)
@@ -316,7 +311,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.CANCEL_ORDER, message_version, order_id]
+        message_id = Messages.outbound['cancel_order']
+        fields = [message_id, message_version, order_id]
         self.conn.send_message(fields)
 
     def cancel_positions(self):
@@ -334,7 +330,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.CANCEL_POSITIONS, message_version]
+        message_id = Messages.outbound['cancel_positions']
+        fields = [message_id, message_version]
         self.conn.send_message(fields)
 
     def cancel_positions_multi(self, request_id: int):
@@ -349,7 +346,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.CANCEL_POSITIONS_MULTI, message_version, request_id]
+        message_id = Messages.outbound['cancel_positions_multi']
+        fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
     def cancel_pnl(self, request_id: int):
@@ -366,8 +364,8 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
                                         "  It does not support PnL request.")
             return
-
-        fields = [OUT.CANCEL_PNL, request_id]
+        message_id = Messages.outbound['cancel_pnl']
+        fields = [message_id, request_id]
         self.conn.send_message(fields)
 
     def cancel_pnl_single(self, request_id: int):
@@ -381,7 +379,8 @@ class ApiCalls(object):
                                         "  It does not support PnL request.")
             return
 
-        fields = [OUT.CANCEL_PNL_SINGLE, request_id]
+        message_id = Messages.outbound['cancel_pnl_single']
+        fields = [message_id, request_id]
         self.conn.send_message(fields)
 
     def cancel_real_time_bars(self, request_id: int):
@@ -395,7 +394,8 @@ class ApiCalls(object):
 
         # send req mkt data msg
         message_version = 1
-        fields = [OUT.CANCEL_REAL_TIME_BARS, message_version, request_id]
+        message_id = Messages.outbound['cancel_real_time_bars']
+        fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
     def cancel_scanner_subscription(self, request_id: int):
@@ -406,7 +406,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.CANCEL_SCANNER_SUBSCRIPTION, message_version, request_id]
+        message_id = Messages.outbound['cancel_scanner_subscription']
+        fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
     def cancel_tick_by_tick_data(self, request_id: int):
@@ -420,7 +421,8 @@ class ApiCalls(object):
                                         " It does not support tick-by-tick data requests.")
             return
 
-        fields = [OUT.CANCEL_TICK_BY_TICK_DATA, request_id]
+        message_id = Messages.outbound['cancel_tick_by_tick_data']
+        fields = [message_id, request_id]
         self.conn.send_message(fields)
 
     def exercise_options(self, request_id: int, contract: Contract,
@@ -453,8 +455,9 @@ class ApiCalls(object):
 
         insert_offset = 0
         message_version = 2
+        message_id = Messages.outbound['exercise_options']
 
-        fields = [OUT.EXERCISE_OPTIONS, message_version, request_id, contract.symbol, contract.security_type,
+        fields = [message_id, message_version, request_id, contract.symbol, contract.security_type,
                   contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
                   contract.exchange,
                   contract.currency, contract.local_symbol, exercize_action, exercize_quantity, account, override]
@@ -663,8 +666,8 @@ class ApiCalls(object):
             return
 
         # Create the list of fields to send, then send the message
-
-        fields = [OUT.PLACE_ORDER]
+        message_id = Messages.outbound['place_order']
+        fields = [message_id]
 
         if self.server_version() < MIN_SERVER_VER_ORDER_CONTAINER:
             message_version = 27 if (self.server_version() < MIN_SERVER_VER_NOT_HELD) else 45
@@ -977,7 +980,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.REPLACE_FA, message_version, faData, cxml]
+        message_id = Messages.outbound['replace_fa']
+        fields = [message_id, message_version, faData, cxml]
         self.conn.send_message(fields)
 
     def request_account_updates(self, subscribe: bool, account_code: str):
@@ -996,8 +1000,8 @@ class ApiCalls(object):
             return
 
         message_version = 2
-
-        fields = [OUT.REQ_ACCT_DATA, message_version, subscribe, account_code]
+        message_id = Messages.outbound['request_acct_data']
+        fields = [message_id, message_version, subscribe, account_code]
         self.conn.send_message(fields)
 
     def request_account_updates_multi(self, request_id: int, account: str, model_code: str,
@@ -1014,7 +1018,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.REQ_ACCOUNT_UPDATES_MULTI, message_version, request_id, account, model_code, ledgerAndNLV]
+        message_id = Messages.outbound['request_account_updates_multi']
+        fields = [message_id, message_version, request_id, account, model_code, ledgerAndNLV]
         self.conn.send_message(fields)
 
     def request_account_summary(self, request_id: int, group_name: str, tags: str):
@@ -1077,7 +1082,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.REQ_ACCOUNT_SUMMARY, message_version, request_id, group_name, tags]
+        message_id = Messages.outbound['request_account_summary']
+        fields = [message_id, message_version, request_id, group_name, tags]
         self.conn.send_message(fields)
 
     def request_all_open_orders(self):
@@ -1093,7 +1099,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.REQ_ALL_OPEN_ORDERS, message_version]
+        message_id = Messages.outbound['request_all_open_orders']
+        fields = [message_id, message_version]
         self.conn.send_message(fields)
 
     def request_auto_open_orders(self, auto_bind: bool):
@@ -1115,7 +1122,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.REQ_AUTO_OPEN_ORDERS, message_version, auto_bind]
+        message_id = Messages.outbound['request_auto_open_orders']
+        fields = [message_id, message_version, auto_bind]
         message_sent = self.conn.send_message(fields)
         return message_sent
 
@@ -1134,7 +1142,8 @@ class ApiCalls(object):
 
         # send req mkt data msg
         message_version = 8
-        fields = [OUT.REQ_CONTRACT_DATA, message_version, request_id, contract.id, contract.symbol,
+        message_id = Messages.outbound['request_contract_data']
+        fields = [message_id, message_version, request_id, contract.id, contract.symbol,
                   contract.security_type, contract.last_trade_date_or_contract_month,contract.strike, contract.right,
                   contract.multiplier,contract.exchange, contract.primary_exchange]
 
@@ -1158,7 +1167,8 @@ class ApiCalls(object):
         IN.CURRENT_TIME
         """
         message_version = 1
-        fields = [OUT.REQ_CURRENT_TIME, message_version]
+        message_id = Messages.outbound['request_current_time']
+        fields = [message_id, message_version]
         self._send_message(fields)
 
     def request_executions(self, request_id: int, client_id="", account_code="", time="",
@@ -1180,7 +1190,8 @@ class ApiCalls(object):
 
         # Create and Send the Message
         message_version = 3
-        fields = [ OUT.REQ_EXECUTIONS, message_version, request_id, client_id, account_code, time,
+        message_id = Messages.outbound['request_executions']
+        fields = [ message_id, message_version, request_id, client_id, account_code, time,
                    symbol, security_type, exchange, side]
         self._send_message(fields)
 
@@ -1196,7 +1207,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.REQ_GLOBAL_CANCEL, message_version]
+        message_id = Messages.outbound['request_global_cancel']
+        fields = [message_id, message_version]
         self.conn.send_message(fields)
 
     # Note that formatData parameter affects intraday bars only
@@ -1213,7 +1225,8 @@ class ApiCalls(object):
                                         UPDATE_TWS.msg() + "  It does not support head time stamp requests.")
             return
 
-        fields = [OUT.REQ_HEAD_TIMESTAMP, request_id, contract.id, contract.symbol, contract.security_type,
+        message_id = Messages.outbound['request_head_timestamp']
+        fields = [message_id, request_id, contract.id, contract.symbol, contract.security_type,
                   contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
                   contract.exchange, contract.primary_exchange, contract.currency, contract.local_symbol,
                   contract.trading_class,
@@ -1232,7 +1245,8 @@ class ApiCalls(object):
                                         "  It does not support historical news request.")
             return
 
-        fields = [OUT.REQ_HISTORICAL_NEWS, request_id, conId, providerCodes, startDateTime, end_date_time, totalResults]
+        message_id = Messages.outbound['request_historical_news']
+        fields = [message_id, request_id, conId, providerCodes, startDateTime, end_date_time, totalResults]
 
         # send historicalNewsOptions parameter
         if self.server_version() >= MIN_SERVER_VER_NEWS_QUERY_ORIGINS:
@@ -1262,7 +1276,8 @@ class ApiCalls(object):
             for tagValue in miscOptions:
                 miscOptionsString += str(tagValue)
 
-        fields = [OUT.REQ_HISTORICAL_TICKS, request_id, contract.id, contract.symbol, contract.security_type,
+        message_id = Messages.outbound['request_historical_ticks']
+        fields = [message_id, request_id, contract.id, contract.symbol, contract.security_type,
                   contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
                   contract.exchange, contract.primary_exchange, contract.currency, contract.local_symbol,
                   contract.trading_class,
@@ -1281,7 +1296,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.REQ_MANAGED_ACCTS, message_version]
+        message_id = Messages.outbound['request_managed_accts']
+        fields = [message_id, message_version]
         self.conn.send_message(fields)
 
     def request_market_data_type(self, market_data_type: int):
@@ -1305,13 +1321,14 @@ class ApiCalls(object):
                                         UPDATE_TWS.msg() + "  It does not support market data type requests.")
             return
 
-        message_version = 1
 
-        # send req mkt data msg
-        fields = [OUT.REQ_MARKET_DATA_TYPE, message_version, market_data_type]
+        # Create and send the message
+        message_version = 1
+        message_id = Messages.outbound['request_market_data_type']
+        fields = [message_id, message_version, market_data_type]
         self.conn.send_message(fields)
 
-    def request_market_depth_exhanges(self):
+    def request_market_depth_exchanges(self):
         """
 
         :return:
@@ -1326,7 +1343,8 @@ class ApiCalls(object):
                                         "  It does not support market depth exchanges request.")
             return
 
-        fields = [OUT.REQ_MKT_DEPTH_EXCHANGES]
+        message_id = Messages.outbound['request_mkt_depth']
+        fields = [message_id]
         self.conn.send_message(fields)
 
     def request_market_rule(self, market_rule_id: int):
@@ -1340,7 +1358,8 @@ class ApiCalls(object):
                                         " It does not support market rule requests.")
             return
 
-        fields = [OUT.REQ_MARKET_RULE, market_rule_id]
+        message_id = Messages.outbound['request_market_rule']
+        fields = [message_id]
         self.conn.send_message(fields)
 
     def request_news_providers(self):
@@ -1354,12 +1373,8 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_NEWS_PROVIDERS:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support news providers request.")
-            return
-
-        fields = [OUT.REQ_NEWS_PROVIDERS]
+        message_id = Messages.outbound['request_news_providers']
+        fields = [message_id]
         message_sent = self.conn.send_message(fields)
         return message_sent
 
@@ -1380,7 +1395,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.REQ_OPEN_ORDERS, message_version]
+        message_id = Messages.outbound['request_open_orders']
+        fields = [message_id, message_version]
         self.conn.send_message(fields)
 
     def request_positions(self):
@@ -1398,7 +1414,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.REQ_POSITIONS, message_version]
+        message_id = Messages.outbound['request_positions']
+        fields = [message_id, message_version]
         self.conn.send_message(fields)
 
     def request_positions_multi(self, request_id: int, account: str, model_code: str):
@@ -1416,7 +1433,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.REQ_POSITIONS_MULTI, message_version, request_id, account, model_code]
+        message_id = Messages.outbound['request_positions_multi']
+        fields = [message_id, message_version, request_id, account, model_code]
         self.conn.send_message(fields)
 
     def request_smart_components(self, request_id: int, bboExchange: str):
@@ -1430,7 +1448,8 @@ class ApiCalls(object):
                                         "  It does not support smart components request.")
             return
 
-        fields = [OUT.REQ_SMART_COMPONENTS, request_id, bboExchange]
+        message_id = Messages.outbound['request_smart_components']
+        fields = [message_id, request_id, bboExchange]
         self.conn.send_message(fields)
 
     def set_server_log_level(self, logLevel: int):
@@ -1443,7 +1462,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.SET_SERVER_LOGLEVEL, message_version, logLevel]
+        message_id = Messages.outbound['set_server_loglevel']
+        fields = [message_id, message_version, logLevel]
         self.conn.send_message(fields)
 
     def start_api(self):
@@ -1455,11 +1475,8 @@ class ApiCalls(object):
             return
 
         message_version = 2
-        fields = [OUT.START_API, message_version, self.client_id]
-
-        if self.server_version() >= MIN_SERVER_VER_OPTIONAL_CAPABILITIES:
-            fields.append(self.optional_capabilities)
-
+        message_id = Messages.outbound['start_api']
+        fields = [message_id, message_version, self.client_id, self.optional_capabilities]
         self.conn.send_message(fields)
 
     def subscribe_to_group_events(self, request_id: int, groupId: int):
@@ -1477,10 +1494,10 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.SUBSCRIBE_TO_GROUP_EVENTS, message_version, request_id, groupId]
+        message_id = Messages.outbound['subscribe_to_group_events']
+        fields = [message_id, message_version, request_id, groupId]
         self.conn.send_message(fields)
 
-    # Not Alphabetically\\
     def connect(self, host, port, client_id):
         """
         This function must be called before any other. There is no
@@ -1505,45 +1522,42 @@ class ApiCalls(object):
         logger.info("Connecting to %s:%d w/ id:%d", self.host, self.port, self.client_id)
         self.conn = BridgeConnection(self.host, self.port)
 
-        try:
-            self.conn.connect()
+        #try:
+        self.conn.connect()
 
-            v100prefix = "API\0"
-            v100version = "v%d..%d" % (MIN_CLIENT_VER, MAX_CLIENT_VER)
+        # Send a message to connect to the Bridge (No response is given)
+        v100prefix = "API\0"
+        v100version = "v%d..%d" % (MIN_CLIENT_VER, MAX_CLIENT_VER)
+        msg = self.conn.make_msg(v100version)
+        msg = str.encode(v100prefix, 'ascii') + msg
+        self.conn.send_message(msg)
 
-            msg = self.conn.make_msg(v100version)
-            logger.debug("msg %s", msg)
-            msg2 = str.encode(v100prefix, 'ascii') + msg
-            logger.debug("msg2 %s", msg2)
-            self.conn.send_message(msg2)
+        message = self.conn.receive_messages(False)[0]
+        (server_version, conn_time) = message
 
-            message = self.conn.receive_messages()[0]
-            (server_version, conn_time) = self.conn.read_fields(message['text'])
+        self.connection_time = conn_time
+        logger.info("Connection Time: {0}".format(self.connection_time))
 
-            self.connection_time = conn_time
-            logger.info("Connection Time: {0}".format(self.connection_time))
+        self.server_version_ = int(server_version)
+        logger.info("Server Version: {0}".format(self.server_version_))
 
-            self.server_version_ = int(server_version)
-            logger.info("Server Version: {0}".format(self.server_version_))
+        self.start_api()
+        logger.info("Connected to %s:%d w/ id:%d", self.host, self.port, self.client_id)
 
-            # logger.info("sent start_api")
-            self.start_api()
+        if self.response_handler:
+            self.response_handler.connectAck()
 
-            if self.response_handler:
-                self.response_handler.connectAck()
-
-        except socket.error:
-            logging.error(socket.error)
-            if self.response_handler:
-                self.response_handler.error(NO_VALID_ID, CONNECT_FAIL.code(), CONNECT_FAIL.msg())
-            logger.info("could not connect")
-            self.conn.disconnect()
-        except Exception as e:
-            if hasattr(e, 'message'):
-                print(e.message)
-            else:
-                print(e)
-
+        #except socket.error:
+        #    logging.error(socket.error)
+        #    if self.response_handler:
+        #        self.response_handler.error(NO_VALID_ID, CONNECT_FAIL.code(), CONNECT_FAIL.msg())
+        #    logger.info("could not connect")
+        #    self.conn.disconnect()
+        #except Exception as e:
+        #    if hasattr(e, 'message'):
+        #        print(e.message)
+        #    else:
+        #        print(e)
 
 
     def request_historical_data(self, contract: Contract, end_date_time: str,
@@ -1608,7 +1622,8 @@ class ApiCalls(object):
 
         # Create Message
         request_id = 29
-        fields = [OUT.REQ_HISTORICAL_DATA, request_id, contract.id, contract.symbol, contract.security_type,
+        message_id = Messages.outbound['request_historical_data']
+        fields = [message_id, request_id, contract.id, contract.symbol, contract.security_type,
                     contract.last_trade_date_or_contract_month,
                     contract.strike, contract.right, contract.multiplier, contract.exchange,
                     contract.primary_exchange, contract.currency, contract.local_symbol, contract.trading_class,
@@ -1650,7 +1665,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.REQ_NEWS_BULLETINS, message_version, allMsgs]
+        message_id = Messages.outbound['request_news_bulletins']
+        fields = [message_id, message_version, allMsgs]
         self.conn.send_message(fields)
 
     def request_pnl(self, request_id: int, account: str, model_code: str):
@@ -1664,7 +1680,8 @@ class ApiCalls(object):
                                         "  It does not support PnL request.")
             return
 
-        fields = [OUT.REQ_PNL, request_id, account, model_code]
+        message_id = Messages.outbound['request_pnl']
+        fields = [message_id, request_id, account, model_code]
         self.conn.send_message(fields)
 
     def request_pnl_single(self, request_id: int, account: str, model_code: str, contract_id: int):
@@ -1680,7 +1697,8 @@ class ApiCalls(object):
                                         "  It does not support PnL request.")
             return
 
-        fields = [OUT.REQ_PNL_SINGLE, request_id, account, model_code, contract_id]
+        message_id = Messages.outbound['request_pnl_single']
+        fields = [message_id, request_id, account, model_code, contract_id]
         self.conn.send_message(fields)
 
     def request_tick_by_tick_data(self, request_id: int, contract: Contract, tick_type: str,
@@ -1701,7 +1719,8 @@ class ApiCalls(object):
                                         "in tick-by-tick data requests.")
             return
 
-        fields = [OUT.REQ_TICK_BY_TICK_DATA, request_id, contract.id, contract.symbol, contract.security_type,
+        message_id = Messages.outbound['request_tick_by_tick_data']
+        fields = [message_id, request_id, contract.id, contract.symbol, contract.security_type,
                   contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
                   contract.exchange, contract.primary_exchange, contract.currency, contract.local_symbol,
                   contract.trading_class, tick_type
@@ -1730,7 +1749,8 @@ class ApiCalls(object):
         #    return
 
         message_version = 1
-        fields = [OUT.VERIFY_REQUEST, message_version, apiName, api_version]
+        message_id = Messages.outbound['verify_request']
+        fields = [message_id, message_version, apiName, api_version]
         self._send_message(fields)
 
     def request_market_data(self, request_id: int, contract: Contract, generic_tick_list: str,
@@ -1782,7 +1802,8 @@ class ApiCalls(object):
 
         # send req mkt data msg
         insert_offset = 0
-        fields = [OUT.REQ_MKT_DATA, message_version, request_id, contract.symbol, contract.security_type,
+        message_id = Messages.outbound['request_mkt_data']
+        fields = [message_id, message_version, request_id, contract.symbol, contract.security_type,
                           contract.last_trade_date_or_contract_month,
                           contract.strike, contract.right, contract.multiplier, contract.exchange,
                           contract.primary_exchange,
@@ -1854,7 +1875,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.REQ_IDS, message_version, numIds]
+        message_id = Messages.outbound['request_ids']
+        fields = [message_id, message_version, numIds]
         self.conn.send_message(fields)
 
     def request_MktDepth(self, request_id: int, contract: Contract,
@@ -1894,9 +1916,9 @@ class ApiCalls(object):
             return
 
         message_version = 5
-
+        message_id = Messages.outbound['request_mkt_depth']
         # send req mkt depth msg
-        fields = [OUT.REQ_MKT_DEPTH, message_version, request_id]
+        fields = [message_id, message_version, request_id]
 
         # send contract fields
         if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
@@ -1937,7 +1959,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.CANCEL_NEWS_BULLETINS, message_version]
+        message_id = Messages.outbound['cancel_news_bulletins']
+        fields = [message_id, message_version]
         self.conn.send_message(fields)
 
     def request_uestFA(self, faData: int):
@@ -1956,7 +1979,8 @@ class ApiCalls(object):
 
         message_version = 1
 
-        fields = [OUT.REQ_FA, message_version, int(faData)]
+        message_id = Messages.outbound['request_fa']
+        fields = [message_id, message_version, int(faData)]
         self.conn.send_message(fields)
 
     def cancel_historical_data(self, request_id: int):
@@ -1971,7 +1995,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.CANCEL_HISTORICAL_DATA, message_version, request_id]
+        message_id = Messages.outbound['cancel_historical_data']
+        fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
     def cancel_head_time_stamp(self, request_id: int):
@@ -1985,10 +2010,11 @@ class ApiCalls(object):
                                         UPDATE_TWS.msg() + "  It does not support head time stamp requests.")
             return
 
-        fields = [OUT.CANCEL_HEAD_TIMESTAMP, request_id]
+        message_id = Messages.outbound['cancel_head_timestamp']
+        fields = [message_id, request_id]
         self.conn.send_message(fields)
 
-    def request_HistogramData(self, tickerId: int, contract: Contract,
+    def request_histogram_data(self, tickerId: int, contract: Contract,
                               useRTH: bool, timePeriod: str):
 
         if not self.conn.is_connected():
@@ -2000,14 +2026,15 @@ class ApiCalls(object):
                                         "  It does not support histogram requests..")
             return
 
-        fields = [OUT.REQ_HISTOGRAM_DATA, tickerId, contract.id, contract.symbol, contract.security_type,
+        message_id = Messages.outbound['request_histogram_data']
+        fields = [message_id, tickerId, contract.id, contract.symbol, contract.security_type,
                   contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
                   contract.exchange, contract.primary_exchange, contract.currency, contract.local_symbol,
                   contract.trading_class, contract.include_expired, useRTH,
                   timePeriod]
         self.conn.send_message(fields)
 
-    def cancelHistogramData(self, tickerId: int):
+    def cancel_histogram_data(self, tickerId: int):
 
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
@@ -2018,7 +2045,8 @@ class ApiCalls(object):
                                         "  It does not support histogram requests..")
             return
 
-        fields = [OUT.CANCEL_HISTOGRAM_DATA, tickerId]
+        message_id = Messages.outbound['cancel_histogram_data']
+        fields = [message_id, tickerId]
         self.conn.send_message(fields)
 
     def request_scanner_parameters(self):
@@ -2029,7 +2057,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.REQ_SCANNER_PARAMETERS, message_version]
+        message_id = Messages.outbound['request_scanner_parameters']
+        fields = [message_id, message_version]
         self.conn.send_message(fields)
 
     def request_scanner_subscription(self, request_id: int,
@@ -2052,8 +2081,8 @@ class ApiCalls(object):
             return
 
         message_version = 4
-
-        fields = [OUT.REQ_SCANNER_SUBSCRIPTION]
+        message_id = Messages.outbound['request_scanner_subscription']
+        fields = [message_id]
 
         if self.server_version() < MIN_SERVER_VER_SCANNER_GENERIC_OPTS:
             fields.append(message_version)
@@ -2142,8 +2171,8 @@ class ApiCalls(object):
                 return
 
         message_version = 3
-
-        fields = [OUT.REQ_REAL_TIME_BARS, message_version, request_id]
+        message_id = Messages.outbound['request_real_time_bars']
+        fields = [message_id, message_version, request_id]
 
         # send contract fields
         if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
@@ -2201,7 +2230,8 @@ class ApiCalls(object):
 
         # Create the message body
         message_version = 2
-        fields = [OUT.REQ_FUNDAMENTAL_DATA, message_version, request_id, contract.id, contract.symbol,
+        message_id = Messages.outbound['request_fundamental_data']
+        fields = [message_id, message_version, request_id, contract.id, contract.symbol,
                   contract.security_type, contract.exchange, contract.primary_exchange, contract.currency,
                   contract.local_symbol, report_type]
 
@@ -2227,8 +2257,8 @@ class ApiCalls(object):
             return
 
         fields = []
-
-        fields += [OUT.REQ_NEWS_ARTICLE, request_id, providerCode, articleId]
+        message_id = Messages.outbound['request_news_article']
+        fields += [message_id, request_id, providerCode, articleId]
 
         # send newsArticleOptions parameter
         if self.server_version() >= MIN_SERVER_VER_NEWS_QUERY_ORIGINS:
@@ -2262,10 +2292,11 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.QUERY_DISPLAY_GROUPS, message_version, request_id]
+        message_id = Messages.outbound['query_display_groups']
+        fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
-    def updateDisplayGroup(self, request_id: int, contractInfo: str):
+    def update_display_group(self, request_id: int, contractInfo: str):
         """request_id:int - The requestId specified in subscribeToGroupEvents().
         contractInfo:str - The encoded value that uniquely represents the
             contract in IB. Possible values include:
@@ -2281,14 +2312,15 @@ class ApiCalls(object):
 
         if self.server_version() < MIN_SERVER_VER_LINKING:
             self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support updateDisplayGroup request.")
+                                        "  It does not support update_display_group request.")
             return
 
         message_version = 1
-        fields = [OUT.UPDATE_DISPLAY_GROUP, message_version, request_id, contractInfo]
+        message_id = Messages.outbound['update_display_group']
+        fields = [message_id, message_version, request_id, contractInfo]
         self.conn.send_message(fields)
 
-    def unsubscribeFromGroupEvents(self, request_id: int):
+    def unsubscribe_from_group_events(self, request_id: int):
         """request_id:int - The requestId specified in subscribeToGroupEvents()."""
 
         if not self.conn.is_connected():
@@ -2297,12 +2329,12 @@ class ApiCalls(object):
 
         if self.server_version() < MIN_SERVER_VER_LINKING:
             self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support unsubscribeFromGroupEvents request.")
+                                        "  It does not support unsubscribe_from_group_events request.")
             return
 
         message_version = 1
-
-        fields = [OUT.UNSUBSCRIBE_FROM_GROUP_EVENTS, message_version, request_id]
+        message_id = Messages.outbound['unsubscribe_from_group_events']
+        fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
     def verify_message(self, api_data: str):
@@ -2319,7 +2351,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.VERIFY_MESSAGE, message_version, api_data]
+        message_id = Messages.outbound['verify_message']
+        fields = [message_id, message_version, api_data]
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
 
@@ -2343,7 +2376,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.VERIFY_AND_AUTH_REQUEST, message_version, api_name, api_version, opaqueIsvKey]
+        message_id = Messages.outbound['verify_and_auth_request']
+        fields = [message_id, message_version, api_name, api_version, opaqueIsvKey]
         self.conn.send_message(fields)
 
     def verify_and_auth_message(self, api_data: str, xyzResponse: str):
@@ -2360,7 +2394,8 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        fields = [OUT.VERIFY_AND_AUTH_MESSAGE, message_version, api_data, xyzResponse]
+        message_id = Messages.outbound['verify_and_auth_message']
+        fields = [message_id, message_version, api_data, xyzResponse]
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
 
@@ -2384,7 +2419,8 @@ class ApiCalls(object):
                                         "  It does not support security definition option request.")
             return
 
-        fields = [OUT.REQ_SEC_DEF_OPT_PARAMS, request_id, underlying_symbol,
+        message_id = Messages.outbound['request_sec_def_opt_params']
+        fields = [message_id, request_id, underlying_symbol,
                   futFopExchange, underlyingSecType, underlyingConId]
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
@@ -2398,7 +2434,8 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        fields = [OUT.REQ_SOFT_DOLLAR_TIERS, request_id]
+        message_id = Messages.outbound['request_soft_dollar_tiers']
+        fields = [message_id, request_id]
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
 
@@ -2413,12 +2450,18 @@ class ApiCalls(object):
                                         "  It does not support family codes request.")
             return
 
-        fields = [OUT.REQ_FAMILY_CODES]
+        message_id = Messages.outbound['request_family_codes']
+        fields = [message_id]
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
 
     def request_matching_symbols(self, request_id: int, pattern: str):
+        """
 
+        :param request_id:
+        :param pattern:
+        :return:
+        """
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
@@ -2429,6 +2472,8 @@ class ApiCalls(object):
             return
 
         # Create and send the Message
-        fields = [OUT.REQ_MATCHING_SYMBOLS, request_id, pattern]
+
+        message_id = Messages.outbound['request_matching_symbols']
+        fields = [message_id, request_id, pattern]
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
