@@ -1,24 +1,12 @@
 """
-Copyright (C) 2018 Interactive Brokers LLC. All rights reserved. This code is subject to the terms
-and conditions of the IB API Non-Commercial License or the IB API Commercial License, as applicable.
-"""
-
-"""
 Extracts data from messages and returns the appropriate class(es)
 
 """
 
-#from ibkr_api.classes import order_condition
+from base.messages import Messages
 from classes.contracts.contract_details import ContractDetails
 from classes.contracts.contract_description import ContractDescription
-#from ibkr_api.classes.combo_leg import ComboLeg
-#from ibkr_api.classes.order import OrderComboLeg
-
-#from ibkr_api.classes.soft_dollar_tier import SoftDollarTier
-#from ibkr_api.classes.scanner import ScanData
-#from ibkr_api.classes.tag_value import TagValue
-
-#from ibkr_api.ticktype import *  # @UnusedWildImport
+from classes.bar import Bar
 
 import logging
 import time
@@ -28,10 +16,8 @@ logger = logging.getLogger(__name__)
 
 class MessageParser(object):
     def __init__(self):
-        ##self.response_handler = response_handler
         self.server_version = 147
-        # self.discoverParams()
-        # self.printParams()
+
 
     def current_time(self, message):
         """
@@ -707,37 +693,37 @@ class MessageParser(object):
 
         # self.response_handler.execDetails(reqId, contract, execution)
 
-    def processHistoricalDataMsg(self, fields):
-        next(fields)
+    def historical_data(self, message):
+        """
 
-        if self.server_version < MIN_SERVER_VER_SYNT_REALTIME_BARS:
-            decode(int, fields)
+        :param message:
+        :return: Message ID, Request ID, Bar Data
+        """
+        bars = []
+        fields = message['fields']
+        message_id = int(fields[0])
+        request_id = int(fields[1])
+        start_date = fields[2]
+        end_date   = fields[3]
+        bar_count = int(fields[4])
+        current_bar = 1
+        bar_index = 5
 
-        reqId = decode(int, fields)
-        startDateStr = decode(str, fields)  # ver 2 field
-        endDateStr = decode(str, fields)  # ver 2 field
+        while current_bar <= bar_count:
+            bar = Bar()
+            bar.date = str(fields[bar_index]) # TODO: Make a proper date
+            bar.open = float(fields[bar_index+1])
+            bar.high = float(fields[bar_index+2])
+            bar.low = float(fields[bar_index+3])
+            bar.close = float(fields[bar_index+4])
+            bar.volume = fields[bar_index+5]
+            bar.average = fields[bar_index+6]
+            bar.bar_count = fields[bar_index+7]
+            bar_index += 8
+            current_bar += 1
+            bars.append(bar)
 
-        itemCount = decode(int, fields)
-
-        for _ in range(itemCount):
-            bar = BarData()
-            bar.date = decode(str, fields)
-            bar.open = decode(float, fields)
-            bar.high = decode(float, fields)
-            bar.low = decode(float, fields)
-            bar.close = decode(float, fields)
-            bar.volume = decode(int, fields)
-            bar.average = decode(float, fields)
-
-            if self.server_version < MIN_SERVER_VER_SYNT_REALTIME_BARS:
-                decode(str, fields)
-
-            bar.barCount = decode(int, fields)  # ver 3 field
-
-            # self.response_handler.historicalData(reqId, bar)
-
-        # send end of dataset marker
-        # self.response_handler.historicalDataEnd(reqId, startDateStr, endDateStr)
+        return message_id, request_id, bars
 
     def processHistoricalDataUpdateMsg(self, fields):
         next(fields)
