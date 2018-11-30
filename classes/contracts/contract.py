@@ -1,10 +1,4 @@
 """
-Copyright (C) 2018 Interactive Brokers LLC. All rights reserved. This code is subject to the terms
-and conditions of the IB API Non-Commercial License or the IB API Commercial License, as applicable.
-"""
-
-
-"""
 	SAME_POS    = open/close leg value is same as combo
 	OPEN_POS    = open
 	CLOSE_POS   = close
@@ -16,7 +10,7 @@ and conditions of the IB API Non-Commercial License or the IB API Commercial Lic
 
 
 class Contract(object):
-    def __init__(self, symbol="", security_type="", currency="", exchange="", contract_id=0, strike=0.0,
+    def __init__(self, symbol="", security_type="", currency="USD", exchange="ISLAND", contract_id=0, strike=0.0,
                  last_trade_date_or_contract_month="", right="", multiplier="", primary_exchange="", local_symbol="",
                  trading_class="", include_expired=False, security_id_type="", security_id="", **kwargs):
 
@@ -38,6 +32,7 @@ class Contract(object):
         self.security_id_type = security_id_type	  # CUSIP;SEDOL;ISIN;RIC
         self.security_id = security_id
 
+        self.derivative_security_types = []
         #combos
         self.comboLegsDescrip = ""  # type: str; received in open order 14 and up for all combos
         self.comboLegs = None     # type: list<ComboLeg>
@@ -63,7 +58,7 @@ class Contract(object):
             str(self.currency),
             str(self.local_symbol),
             str(self.trading_class),
-            str(self.inlcude_expired),
+            str(self.include_expired),
             str(self.security_id_type),
             str(self.security_id)))
         s += "combo:" + self.comboLegsDescrip
