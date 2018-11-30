@@ -6,9 +6,9 @@ CONNECTED = "CONNECTED"
 DISCONNECTED = "DISCONNECTED"
 
 # TWS New Bulletins constants
-NEWS_MSG              = 1    # standard IB news bulleting message
-EXCHANGE_AVAIL_MSG    = 2    # control message specifing that an exchange is available for trading
-EXCHANGE_UNAVAIL_MSG  = 3    # control message specifing that an exchange is unavailable for trading
+NEWS_MSG              = 1    # standard IB news bulletin message
+EXCHANGE_AVAIL_MSG    = 2    # control message specifying that an exchange is available for trading
+EXCHANGE_UNAVAIL_MSG  = 3    # control message specifying that an exchange is unavailable for trading
 
 
 
