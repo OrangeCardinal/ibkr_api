@@ -4,6 +4,7 @@ Extracts data from messages and returns the appropriate class(es)
 """
 
 from base.messages import Messages
+from classes.contracts.contract import Contract
 from classes.contracts.contract_details import ContractDetails
 from classes.contracts.contract_description import ContractDescription
 from classes.bar import Bar
@@ -40,6 +41,57 @@ class MessageParser(object):
         accounts = []  # List of Accounts to Return
         print(fields)
         return accounts
+
+
+    def symbol_samples(self, message):
+        fields = message['fields']
+
+        request_id = int(fields[1])
+        num_samples = int(fields[2])
+        field_index = 3
+        contracts = []
+        print(fields)
+        print(num_samples)
+        for index in range(num_samples):
+            contract = Contract()
+            contract.id = int(fields[field_index])
+            contract.symbol = str(fields[field_index+1])
+            contract.security_type = str(fields[field_index+2])
+            contract.primary_exchange = str(fields[field_index+3])
+            contract.currency = str(fields[field_index+4])
+            contracts.append(contract)
+
+            num_security_types = int(fields[field_index+5])
+            field_index += 6
+            print(num_security_types)
+            for j in range(num_security_types):
+                derivative_security_type = str(fields[field_index])
+                contract.derivative_security_types.append(derivative_security_type)
+                field_index += 1
+
+        return request_id, contracts
+
+        #next(fields)
+
+        #reqId = decode(int, fields)
+        #nContractDescriptions = decode(int, fields)
+        #contractDescriptions = []
+        #for _ in range(nContractDescriptions):
+        #    conDesc = ContractDescription()
+        #    conDesc.contract.id = decode(int, fields)
+        #    conDesc.contract.symbol = decode(str, fields)
+        #    conDesc.contract.secType = decode(str, fields)
+        #    conDesc.contract.primaryExchange = decode(str, fields)
+        #    conDesc.contract.currency = decode(str, fields)
+
+        #    nDerivativeSecTypes = decode(int, fields)
+        #    conDesc.derivativeSecTypes = []
+        #    for _ in range(nDerivativeSecTypes):
+        #        derivSecType = decode(str, fields)
+        #        conDesc.derivativeSecTypes.append(derivSecType)
+        #    contractDescriptions.append(conDesc)
+
+        # self.response_handler.symbolSamples(reqId, contractDescriptions)
 
     def processTickPriceMsg(self, fields):
         next(fields)
@@ -957,29 +1009,6 @@ class MessageParser(object):
             familyCodes.append(famCode)
 
         # self.response_handler.familyCodes(familyCodes)
-
-    def processSymbolSamplesMsg(self, fields):
-        next(fields)
-
-        reqId = decode(int, fields)
-        nContractDescriptions = decode(int, fields)
-        contractDescriptions = []
-        for _ in range(nContractDescriptions):
-            conDesc = ContractDescription()
-            conDesc.contract.id = decode(int, fields)
-            conDesc.contract.symbol = decode(str, fields)
-            conDesc.contract.secType = decode(str, fields)
-            conDesc.contract.primaryExchange = decode(str, fields)
-            conDesc.contract.currency = decode(str, fields)
-
-            nDerivativeSecTypes = decode(int, fields)
-            conDesc.derivativeSecTypes = []
-            for _ in range(nDerivativeSecTypes):
-                derivSecType = decode(str, fields)
-                conDesc.derivativeSecTypes.append(derivSecType)
-            contractDescriptions.append(conDesc)
-
-        # self.response_handler.symbolSamples(reqId, contractDescriptions)
 
     def processSmartComponents(self, fields):
         next(fields)
