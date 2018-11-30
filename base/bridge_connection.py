@@ -136,14 +136,12 @@ class BridgeConnection:
         while socket_data != b"":
             (size, message, remaining_data) = self.read_message(socket_data)
             fields = Messages.parse_message(message)
-            if parse_message == False:
+            if not parse_message:
                 messages.append(fields)
-            elif fields[0] in message_id_response_map:
-                function_name = message_id_response_map[fields[0]]
-                msg = {'size':size, 'text':message, 'fields':fields, 'id':fields[0], 'action':function_name}
-                messages.append(msg)
             else:
-                logger.error("Message ID: {0} has not been mapped".format(fields[0]))
+                function_name = Messages.get_inbound_action(fields[0])
+                msg = {'size':size, 'text':message, 'fields':fields, 'id':fields[0], 'action':function_name, 'fields':fields}
+                messages.append(msg)
             socket_data = remaining_data
 
         return messages
@@ -227,6 +225,6 @@ class BridgeConnection:
         logger.debug("read_message: size: %d", size)
         if len(buf) - 4 >= size:
             text = struct.unpack("!%ds" % size, buf[4:4 + size])[0]
-            return (size, text, buf[4 + size:])
+            return size, text, buf[4 + size:]
         else:
             return (size, "", buf)

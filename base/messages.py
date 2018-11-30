@@ -54,3 +54,9 @@ class Messages(object):
             fields = message.split(b"\0")
             fields[0] = int(fields[0])
             return tuple(fields[0:-1])
+
+        @staticmethod
+        def get_inbound_action(message_id):
+            for action, action_id in Messages.inbound.items():
+                if action_id == message_id:
+                    return action

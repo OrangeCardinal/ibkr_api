@@ -20,29 +20,6 @@ MAX_MSG_LEN = 0xFFFFFF # 16Mb - 1byte
 UNSET_INTEGER = 2 ** 31 - 1
 UNSET_DOUBLE = sys.float_info.max
 
-#######
-### ###
-#######
-message_id_response_map = {
-    1:  'tick_price',
-    2:  'tick_size',
-    3:  'order_status',
-    4:  'error_message',
-    5:  'open_order',
-    6:  'account_value',
-    7:  'portfolio_value',
-    8:  'account_update_time',
-    9:  'next_valid_id',
-    10: 'contract_data',
-    11: 'execution_data',
-    12: 'market_depth',
-    13: 'market_depth_l2',
-    14: 'news_bulletins',
-    15: 'managed_accounts',
-    17: 'historical_data',
-    49: 'current_time'    ,
-}
-
 ##################################################################################################
 ### Client/Server Versions used to determine functionality available in the client application ###
 ##################################################################################################
