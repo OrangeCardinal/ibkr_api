@@ -8,10 +8,10 @@ class Messages(object):
         field_types = FieldType
 
         inbound = {
-            'tick_price':1,'tick_size':2,'order_status':3,'err_msg':4,'open_order':5,
+            'tick_price':1,'tick_size':2,'order_status':3,'info_message':4,'open_order':5,
             'acct_value':6,'portfolio_value':7,'acct_update_time':8,'next_valid_id':9,
             'contract_data':10,'execution_data':11,'market_depth':12,'market_depth_l2':13,
-            'news_bulletins':14,'managed_accts':15,'receive_fa':16,'historical_data':17,
+            'news_bulletins':14,'managed_accounts':15,'receive_fa':16,'historical_data':17,
             'bond_contract_data':18,'scanner_parameters':19,'scanner_data':20,'tick_option_computation':21,
             'tick_generic':45,'tick_string':46,'tick_efp':47,'current_time':49,
             'real_time_bars':50,'fundamental_data':51,'contract_data_end':52,'open_order_end':53,
@@ -32,7 +32,7 @@ class Messages(object):
             'request_mkt_data':1,'cancel_mkt_data':2,'place_order':3,'cancel_order':4,'request_open_orders':5,'request_acct_data':6,
             'request_executions':7,'request_ids':8,'request_contract_data':9,'request_mkt_depth':10,'cancel_mkt_depth':11,'request_news_bulletins':12,
             'cancel_news_bulletins':13,'set_server_loglevel':14,'request_auto_open_orders':15,'request_all_open_orders':16,
-            'request_managed_accts':17,'request_fa':18,'replace_fa':19,'request_historical_data':20,'exercise_options':21,'request_scanner_subscription':22,
+            'request_managed_accounts':17,'request_fa':18,'replace_fa':19,'request_historical_data':20,'exercise_options':21,'request_scanner_subscription':22,
             'cancel_scanner_subscription':23,'request_scanner_parameters':24,'cancel_historical_data':25,'request_current_time':49,
             'request_real_time_bars':50,'cancel_real_time_bars':51,'request_fundamental_data':52,'cancel_fundamental_data':53,
             'request_calc_implied_volat':54,'request_calc_option_price':55,'cancel_calc_implied_volat':56,'cancel_calc_option_price':57,
