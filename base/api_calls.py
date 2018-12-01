@@ -78,16 +78,6 @@ class ApiCalls(object):
             self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_CALC_IMPLIED_VOLAT:
-            self.response_handler.error(request_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support calculateImpliedVolatility req.")
-            return
-
-        if self.server_version() < MIN_SERVER_VER_TRADING_CLASS:
-            if contract.trading_class:
-                self.response_handler.error(request_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support trading_class parameter in calculateImpliedVolatility.")
-                return
 
         message_version = 3
 
@@ -204,11 +194,6 @@ class ApiCalls(object):
             self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_CALC_IMPLIED_VOLAT:
-            self.response_handler.error(request_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support calculateImpliedVolatility req.")
-            return
-
         message_version = 1
         message_id = Messages.outbound['cancel_calc_implied_volat']
         fields = [message_id, message_version, request_id]
@@ -226,11 +211,6 @@ class ApiCalls(object):
             self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_CALC_IMPLIED_VOLAT:
-            self.response_handler.error(request_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support calculateImpliedVolatility req.")
-            return
-
         message_version = 1
         message_id = Messages.outbound['cancel_calc_option_price']
         fields = [message_id, message_version, request_id]
@@ -243,11 +223,6 @@ class ApiCalls(object):
 
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-        if self.server_version() < MIN_SERVER_VER_FUNDAMENTAL_DATA:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support fundamental data request.")
             return
 
         message_version = 1
@@ -384,7 +359,7 @@ class ApiCalls(object):
         self.conn.send_message(fields)
 
     def cancel_real_time_bars(self, request_id: int):
-        """Call the cancelRealTimeBars() function to stop receiving real time bar results.
+        """Call the cancel_real_time_bars() function to stop receiving real time bar results.
 
         request_id:int - The Id that was specified in the call to reqRealTimeBars(). """
 
@@ -1012,10 +987,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_MODELS_SUPPORT:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support account updates multi request.")
-            return
 
         message_version = 1
         message_id = Messages.outbound['request_account_updates_multi']
@@ -1127,7 +1098,7 @@ class ApiCalls(object):
         message_sent = self.conn.send_message(fields)
         return message_sent
 
-    def request_contract_details(self, contract: Contract, request_id=None):
+    def request_contract_data(self, contract: Contract, request_id=None):
         """Call this function to download all details for a particular
         underlying. The contract details will be received via the contractDetails()
         function on the EWrapper.
@@ -1266,10 +1237,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_HISTORICAL_TICKS:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support historical ticks requests..")
-            return
 
         miscOptionsString = ""
         if miscOptions:
@@ -1296,7 +1263,7 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        message_id = Messages.outbound['request_managed_accts']
+        message_id = Messages.outbound['request_managed_accounts']
         fields = [message_id, message_version]
         self.conn.send_message(fields)
 
@@ -1316,11 +1283,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_MARKET_DATA_TYPE:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(),
-                                        UPDATE_TWS.msg() + "  It does not support market data type requests.")
-            return
-
 
         # Create and send the message
         message_version = 1
@@ -1338,10 +1300,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_MKT_DEPTH_EXCHANGES:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support market depth exchanges request.")
-            return
 
         message_id = Messages.outbound['request_mkt_depth']
         fields = [message_id]
@@ -1351,11 +1309,6 @@ class ApiCalls(object):
 
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-        if self.server_version() < MIN_SERVER_VER_MARKET_RULES:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        " It does not support market rule requests.")
             return
 
         message_id = Messages.outbound['request_market_rule']
@@ -1488,10 +1441,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_LINKING:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support subscribeToGroupEvents request.")
-            return
 
         message_version = 1
         message_id = Messages.outbound['subscribe_to_group_events']
@@ -1675,10 +1624,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_PNL:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support PnL request.")
-            return
 
         message_id = Messages.outbound['request_pnl']
         fields = [message_id, request_id, account, model_code]
@@ -1686,16 +1631,11 @@ class ApiCalls(object):
 
     def request_pnl_single(self, request_id: int, account: str, model_code: str, contract_id: int):
 
-        self.log_request(current_fn_name(), vars())
 
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_PNL:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support PnL request.")
-            return
 
         message_id = Messages.outbound['request_pnl_single']
         fields = [message_id, request_id, account, model_code, contract_id]
@@ -1708,16 +1648,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_TICK_BY_TICK:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        " It does not support tick-by-tick data requests.")
-            return
-
-        if self.server_version() < MIN_SERVER_VER_TICK_BY_TICK_IGNORE_SIZE:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        " It does not support ignoreSize and number_of_ticks parameters "
-                                        "in tick-by-tick data requests.")
-            return
 
         message_id = Messages.outbound['request_tick_by_tick_data']
         fields = [message_id, request_id, contract.id, contract.symbol, contract.security_type,
@@ -1725,9 +1655,9 @@ class ApiCalls(object):
                   contract.exchange, contract.primary_exchange, contract.currency, contract.local_symbol,
                   contract.trading_class, tick_type
                   ]
-        if self.server_version() >= MIN_SERVER_VER_TICK_BY_TICK_IGNORE_SIZE:
-            fields.append(number_of_ticks)
-            fields.append(ignoreSize)
+
+        fields.append(number_of_ticks)
+        fields.append(ignoreSize)
 
         self.conn.send_message(fields)
 
@@ -1780,11 +1710,6 @@ class ApiCalls(object):
             self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_DELTA_NEUTRAL:
-            if contract.deltaNeutralContract:
-                self.response_handler.error(request_id, UPDATE_TWS.code(),
-                                            UPDATE_TWS.msg() + "  It does not support delta-neutral orders.")
-                return
 
         if self.server_version() < MIN_SERVER_VER_REQ_MKT_DATA_CONID:
             if contract.id > 0:
@@ -1792,11 +1717,6 @@ class ApiCalls(object):
                                             UPDATE_TWS.msg() + "  It does not support id parameter.")
                 return
 
-        if self.server_version() < MIN_SERVER_VER_TRADING_CLASS:
-            if contract.trading_class:
-                self.response_handler.error(request_id, UPDATE_TWS.code(),
-                                            UPDATE_TWS.msg() + "  It does not support trading_class parameter in reqMktData.")
-                return
 
         message_version = 11
 
@@ -2132,9 +2052,9 @@ class ApiCalls(object):
     ################## Real Time Bars
     #########################################################################
 
-    def request_RealTimeBars(self, request_id: int, contract: Contract, barSize: int,
-                             whatToShow: str, useRTH: bool,
-                             realTimeBarsOptions: list):
+    def request__real_time_bars(self, request_id: int, contract: Contract, barSize: int,
+                                whatToShow: str, useRTH: bool,
+                                realTimeBarsOptions: list):
         """Call the reqRealTimeBars() function to start receiving real time bar
         results through the realtimeBar() EWrapper function.
 
@@ -2414,10 +2334,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_SEC_DEF_OPT_PARAMS_REQ:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support security definition option request.")
-            return
 
         message_id = Messages.outbound['request_sec_def_opt_params']
         fields = [message_id, request_id, underlying_symbol,
@@ -2445,10 +2361,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_FAMILY_CODES:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support family codes request.")
-            return
 
         message_id = Messages.outbound['request_family_codes']
         fields = [message_id]
@@ -2466,10 +2378,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_MATCHING_SYMBOLS:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support matching symbols request.")
-            return
 
         # Create and send the Message
 
