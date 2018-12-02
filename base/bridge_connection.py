@@ -21,7 +21,7 @@ import threading
 
 
 
-from base.constants import DISCONNECTED, UNKNOWN, CONNECTED, message_id_response_map
+from base.constants import DISCONNECTED, UNKNOWN, CONNECTED
 from base.errors import FAIL_CREATE_SOCK, Errors
 from base.messages import Messages
 import sys
@@ -140,7 +140,7 @@ class BridgeConnection:
                 messages.append(fields)
             else:
                 function_name = Messages.get_inbound_action(fields[0])
-                msg = {'size':size, 'text':message, 'fields':fields, 'id':fields[0], 'action':function_name, 'fields':fields}
+                msg = {'size':size, 'text':message, 'fields':fields, 'id':fields[0], 'action':function_name}
                 messages.append(msg)
             socket_data = remaining_data
 
