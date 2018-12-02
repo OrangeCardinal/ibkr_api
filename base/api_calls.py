@@ -1113,20 +1113,12 @@ class ApiCalls(object):
 
         # send req mkt data msg
         message_version = 8
+        print(contract.security_type)
         message_id = Messages.outbound['request_contract_data']
         fields = [message_id, message_version, request_id, contract.id, contract.symbol,
                   contract.security_type, contract.last_trade_date_or_contract_month,contract.strike, contract.right,
-                  contract.multiplier,contract.exchange, contract.primary_exchange]
-
-        # Format the exchange field as required
-        if (contract.primary_exchange and (contract.exchange == "BEST" or contract.exchange == "SMART")):
-            field = contract.exchange + ":" + contract.primary_exchange
-        else:
-            field = contract.exchange
-        fields.append(field)
-
-        fields += [contract.currency, contract.local_symbol,contract.trading_class,contract.include_expired,
-                   contract.security_id_type, contract.security_id]
+                  contract.multiplier,contract.exchange, contract.primary_exchange,contract.currency, contract.local_symbol,
+                  contract.trading_class,contract.include_expired,  contract.security_id_type, contract.security_id]
 
         self._send_message(fields)
         return request_id
