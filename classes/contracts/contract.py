@@ -45,32 +45,24 @@ class Contract(object):
 
 
     def __str__(self):
-        s = ",".join((
-            str(self.id),
-            str(self.symbol),
-            str(self.security_type),
-            str(self.last_trade_date_or_contract_month),
-            str(self.strike),
-            str(self.right),
-            str(self.multiplier),
-            str(self.exchange),
-            str(self.primary_exchange),
-            str(self.currency),
-            str(self.local_symbol),
-            str(self.trading_class),
-            str(self.include_expired),
-            str(self.security_id_type),
-            str(self.security_id)))
-        s += "combo:" + self.comboLegsDescrip
-
+        """
+        Produces a human readable representation of this object
+        :return:
+        """
+        desc =  "\nContract\n"
+        desc +=  "--------\n"
+        desc += "ID: {0}\nSymbol: {1}\nSecurity Type: {2}".format(self.id, self.symbol, self.security_type)
+        desc += "Exchange: {0}\n".format(self.exchange)
+        """
         if self.comboLegs:
             for leg in self.comboLegs:
                 s += ";" + str(leg)
 
         if self.deltaNeutralContract:
             s += ";" + str(self.deltaNeutralContract)
+        """
+        return desc
 
-        return s
 
 
 class ContractDetails(object):
