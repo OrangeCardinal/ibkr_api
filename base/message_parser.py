@@ -20,7 +20,141 @@ class MessageParser(object):
         self.server_version = 147
 
 
-    def current_time(self, message):
+    def contract_data(self, message):
+        print(message['fields'])
+
+    def processContractDataMsg(self, fields):
+
+        next(fields)
+        version = decode(int, fields)
+
+        reqId = -1
+        if version >= 3:
+            reqId = decode(int, fields)
+
+        contract = ContractDetails()
+        contract.contract.symbol = decode(str, fields)
+        contract.contract.security_type = decode(str, fields)
+        self.readLastTradeDate(fields, contract, False)
+        contract.contract.strike = decode(float, fields)
+        contract.contract.right = decode(str, fields)
+        contract.contract.exchange = decode(str, fields)
+        contract.contract.currency = decode(str, fields)
+        contract.contract.localSymbol = decode(str, fields)
+        contract.marketName = decode(str, fields)
+        contract.contract.tradingClass = decode(str, fields)
+        contract.contract.id = decode(int, fields)
+        contract.minTick = decode(float, fields)
+        if self.server_version >= MIN_SERVER_VER_MD_SIZE_MULTIPLIER:
+            contract.mdSizeMultiplier = decode(int, fields)
+        contract.contract.multiplier = decode(str, fields)
+        contract.orderTypes = decode(str, fields)
+        contract.validExchanges = decode(str, fields)
+        contract.priceMagnifier = decode(int, fields)  # ver 2 field
+        if version >= 4:
+            contract.underConId = decode(int, fields)
+        if version >= 5:
+            contract.longName = decode(str, fields)
+            contract.contract.primaryExchange = decode(str, fields)
+        if version >= 6:
+            contract.contractMonth = decode(str, fields)
+            contract.industry = decode(str, fields)
+            contract.category = decode(str, fields)
+            contract.subcategory = decode(str, fields)
+            contract.timeZoneId = decode(str, fields)
+            contract.tradingHours = decode(str, fields)
+            contract.liquidHours = decode(str, fields)
+        if version >= 8:
+            contract.evRule = decode(str, fields)
+            contract.evMultiplier = decode(int, fields)
+        if version >= 7:
+            secIdListCount = decode(int, fields)
+            if secIdListCount > 0:
+                contract.secIdList = []
+                for _ in range(secIdListCount):
+                    tagValue = TagValue()
+                    tagValue.tag = decode(str, fields)
+                    tagValue.value = decode(str, fields)
+                    contract.secIdList.append(tagValue)
+
+        if self.server_version >= MIN_SERVER_VER_AGG_GROUP:
+            contract.aggGroup = decode(int, fields)
+
+        if self.server_version >= MIN_SERVER_VER_UNDERLYING_INFO:
+            contract.underSymbol = decode(str, fields)
+            contract.underSecType = decode(str, fields)
+
+        if self.server_version >= MIN_SERVER_VER_MARKET_RULES:
+            contract.marketRuleIds = decode(str, fields)
+
+        if self.server_version >= MIN_SERVER_VER_REAL_EXPIRATION_DATE:
+            contract.realExpirationDate = decode(str, fields)
+
+        # self.response_handler.contractDetails(reqId, contract)
+
+    def processBondContractDataMsg(self, fields):
+
+        next(fields)
+        version = decode(int, fields)
+
+        reqId = -1
+        if version >= 3:
+            reqId = decode(int, fields)
+
+        contract = ContractDetails()
+        contract.contract.symbol = decode(str, fields)
+        contract.contract.security_type = decode(str, fields)
+        contract.cusip = decode(str, fields)
+        contract.coupon = decode(int, fields)
+        self.readLastTradeDate(fields, contract, True)
+        contract.issueDate = decode(str, fields)
+        contract.ratings = decode(str, fields)
+        contract.bondType = decode(str, fields)
+        contract.couponType = decode(str, fields)
+        contract.convertible = decode(bool, fields)
+        contract.callable = decode(bool, fields)
+        contract.putable = decode(bool, fields)
+        contract.descAppend = decode(str, fields)
+        contract.contract.exchange = decode(str, fields)
+        contract.contract.currency = decode(str, fields)
+        contract.marketName = decode(str, fields)
+        contract.contract.tradingClass = decode(str, fields)
+        contract.contract.id = decode(int, fields)
+        contract.minTick = decode(float, fields)
+        if self.server_version >= MIN_SERVER_VER_MD_SIZE_MULTIPLIER:
+            contract.mdSizeMultiplier = decode(int, fields)
+        contract.orderTypes = decode(str, fields)
+        contract.validExchanges = decode(str, fields)
+        contract.nextOptionDate = decode(str, fields)  # ver 2 field
+        contract.nextOptionType = decode(str, fields)  # ver 2 field
+        contract.nextOptionPartial = decode(bool, fields)  # ver 2 field
+        contract.notes = decode(str, fields)  # ver 2 field
+        if version >= 4:
+            contract.longName = decode(str, fields)
+        if version >= 6:
+            contract.evRule = decode(str, fields)
+            contract.evMultiplier = decode(int, fields)
+        if version >= 5:
+            secIdListCount = decode(int, fields)
+            if secIdListCount > 0:
+                contract.secIdList = []
+                for _ in range(secIdListCount):
+                    tagValue = TagValue()
+                    tagValue.tag = decode(str, fields)
+                    tagValue.value = decode(str, fields)
+                    contract.secIdList.append(tagValue)
+
+        if self.server_version >= MIN_SERVER_VER_AGG_GROUP:
+            contract.aggGroup = decode(int, fields)
+
+        if self.server_version >= MIN_SERVER_VER_MARKET_RULES:
+            contract.marketRuleIds = decode(str, fields)
+
+        # self.response_handler.bondContractDetails(reqId, contract)
+
+
+    @staticmethod
+    def current_time(message):
         """
         Parse data from the current_time response message
 
@@ -30,68 +164,97 @@ class MessageParser(object):
         2 - Current Time (seconds since epoch)
 
         :param message: API Response message
-        :return request_id:int
         :returns: (request_id:int, timestamp)
         """
         request_id = int(message['fields'][1])
         timestamp = time.ctime(int(message['fields'][2]))
-        return (request_id, timestamp)
+        return request_id, timestamp
+
+    @staticmethod
+    def info_message(message):
+        """
+        Message Fields
+        0 - Message ID
+        1 - Request ID
+        2 - Ticker ID (~Contract ID , -1 No Ticker associated)
+        3 - Info Code
+        4 - Info
+        :param message:
+        :return:
+        """
+        fields = message['fields']
+        ticker_id = int(fields[2])
+        info_code = int(fields[3])
+        text      = bytearray(fields[4]).decode()
+        return ticker_id, info_code, text
 
     def managed_accounts(self, fields):
         accounts = []  # List of Accounts to Return
         print(fields)
         return accounts
 
+    @staticmethod
+    def scanner_data(message):
+        fields = message['fields']
 
-    def symbol_samples(self, message):
+        message_id = int(fields[0])
+        request_id = int(fields[1])
+        number_of_elements = int(fields[2])
+        index = 1
+        field_index = 0
+        results = []
+        while index <= number_of_elements:
+            data = {}
+            contract = Contract()
+            data['rank'] = int(fields[field_index])
+            contract.id = int(fields[field_index+1])
+            contract.symbol = bytearray(fields[field_index+2]).decode()
+            contract.security_type = bytearray(fields[field_index+3]).decode()
+            contract.last_trade_date_or_contract_month= bytearray(fields[field_index+4]).decode()
+            contract.strike= int(fields[field_index+5])
+            contract.right= bytearray(fields[field_index+6]).decode()
+            contract.exchange= bytearray(fields[field_index+7]).decode()
+            contract.currency= bytearray(fields[field_index+8]).decode()
+            contract.local_symbol= bytearray(fields[field_index+9]).decode()
+            contract.market_name= bytearray(fields[field_index+10]).decode()
+            contract.trading_class= bytearray(fields[field_index+11]).decode()
+
+            data['contract'] = contract
+            data['distance'] = fields[field_index+12]
+            data['benchmark'] = fields[field_index+13]
+            data['projection'] = fields[field_index+14]
+            data['legs_str'] = fields[field_index+15]
+            field_index += 16
+            results.append(data)
+            index += 1
+        return message_id,request_id,results
+
+    @staticmethod
+    def symbol_samples(message):
         fields = message['fields']
 
         request_id = int(fields[1])
         num_samples = int(fields[2])
         field_index = 3
         contracts = []
-        print(fields)
-        print(num_samples)
         for index in range(num_samples):
             contract = Contract()
             contract.id = int(fields[field_index])
-            contract.symbol = str(fields[field_index+1])
-            contract.security_type = str(fields[field_index+2])
-            contract.primary_exchange = str(fields[field_index+3])
-            contract.currency = str(fields[field_index+4])
-            contracts.append(contract)
+            contract.symbol = bytearray(fields[field_index+1]).decode()
+            contract.security_type = bytearray(fields[field_index+2]).decode()
+            contract.primary_exchange = bytearray(fields[field_index+3]).decode()
+            contract.currency = bytearray(fields[field_index+4]).decode()
 
             num_security_types = int(fields[field_index+5])
             field_index += 6
-            print(num_security_types)
             for j in range(num_security_types):
                 derivative_security_type = str(fields[field_index])
                 contract.derivative_security_types.append(derivative_security_type)
                 field_index += 1
 
+            contracts.append(contract)
+
         return request_id, contracts
-
-        #next(fields)
-
-        #reqId = decode(int, fields)
-        #nContractDescriptions = decode(int, fields)
-        #contractDescriptions = []
-        #for _ in range(nContractDescriptions):
-        #    conDesc = ContractDescription()
-        #    conDesc.contract.id = decode(int, fields)
-        #    conDesc.contract.symbol = decode(str, fields)
-        #    conDesc.contract.secType = decode(str, fields)
-        #    conDesc.contract.primaryExchange = decode(str, fields)
-        #    conDesc.contract.currency = decode(str, fields)
-
-        #    nDerivativeSecTypes = decode(int, fields)
-        #    conDesc.derivativeSecTypes = []
-        #    for _ in range(nDerivativeSecTypes):
-        #        derivSecType = decode(str, fields)
-        #        conDesc.derivativeSecTypes.append(derivSecType)
-        #    contractDescriptions.append(conDesc)
-
-        # self.response_handler.symbolSamples(reqId, contractDescriptions)
 
     def processTickPriceMsg(self, fields):
         next(fields)
@@ -184,7 +347,7 @@ class MessageParser(object):
 
         contract.id = decode(int, fields)  # ver 17 field
         contract.symbol = decode(str, fields)
-        contract.secType = decode(str, fields)
+        contract.security_type = decode(str, fields)
         contract.last_trade_date_or_contract_month = decode(str, fields)
         contract.strike = decode(float, fields)
         contract.right = decode(str, fields)
@@ -485,7 +648,7 @@ class MessageParser(object):
         contract = Contract()
         contract.id = decode(int, fields)  # ver 6 field
         contract.symbol = decode(str, fields)
-        contract.secType = decode(str, fields)
+        contract.security_type = decode(str, fields)
         contract.last_trade_date_or_contract_month = decode(str, fields)
         contract.strike = decode(float, fields)
         contract.right = decode(str, fields)
@@ -519,167 +682,6 @@ class MessageParser(object):
         #    position, marketPrice, marketValue, averageCost,
         #    unrealizedPNL, realizedPNL, accountName)
 
-    def processContractDataMsg(self, fields):
-
-        next(fields)
-        version = decode(int, fields)
-
-        reqId = -1
-        if version >= 3:
-            reqId = decode(int, fields)
-
-        contract = ContractDetails()
-        contract.contract.symbol = decode(str, fields)
-        contract.contract.secType = decode(str, fields)
-        self.readLastTradeDate(fields, contract, False)
-        contract.contract.strike = decode(float, fields)
-        contract.contract.right = decode(str, fields)
-        contract.contract.exchange = decode(str, fields)
-        contract.contract.currency = decode(str, fields)
-        contract.contract.localSymbol = decode(str, fields)
-        contract.marketName = decode(str, fields)
-        contract.contract.tradingClass = decode(str, fields)
-        contract.contract.id = decode(int, fields)
-        contract.minTick = decode(float, fields)
-        if self.server_version >= MIN_SERVER_VER_MD_SIZE_MULTIPLIER:
-            contract.mdSizeMultiplier = decode(int, fields)
-        contract.contract.multiplier = decode(str, fields)
-        contract.orderTypes = decode(str, fields)
-        contract.validExchanges = decode(str, fields)
-        contract.priceMagnifier = decode(int, fields)  # ver 2 field
-        if version >= 4:
-            contract.underConId = decode(int, fields)
-        if version >= 5:
-            contract.longName = decode(str, fields)
-            contract.contract.primaryExchange = decode(str, fields)
-        if version >= 6:
-            contract.contractMonth = decode(str, fields)
-            contract.industry = decode(str, fields)
-            contract.category = decode(str, fields)
-            contract.subcategory = decode(str, fields)
-            contract.timeZoneId = decode(str, fields)
-            contract.tradingHours = decode(str, fields)
-            contract.liquidHours = decode(str, fields)
-        if version >= 8:
-            contract.evRule = decode(str, fields)
-            contract.evMultiplier = decode(int, fields)
-        if version >= 7:
-            secIdListCount = decode(int, fields)
-            if secIdListCount > 0:
-                contract.secIdList = []
-                for _ in range(secIdListCount):
-                    tagValue = TagValue()
-                    tagValue.tag = decode(str, fields)
-                    tagValue.value = decode(str, fields)
-                    contract.secIdList.append(tagValue)
-
-        if self.server_version >= MIN_SERVER_VER_AGG_GROUP:
-            contract.aggGroup = decode(int, fields)
-
-        if self.server_version >= MIN_SERVER_VER_UNDERLYING_INFO:
-            contract.underSymbol = decode(str, fields)
-            contract.underSecType = decode(str, fields)
-
-        if self.server_version >= MIN_SERVER_VER_MARKET_RULES:
-            contract.marketRuleIds = decode(str, fields)
-
-        if self.server_version >= MIN_SERVER_VER_REAL_EXPIRATION_DATE:
-            contract.realExpirationDate = decode(str, fields)
-
-        # self.response_handler.contractDetails(reqId, contract)
-
-    def processBondContractDataMsg(self, fields):
-
-        next(fields)
-        version = decode(int, fields)
-
-        reqId = -1
-        if version >= 3:
-            reqId = decode(int, fields)
-
-        contract = ContractDetails()
-        contract.contract.symbol = decode(str, fields)
-        contract.contract.secType = decode(str, fields)
-        contract.cusip = decode(str, fields)
-        contract.coupon = decode(int, fields)
-        self.readLastTradeDate(fields, contract, True)
-        contract.issueDate = decode(str, fields)
-        contract.ratings = decode(str, fields)
-        contract.bondType = decode(str, fields)
-        contract.couponType = decode(str, fields)
-        contract.convertible = decode(bool, fields)
-        contract.callable = decode(bool, fields)
-        contract.putable = decode(bool, fields)
-        contract.descAppend = decode(str, fields)
-        contract.contract.exchange = decode(str, fields)
-        contract.contract.currency = decode(str, fields)
-        contract.marketName = decode(str, fields)
-        contract.contract.tradingClass = decode(str, fields)
-        contract.contract.id = decode(int, fields)
-        contract.minTick = decode(float, fields)
-        if self.server_version >= MIN_SERVER_VER_MD_SIZE_MULTIPLIER:
-            contract.mdSizeMultiplier = decode(int, fields)
-        contract.orderTypes = decode(str, fields)
-        contract.validExchanges = decode(str, fields)
-        contract.nextOptionDate = decode(str, fields)  # ver 2 field
-        contract.nextOptionType = decode(str, fields)  # ver 2 field
-        contract.nextOptionPartial = decode(bool, fields)  # ver 2 field
-        contract.notes = decode(str, fields)  # ver 2 field
-        if version >= 4:
-            contract.longName = decode(str, fields)
-        if version >= 6:
-            contract.evRule = decode(str, fields)
-            contract.evMultiplier = decode(int, fields)
-        if version >= 5:
-            secIdListCount = decode(int, fields)
-            if secIdListCount > 0:
-                contract.secIdList = []
-                for _ in range(secIdListCount):
-                    tagValue = TagValue()
-                    tagValue.tag = decode(str, fields)
-                    tagValue.value = decode(str, fields)
-                    contract.secIdList.append(tagValue)
-
-        if self.server_version >= MIN_SERVER_VER_AGG_GROUP:
-            contract.aggGroup = decode(int, fields)
-
-        if self.server_version >= MIN_SERVER_VER_MARKET_RULES:
-            contract.marketRuleIds = decode(str, fields)
-
-        # self.response_handler.bondContractDetails(reqId, contract)
-
-    def processScannerDataMsg(self, fields):
-        next(fields)
-        decode(int, fields)
-        reqId = decode(int, fields)
-
-        numberOfElements = decode(int, fields)
-
-        for _ in range(numberOfElements):
-            data = ScanData()
-            data.contract = ContractDetails()
-
-            data.rank = decode(int, fields)
-            data.contract.contract.id = decode(int, fields)  # ver 3 field
-            data.contract.contract.symbol = decode(str, fields)
-            data.contract.contract.secType = decode(str, fields)
-            data.contract.contract.last_trade_date_or_contract_month = decode(str, fields)
-            data.contract.contract.strike = decode(float, fields)
-            data.contract.contract.right = decode(str, fields)
-            data.contract.contract.exchange = decode(str, fields)
-            data.contract.contract.currency = decode(str, fields)
-            data.contract.contract.localSymbol = decode(str, fields)
-            data.contract.marketName = decode(str, fields)
-            data.contract.contract.tradingClass = decode(str, fields)
-            data.distance = decode(str, fields)
-            data.benchmark = decode(str, fields)
-            data.projection = decode(str, fields)
-            data.legsStr = decode(str, fields)
-            # self.response_handler.scannerData(reqId, data.rank, data.contract,
-            #    data.distance, data.benchmark, data.projection, data.legsStr)
-
-        # self.response_handler.scannerDataEnd(reqId)
-
     def processExecutionDataMsg(self, fields):
         next(fields)
         version = self.server_version
@@ -697,7 +699,7 @@ class MessageParser(object):
         contract = Contract()
         contract.id = decode(int, fields)  # ver 5 field
         contract.symbol = decode(str, fields)
-        contract.secType = decode(str, fields)
+        contract.security_type = decode(str, fields)
         contract.last_trade_date_or_contract_month = decode(str, fields)
         contract.strike = decode(float, fields)
         contract.right = decode(str, fields)
@@ -904,7 +906,7 @@ class MessageParser(object):
         contract = Contract()
         contract.id = decode(int, fields)
         contract.symbol = decode(str, fields)
-        contract.secType = decode(str, fields)
+        contract.security_type = decode(str, fields)
         contract.last_trade_date_or_contract_month = decode(str, fields)
         contract.strike = decode(float, fields)
         contract.right = decode(str, fields)
@@ -936,7 +938,7 @@ class MessageParser(object):
         contract = Contract()
         contract.id = decode(int, fields)
         contract.symbol = decode(str, fields)
-        contract.secType = decode(str, fields)
+        contract.security_type = decode(str, fields)
         contract.last_trade_date_or_contract_month = decode(str, fields)
         contract.strike = decode(float, fields)
         contract.right = decode(str, fields)
@@ -1042,7 +1044,7 @@ class MessageParser(object):
             for _ in range(nDepthMktDataDescriptions):
                 desc = DepthMktDataDescription()
                 desc.exchange = decode(str, fields)
-                desc.secType = decode(str, fields)
+                desc.security_type = decode(str, fields)
                 if self.server_version >= MIN_SERVER_VER_SERVICE_DATA_TYPE:
                     desc.listingExch = decode(str, fields)
                     desc.serviceDataType = decode(str, fields)
