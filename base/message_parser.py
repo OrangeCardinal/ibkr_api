@@ -165,7 +165,7 @@ class MessageParser(object):
         num_family_codes = int(fields[0])
         family_codes = []
         field_index = 1
-        for i in range(num_family_codes)
+        for i in range(num_family_codes):
             data = {}
             data['account_id'] = bytearray(fields[field_index]).decode()
             data['family_code'] = bytearray(fields[field_index+1]).decode()
@@ -173,6 +173,39 @@ class MessageParser(object):
             family_codes.append(data)
         return family_codes
 
+    @staticmethod
+    def historical_data(message):
+        """
+
+        :param message:
+        :return: Message ID, Request ID, Bar Data
+        """
+        bars = []
+        fields = message['fields']
+        message_id = int(fields[0])
+        request_id = int(fields[1])
+        start_date = fields[2]
+        end_date   = fields[3]
+        bar_count = int(fields[4])
+        current_bar = 1
+        bar_index = 5
+
+        while current_bar <= bar_count:
+            bar = Bar()
+            bar.date = str(fields[bar_index]) # TODO: Make a proper date
+            bar.open = float(fields[bar_index+1])
+            bar.high = float(fields[bar_index+2])
+            bar.low = float(fields[bar_index+3])
+            bar.close = float(fields[bar_index+4])
+            bar.volume = fields[bar_index+5]
+            bar.average = fields[bar_index+6]
+            bar.bar_count = fields[bar_index+7]
+            bar_index += 8
+            current_bar += 1
+            bars.append(bar)
+
+        return message_id, request_id, bars
+    
     @staticmethod
     def info_message(message):
         """
@@ -195,6 +228,24 @@ class MessageParser(object):
         accounts = []  # List of Accounts to Return
         print(fields)
         return accounts
+
+
+    @staticmethod
+    def market_depth_l2(message):
+        fields = message['fields']
+        data = {
+            'message_id':int(fields[0]),
+            'request_id':int(fields[1]),
+            'position':int(fields[2]),
+            'market_maker':bytearray(fields[3]).decode(),
+            'operation':int(fields[4]),
+            'side':int(fields[5]),
+            'price':float(fields[6]),
+            'size':int(fields[7]),
+            'is_smart_depth':bool(fields[8])
+            }
+        
+        return data
 
     @staticmethod
     def scanner_data(message):
@@ -750,37 +801,6 @@ class MessageParser(object):
 
         # self.response_handler.execDetails(reqId, contract, execution)
 
-    def historical_data(self, message):
-        """
-
-        :param message:
-        :return: Message ID, Request ID, Bar Data
-        """
-        bars = []
-        fields = message['fields']
-        message_id = int(fields[0])
-        request_id = int(fields[1])
-        start_date = fields[2]
-        end_date   = fields[3]
-        bar_count = int(fields[4])
-        current_bar = 1
-        bar_index = 5
-
-        while current_bar <= bar_count:
-            bar = Bar()
-            bar.date = str(fields[bar_index]) # TODO: Make a proper date
-            bar.open = float(fields[bar_index+1])
-            bar.high = float(fields[bar_index+2])
-            bar.low = float(fields[bar_index+3])
-            bar.close = float(fields[bar_index+4])
-            bar.volume = fields[bar_index+5]
-            bar.average = fields[bar_index+6]
-            bar.bar_count = fields[bar_index+7]
-            bar_index += 8
-            current_bar += 1
-            bars.append(bar)
-
-        return message_id, request_id, bars
 
     def processHistoricalDataUpdateMsg(self, fields):
         next(fields)
@@ -1288,24 +1308,6 @@ class MessageParser(object):
 
         # self.response_handler.orderBound(reqId, apiClientId, apiOrderId)
 
-    def processMarketDepthL2Msg(self, fields):
-        next(fields)
-        decode(int, fields)
-        reqId = decode(int, fields)
-
-        position = decode(int, fields)
-        marketMaker = decode(str, fields)
-        operation = decode(int, fields)
-        side = decode(int, fields)
-        price = decode(float, fields)
-        size = decode(int, fields)
-        isSmartDepth = False
-
-        if self.server_version >= MIN_SERVER_VER_SMART_DEPTH:
-            isSmartDepth = decode(bool, fields)
-
-        # self.response_handler.updateMktDepthL2(reqId, position, marketMaker,
-        #                operation, side, price, size, isSmartDepth)
 
     ######################################################################
 
