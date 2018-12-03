@@ -138,9 +138,6 @@ class MessageParser(object):
         if self.server_version >= MIN_SERVER_VER_MARKET_RULES:
             contract.marketRuleIds = decode(str, fields)
 
-        # self.response_handler.bondContractDetails(reqId, contract)
-
-
     @staticmethod
     def current_time(message):
         """
@@ -228,6 +225,17 @@ class MessageParser(object):
         accounts = []  # List of Accounts to Return
         print(fields)
         return accounts
+
+
+    @staticmethod
+    def market_data_type(message):
+        fields = message['fields']
+        data = {
+            'message_id':int(fields[0]),
+            'request_id':int(fields[1]),
+            'market_data_type':bytearray(fields[2]).decode()
+        }
+        return data
 
 
     @staticmethod
@@ -350,7 +358,7 @@ class MessageParser(object):
             if self.server_version >= MIN_SERVER_VER_PRE_OPEN_BID_ASK:
                 attrib.preOpen = attrMask & 4 != 0
 
-        # self.response_handler.tickPrice(reqId, tickType, price, attrib)
+
 
         # process ver 2 fields
         sizeTickType = TickTypeEnum.NOT_SET
@@ -369,7 +377,7 @@ class MessageParser(object):
 
         if sizeTickType != TickTypeEnum.NOT_SET:
             pass
-            # self.response_handler.tickSize(reqId, sizeTickType, size)
+
 
     def processOrderStatusMsg(self, fields):
 
@@ -402,8 +410,6 @@ class MessageParser(object):
         else:
             mktCapPrice = None
 
-        # self.response_handler.orderStatus(orderId, status, filled, remaining,
-        #    avgFillPrice, permId, parentId, lastFillPrice, clientId, whyHeld, mktCapPrice)
 
     def processOpenOrder(self, fields):
 
@@ -819,8 +825,6 @@ class MessageParser(object):
         if self.server_version >= MIN_SERVER_VER_LAST_LIQUIDITY:
             execution.lastLiquidity = decode(int, fields)
 
-        # self.response_handler.execDetails(reqId, contract, execution)
-
 
     def processHistoricalDataUpdateMsg(self, fields):
         next(fields)
@@ -834,7 +838,6 @@ class MessageParser(object):
         bar.low = decode(float, fields)
         bar.average = decode(float, fields)
         bar.volume = decode(int, fields)
-        # self.response_handler.historicalDataUpdate(reqId, bar)
 
     def processRealTimeBarMsg(self, fields):
         next(fields)
@@ -850,8 +853,6 @@ class MessageParser(object):
         bar.volume = decode(int, fields)
         bar.wap = decode(float, fields)
         bar.count = decode(int, fields)
-
-        # self.response_handler.realtimeBar(reqId, bar.time, bar.open, bar.high, bar.low, bar.close, bar.volume, bar.wap, bar.count)
 
     def processTickOptionComputationMsg(self, fields):
         optPrice = None
@@ -901,9 +902,6 @@ class MessageParser(object):
             if undPrice == -1:  # -1 is the "not computed" indicator
                 undPrice = None
 
-        # self.response_handler.tickOptionComputation(reqId, tickTypeInt, impliedVol,
-        #    delta, optPrice, pvDividend, gamma, vega, theta, undPrice)
-
     def processDeltaNeutralValidationMsg(self, fields):
         next(fields)
         decode(int, fields)
@@ -915,15 +913,6 @@ class MessageParser(object):
         deltaNeutralContract.delta = decode(float, fields)
         deltaNeutralContract.price = decode(float, fields)
 
-        # self.response_handler.deltaNeutralValidation(reqId, deltaNeutralContract)
-
-    def processMarketDataTypeMsg(self, fields):
-        next(fields)
-        decode(int, fields)
-        reqId = decode(int, fields)
-        marketDataType = decode(int, fields)
-
-        # self.response_handler.marketDataType(reqId, marketDataType)
 
     def processCommissionReportMsg(self, fields):
         next(fields)
