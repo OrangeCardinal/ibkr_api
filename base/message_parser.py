@@ -248,6 +248,26 @@ class MessageParser(object):
         return data
 
     @staticmethod
+    def reroute_market_data_request(message):
+        fields = message['fields']
+        data = {
+            'request_id':int(fields[0]),
+            'contract_id':int(fields[1]),
+            'exchange':bytearray(fields[2]).decode()
+        }
+        return data
+    
+    @staticmethod
+    def reroute_market_depth_request(message):
+        fields = message['fields']
+        data = {
+            'request_id':int(fields[0]),
+            'contract_id':int(fields[1]),
+            'exchange':bytearray(fields[2]).decode()
+        }
+        return data
+
+    @staticmethod
     def scanner_data(message):
         fields = message['fields']
 
@@ -1020,8 +1040,6 @@ class MessageParser(object):
             tier.displayName = decode(str, fields)
             tiers.append(tier)
 
-        # self.response_handler.softDollarTiers(reqId, tiers)
-
     def processSmartComponents(self, fields):
         next(fields)
         reqId = decode(int, fields)
@@ -1035,15 +1053,12 @@ class MessageParser(object):
             smartComponent.exchangeLetter = decode(str, fields)
             smartComponentMap.append(smartComponent)
 
-        # self.response_handler.smartComponents(reqId, smartComponentMap)
-
     def processTickReqParams(self, fields):
         next(fields)
         tickerId = decode(int, fields)
         minTick = decode(float, fields)
         bboExchange = decode(str, fields)
         snapshotPermissions = decode(int, fields)
-        # self.response_handler.tickReqParams(tickerId, minTick, bboExchange, snapshotPermissions)
 
     def processMktDepthExchanges(self, fields):
         next(fields)
@@ -1063,8 +1078,6 @@ class MessageParser(object):
                     decode(int, fields)  # boolean notSuppIsL2
                 depthMktDataDescriptions.append(desc)
 
-        # self.response_handler.mktDepthExchanges(depthMktDataDescriptions)
-
     def processTickNews(self, fields):
         next(fields)
         tickerId = decode(int, fields)
@@ -1073,7 +1086,6 @@ class MessageParser(object):
         articleId = decode(str, fields)
         headline = decode(str, fields)
         extraData = decode(str, fields)
-        # self.response_handler.tickNews(tickerId, timeStamp, providerCode, articleId, headline, extraData)
 
     def processNewsProviders(self, fields):
         next(fields)
@@ -1086,14 +1098,12 @@ class MessageParser(object):
                 provider.name = decode(str, fields)
                 newsProviders.append(provider)
 
-        # self.response_handler.newsProviders(newsProviders)
 
     def processNewsArticle(self, fields):
         next(fields)
         reqId = decode(int, fields)
         articleType = decode(int, fields)
         articleText = decode(str, fields)
-        # self.response_handler.newsArticle(reqId, articleType, articleText)
 
     def processHistoricalNews(self, fields):
         next(fields)
@@ -1102,13 +1112,11 @@ class MessageParser(object):
         providerCode = decode(str, fields)
         articleId = decode(str, fields)
         headline = decode(str, fields)
-        # self.response_handler.historicalNews(requestId, time, providerCode, articleId, headline)
 
     def processHistoricalNewsEnd(self, fields):
         next(fields)
         reqId = decode(int, fields)
         hasMore = decode(bool, fields)
-        # self.response_handler.historicalNewsEnd(reqId, hasMore)
 
     def processHistogramData(self, fields):
         next(fields)
@@ -1122,23 +1130,6 @@ class MessageParser(object):
             dataPoint.count = decode(int, fields)
             histogram.append(dataPoint)
 
-        # self.response_handler.histogramData(reqId, histogram)
-
-    def processRerouteMktDataReq(self, fields):
-        next(fields)
-        reqId = decode(int, fields)
-        conId = decode(int, fields)
-        exchange = decode(str, fields)
-
-        # self.response_handler.rerouteMktDataReq(reqId, conId, exchange)
-
-    def processRerouteMktDepthReq(self, fields):
-        next(fields)
-        reqId = decode(int, fields)
-        conId = decode(int, fields)
-        exchange = decode(str, fields)
-
-        # self.response_handler.rerouteMktDepthReq(reqId, conId, exchange)
 
     def processMarketRuleMsg(self, fields):
         next(fields)
@@ -1154,7 +1145,6 @@ class MessageParser(object):
                 prcInc.increment = decode(float, fields)
                 priceIncrements.append(prcInc)
 
-        # self.response_handler.marketRule(marketRuleId, priceIncrements)
 
     def processPnLMsg(self, fields):
         next(fields)
