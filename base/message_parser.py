@@ -6,7 +6,9 @@ Extracts data from messages and returns the appropriate class(es)
 from base.messages import Messages
 from classes.contracts.contract import Contract
 from classes.contracts.contract_details import ContractDetails
-from classes.contracts.contract_description import ContractDescription
+from classes.order import Order
+from classes.execution import Execution
+
 from classes.bar import Bar
 
 import logging
@@ -134,18 +136,16 @@ class MessageParser(object):
         contract.evMultiplier = int(fields[30])
         secIdListCount = int(fields[31])
         if secIdListCount > 0:
-            contract.secIdList = []
+            contract.security_id_list = []
             for _ in range(secIdListCount):
-                tagValue = TagValue()
-                tagValue.tag :bytearray(fields[]).decode()
-                tagValue.value :bytearray(fields[]).decode()
-                contract.secIdList.append(tagValue)
+                tagValue = {
+                    'tag' :bytearray(fields[32]).decode(),
+                    'value' :bytearray(fields[33]).decode()
+                }
+                contract.security_id_list.append(tagValue)
 
-        if self.server_version >= MIN_SERVER_VER_AGG_GROUP:
-            contract.aggGroup = decode(int, fields)
-
-        if self.server_version >= MIN_SERVER_VER_MARKET_RULES:
-            contract.marketRuleIds :bytearray(fields[]).decode()
+        contract.aggGroup = int(fields[34])
+        contract.marketRuleIds = bytearray(fields[35]).decode()
 
 
     @staticmethod
@@ -269,11 +269,9 @@ class MessageParser(object):
     def order_bound(fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        apiClientId = decode(int, fields)
-        apiOrderId = decode(int, fields)
-
-        # self.response_handler.orderBound(reqId, apiClientId, apiOrderId)
-
+        api_client_id = int(fields[2])
+        api_order_id  = int(fields[3])
+        return message_id, request_id, api_client_id, api_order_id
 
     @staticmethod
     def reroute_market_data_request(message):
@@ -375,18 +373,19 @@ class MessageParser(object):
 
         return request_id, contracts
 
-    def processTickPriceMsg(self, fields):
+    @staticmethod
+    def tick_price(fields):
         message_id = int(fields[0])
-        decode(int, fields)
-
         request_id = int(fields[1])
-        tickType = decode(int, fields)
-        price = decode(float, fields)
-        size = decode(int, fields)  # ver 2 field
-        attrMask = decode(int, fields)  # ver 3 field
+        tick_type = int(fields[2])
+        price = float(fields[3])
+        size = int(fields[4])
+        attr_mask = int(fields[5])
+        
 
-        attrib = TickAttrib()
-
+        attributes = {}
+        #attrib = TickAttrib()
+        
         attrib.canAutoExecute = attrMask == 1
 
         if self.server_version >= MIN_SERVER_VER_PAST_LIMIT:
@@ -399,166 +398,134 @@ class MessageParser(object):
 
         # process ver 2 fields
         sizeTickType = TickTypeEnum.NOT_SET
-        if TickTypeEnum.BID == tickType:
+        if TickTypeEnum.BID == tick_type:
             sizeTickType = TickTypeEnum.BID_SIZE
-        elif TickTypeEnum.ASK == tickType:
+        elif TickTypeEnum.ASK == tick_type:
             sizeTickType = TickTypeEnum.ASK_SIZE
-        elif TickTypeEnum.LAST == tickType:
+        elif TickTypeEnum.LAST == tick_type:
             sizeTickType = TickTypeEnum.LAST_SIZE
-        elif TickTypeEnum.DELAYED_BID == tickType:
+        elif TickTypeEnum.DELAYED_BID == tick_type:
             sizeTickType = TickTypeEnum.DELAYED_BID_SIZE
-        elif TickTypeEnum.DELAYED_ASK == tickType:
+        elif TickTypeEnum.DELAYED_ASK == tick_type:
             sizeTickType = TickTypeEnum.DELAYED_ASK_SIZE
-        elif TickTypeEnum.DELAYED_LAST == tickType:
+        elif TickTypeEnum.DELAYED_LAST == tick_type:
             sizeTickType = TickTypeEnum.DELAYED_LAST_SIZE
 
         if sizeTickType != TickTypeEnum.NOT_SET:
             pass
 
 
-    def processOrderStatusMsg(self, fields):
+    @staticmethod
+    def order_status(fields):
+        info = {
+            'message_id': int(fields[0]),
+            'order_id' : int(fields[1]),
+            'status' : bytearray(fields[2]).decode(),
+            'filled' : float(fields[3]),
+            'remaining' : float(fields[4]),
+            'average_fill_price':float(fields[5]),
+            'perm_id':int(fields[6]),
+            'parent_id':int(fields[7]),
+            'last_fill_price':int(fields[8]),
+            'client_id':int(fields[9]),
+            'why_held':bytearray(fields[10]).decode(),
+            'market_cap_price':float(fields[11]),
+        }
+        return info
+
+
+    @staticmethod
+    def open_order(fields):
 
         message_id = int(fields[0])
-        if self.server_version < MIN_SERVER_VER_MARKET_CAP_PRICE:
-            decode(int, fields)
-        orderId = decode(int, fields)
-        status :bytearray(fields[]).decode()
+        message_version = int(fields[1])
 
-        if self.server_version >= MIN_SERVER_VER_FRACTIONAL_POSITIONS:
-            filled = decode(float, fields)
-        else:
-            filled = decode(int, fields)
-
-        if self.server_version >= MIN_SERVER_VER_FRACTIONAL_POSITIONS:
-            remaining = decode(float, fields)
-        else:
-            remaining = decode(int, fields)
-
-        avgFillPrice = decode(float, fields)
-
-        permId = decode(int, fields)  # ver 2 field
-        parentId = decode(int, fields)  # ver 3 field
-        lastFillPrice = decode(float, fields)  # ver 4 field
-        clientId = decode(int, fields)  # ver 5 field
-        whyHeld :bytearray(fields[]).decode()  # ver 6 field
-
-        if self.server_version >= MIN_SERVER_VER_MARKET_CAP_PRICE:
-            mktCapPrice = decode(float, fields)
-        else:
-            mktCapPrice = None
-
-
-    def processOpenOrder(self, fields):
-
-        message_id = int(fields[0])
-
-        if self.server_version < MIN_SERVER_VER_ORDER_CONTAINER:
-            version = decode(int, fields)
-        else:
-            version = self.server_version
 
         order = Order()
-        order.orderId = decode(int, fields)
+
+        order.order_id = int(fields[2])
 
         contract = Contract()
-
-        contract.id = decode(int, fields)  # ver 17 field
-        contract.symbol :bytearray(fields[]).decode()
-        contract.security_type :bytearray(fields[]).decode()
-        contract.last_trade_date_or_contract_month :bytearray(fields[]).decode()
-        contract.strike = decode(float, fields)
-        contract.right :bytearray(fields[]).decode()
-        if version >= 32:
-            contract.multiplier :bytearray(fields[]).decode()
-        contract.exchange :bytearray(fields[]).decode()
-        contract.currency :bytearray(fields[]).decode()
-        contract.localSymbol :bytearray(fields[]).decode()  # ver 2 field
-        if version >= 32:
-            contract.tradingClass :bytearray(fields[]).decode()
+        contract.id                                = int(fields[3])
+        contract.symbol                            = bytearray(fields[4]).decode()
+        contract.security_type                     = bytearray(fields[5]).decode()
+        contract.last_trade_date_or_contract_month = bytearray(fields[6]).decode()
+        contract.strike                            = float(fields[7])
+        contract.right                             = bytearray(fields[8]).decode()
+        contract.multiplier                        = bytearray(fields[9]).decode()
+        contract.exchange                          = bytearray(fields[10]).decode()
+        contract.currency = bytearray(fields[11]).decode()
+        contract.localSymbol = bytearray(fields[12]).decode()  # ver 2 field
+        contract.tradingClass = bytearray(fields[13]).decode()
 
         # read order fields
-        order.action :bytearray(fields[]).decode()
+        order = Order()
+        order.action = bytearray(fields[14]).decode()
+        order.totalQuantity = float(fields[15])
+        order.orderType :bytearray(fields[16]).decode()
+        order.lmtPrice = fields[17]
+        #        order.lmtPrice = decode(float, fields, SHOW_UNSET)
+        order.auxPrice = fields[18]
+        #    order.auxPrice = decode(float, fields, SHOW_UNSET)
+        order.tif = bytearray(fields[17]).decode()
+        order.ocaGroup = bytearray(fields[18]).decode()
+        order.account = bytearray(fields[19]).decode()
+        order.openClose = bytearray(fields[20]).decode()
 
-        if self.server_version >= MIN_SERVER_VER_FRACTIONAL_POSITIONS:
-            order.totalQuantity = decode(float, fields)
-        else:
-            order.totalQuantity = decode(int, fields)
+        order.origin = int(fields[21])
 
-        order.orderType :bytearray(fields[]).decode()
-        if version < 29:
-            order.lmtPrice = decode(float, fields)
-        else:
-            order.lmtPrice = decode(float, fields, SHOW_UNSET)
-        if version < 30:
-            order.auxPrice = decode(float, fields)
-        else:
-            order.auxPrice = decode(float, fields, SHOW_UNSET)
-        order.tif :bytearray(fields[]).decode()
-        order.ocaGroup :bytearray(fields[]).decode()
-        order.account :bytearray(fields[]).decode()
-        order.openClose :bytearray(fields[]).decode()
+        order.orderRef = bytearray(fields[22]).decode()
+        order.clientId = int(fields[23])
+        order.permId = int(fields[24])
 
-        order.origin = decode(int, fields)
+        order.outsideRth = fields[25]
+        order.hidden = fields[26]
+        order.discretionaryAmt = float(fields[28])
+        order.goodAfterTime = bytearray(fields[29]).decode()  # ver 5 field
 
-        order.orderRef :bytearray(fields[]).decode()
-        order.clientId = decode(int, fields)  # ver 3 field
-        order.permId = decode(int, fields)  # ver 4 field
+        _sharesAllocation = bytearray(fields[30]).decode()  # deprecated ver 6 field
 
-        order.outsideRth = decode(bool, fields)  # ver 18 field
-        order.hidden = decode(bool, fields)  # ver 4 field
-        order.discretionaryAmt = decode(float, fields)  # ver 4 field
-        order.goodAfterTime :bytearray(fields[]).decode()  # ver 5 field
+        order.faGroup = bytearray(fields[31]).decode()  # ver 7 field
+        order.faMethod = bytearray(fields[32]).decode()  # ver 7 field
+        order.faPercentage = bytearray(fields[33]).decode()  # ver 7 field
+        order.faProfile = bytearray(fields[34]).decode()  # ver 7 field
 
-        _sharesAllocation :bytearray(fields[]).decode()  # deprecated ver 6 field
+        order.modelCode = bytearray(fields[35]).decode()
 
-        order.faGroup :bytearray(fields[]).decode()  # ver 7 field
-        order.faMethod :bytearray(fields[]).decode()  # ver 7 field
-        order.faPercentage :bytearray(fields[]).decode()  # ver 7 field
-        order.faProfile :bytearray(fields[]).decode()  # ver 7 field
+        order.goodTillDate = bytearray(fields[36]).decode()  # ver 8 field
 
-        if self.server_version >= MIN_SERVER_VER_MODELS_SUPPORT:
-            order.modelCode :bytearray(fields[]).decode()
-
-        order.goodTillDate :bytearray(fields[]).decode()  # ver 8 field
-
-        order.rule80A :bytearray(fields[]).decode()  # ver 9 field
-        order.percentOffset = decode(float, fields, SHOW_UNSET)  # ver 9 field
-        order.settlingFirm :bytearray(fields[]).decode()  # ver 9 field
+        order.rule80A = bytearray(fields[37]).decode()  # ver 9 field
+        order.percentOffset = fields[38]
+        #order.percentOffset = decode(float, fields, SHOW_UNSET)  # ver 9 field
+        order.settlingFirm = bytearray(fields[39]).decode()  # ver 9 field
         order.shortSaleSlot = decode(int, fields)  # ver 9 field
-        order.designatedLocation :bytearray(fields[]).decode()  # ver 9 field
-        if self.server_version == MIN_SERVER_VER_SSHORTX_OLD:
-            decode(int, fields)
-        elif version >= 23:
-            order.exemptCode = decode(int, fields)
-        order.auctionStrategy = decode(int, fields)  # ver 9 field
-        order.startingPrice = decode(float, fields, SHOW_UNSET)  # ver 9 field
-        order.stockRefPrice = decode(float, fields, SHOW_UNSET)  # ver 9 field
-        order.delta = decode(float, fields, SHOW_UNSET)  # ver 9 field
-        order.stockRangeLower = decode(float, fields, SHOW_UNSET)  # ver 9 field
-        order.stockRangeUpper = decode(float, fields, SHOW_UNSET)  # ver 9 field
-        order.displaySize = decode(int, fields)  # ver 9 field
+        order.designatedLocation = bytearray(fields[40]).decode()  # ver 9 field
+        order.exemptCode = int(fields[41])
+        order.auctionStrategy = int(fields[42])
+        order.startingPrice = float(fields[43])
+        order.stockRefPrice = float(fields[44])
+        order.delta = float(fields[45])
+        order.stockRangeLower = float(fields[45])
+        order.stockRangeUpper = float(fields[46])
+        order.displaySize = float(fields[47])
 
-        # if( version < 18) {
-        #		# will never happen
-        #		/* order.rthOnly = */ readBoolFromInt()
-        # }
 
-        order.blockOrder = decode(bool, fields)  # ver 9 field
-        order.sweepToFill = decode(bool, fields)  # ver 9 field
-        order.allOrNone = decode(bool, fields)  # ver 9 field
-        order.minQty = decode(int, fields, SHOW_UNSET)  # ver 9 field
-        order.ocaType = decode(int, fields)  # ver 9 field
-        order.eTradeOnly = decode(bool, fields)  # ver 9 field
-        order.firmQuoteOnly = decode(bool, fields)  # ver 9 field
-        order.nbboPriceCap = decode(float, fields, SHOW_UNSET)  # ver 9 field
+        order.blockOrder = int(fields[48]) == 1
+        order.sweepToFill = int(fields[49]) == 1
+        order.allOrNone = int(fields[50]) == 1
+        order.minQty = int(fields[51])
+        order.ocaType = int(fields[52])
+        order.eTradeOnly = int(fields[53]) == 1
+        order.firmQuoteOnly = int(fields[54]) == 1
+        order.nbboPriceCap = float(fields[55])
 
-        order.parentId = decode(int, fields)  # ver 10 field
-        order.triggerMethod = decode(int, fields)  # ver 10 field
+        order.parentId = int(fields[56])
+        order.triggerMethod = int(fields[57])
 
-        order.volatility = decode(float, fields, SHOW_UNSET)  # ver 11 field
-        order.volatilityType = decode(int, fields)  # ver 11 field
-        order.deltaNeutralOrderType :bytearray(fields[]).decode()  # ver 11 field (had a hack for ver 11)
-        order.deltaNeutralAuxPrice = decode(float, fields, SHOW_UNSET)  # ver 12 field
+        order.volatility = float(fields[58])
+        order.volatilityType = int(fields[59])
+        order.deltaNeutralOrderType = bytearray(fields[59]).decode()  # ver 11 field (had a hack for ver 11)
+        order.deltaNeutralAuxPrice = float(fields[60])
 
         if version >= 27 and order.deltaNeutralOrderType:
             order.deltaNeutralConId = decode(int, fields)
@@ -573,12 +540,6 @@ class MessageParser(object):
             order.deltaNeutralDesignatedLocation :bytearray(fields[]).decode()
 
         order.continuousUpdate = decode(bool, fields)  # ver 11 field
-
-        # will never happen
-        # if( self.server_version == 26) {
-        #	order.stockRangeLower = readDouble()
-        #	order.stockRangeUpper = readDouble()
-        # }
 
         order.referencePriceType = decode(int, fields)  # ver 11 field
 
@@ -626,13 +587,10 @@ class MessageParser(object):
                     tagValue.value :bytearray(fields[]).decode()
                     order.smartComboRoutingParams.append(tagValue)
 
-        if version >= 20:
-            order.scaleInitLevelSize = decode(int, fields, SHOW_UNSET)
-            order.scaleSubsLevelSize = decode(int, fields, SHOW_UNSET)
-        else:
-            # ver 15 fields
-            order.notSuppScaleNumComponents = decode(int, fields, SHOW_UNSET)
-            order.scaleInitLevelSize = decode(int, fields, SHOW_UNSET)  # scaleComponectSize
+
+        order.scaleInitLevelSize = decode(int, fields, SHOW_UNSET)
+        order.scaleSubsLevelSize = decode(int, fields, SHOW_UNSET)
+
 
         order.scalePriceIncrement = decode(float, fields, SHOW_UNSET)  # ver 15 field
 
@@ -754,134 +712,105 @@ class MessageParser(object):
         if self.server_version >= MIN_SERVER_VER_ORDER_CONTAINER:
             order.isOmsContainer = decode(bool, fields)
 
-        # self.response_handler.openOrder(order.orderId, contract, order, orderState)
+        # self.response_handler.openOrder(order.order_id, contract, order, orderState)
 
-    def processPortfolioValueMsg(self, fields):
-
+    @staticmethod
+    def portfolio_value(fields):
         message_id = int(fields[0])
-        version = decode(int, fields)
+        version = int(fields[1])
 
         # read contract fields
         contract = Contract()
-        contract.id = decode(int, fields)  # ver 6 field
-        contract.symbol :bytearray(fields[]).decode()
-        contract.security_type :bytearray(fields[]).decode()
-        contract.last_trade_date_or_contract_month :bytearray(fields[]).decode()
-        contract.strike = decode(float, fields)
-        contract.right :bytearray(fields[]).decode()
+        contract.id = int(fields[2])
+        contract.symbol = bytearray(fields[3]).decode()
+        contract.security_type                     = bytearray(fields[4]).decode()
+        contract.last_trade_date_or_contract_month = bytearray(fields[5]).decode()
+        contract.strike                            = float(fields[6])
+        contract.right                             = bytearray(fields[7]).decode()
+        contract.multiplier                        = bytearray(fields[8]).decode()
+        contract.primaryExchange                   = bytearray(fields[9]).decode()
+        contract.currency = bytearray(fields[10]).decode()
+        contract.localSymbol = bytearray(fields[11]).decode()  # ver 2 field
+        contract.tradingClass = bytearray(fields[12]).decode()
 
-        if version >= 7:
-            contract.multiplier :bytearray(fields[]).decode()
-            contract.primaryExchange :bytearray(fields[]).decode()
+        portfolio_info = {
+            'position' : float(fields[13]),
+            'market_price':float(fields[14]),
+            'average_cost':float(fields[15]),
+            'unrealized_pnl':float(fields[16]),
+            'realized_pnl':float(fields[17]),
+            'account_name':bytearray(fields[18]).decode()
+        }
+        return contract, portfolio_info
 
-        contract.currency :bytearray(fields[]).decode()
-        contract.localSymbol :bytearray(fields[]).decode()  # ver 2 field
-        if version >= 8:
-            contract.tradingClass :bytearray(fields[]).decode()
-
-        if self.server_version >= MIN_SERVER_VER_FRACTIONAL_POSITIONS:
-            position = decode(float, fields)
-        else:
-            position = decode(int, fields)
-
-        marketPrice = decode(float, fields)
-        marketValue = decode(float, fields)
-        averageCost = decode(float, fields)  # ver 3 field
-        unrealizedPNL = decode(float, fields)  # ver 3 field
-        realizedPNL = decode(float, fields)  # ver 3 field
-
-        accountName :bytearray(fields[]).decode()  # ver 4 field
-
-        if version == 6 and self.server_version == 39:
-            contract.primaryExchange :bytearray(fields[]).decode()
-
-        # self.response_handler.updatePortfolio( contract,
-        #    position, marketPrice, marketValue, averageCost,
-        #    unrealizedPNL, realizedPNL, accountName)
-
-    def processExecutionDataMsg(self, fields):
+    def execution_data(self, fields):
         message_id = int(fields[0])
-        version = self.server_version
+        version    = self.server_version
+        request_id = int(fields[1])
+        order_id   = int(fields[2])
 
-        if (self.server_version < MIN_SERVER_VER_LAST_LIQUIDITY):
-            version = decode(int, fields)
-
-        reqId = -1
-        if version >= 7:
-            request_id = int(fields[1])
-
-        orderId = decode(int, fields)
-
-        # decode contract fields
+        # Parse contract information
         contract = Contract()
-        contract.id = decode(int, fields)  # ver 5 field
-        contract.symbol :bytearray(fields[]).decode()
-        contract.security_type :bytearray(fields[]).decode()
-        contract.last_trade_date_or_contract_month :bytearray(fields[]).decode()
-        contract.strike = decode(float, fields)
-        contract.right :bytearray(fields[]).decode()
-        if version >= 9:
-            contract.multiplier :bytearray(fields[]).decode()
-        contract.exchange :bytearray(fields[]).decode()
-        contract.currency :bytearray(fields[]).decode()
-        contract.localSymbol :bytearray(fields[]).decode()
-        if version >= 10:
-            contract.tradingClass :bytearray(fields[]).decode()
+        contract.id = int(fields[3])
+        contract.symbol = bytearray(fields[4]).decode()
+        contract.security_type = bytearray(fields[5]).decode()
+        contract.last_trade_date_or_contract_month = bytearray(fields[6]).decode()
+        contract.strike        = float(fields[7])
+        contract.right         = bytearray(fields[8]).decode()
+        contract.multiplier    = bytearray(fields[9]).decode()
+        contract.exchange      = bytearray(fields[10]).decode()
+        contract.currency      = bytearray(fields[11]).decode()
+        contract.local_symbol  = bytearray(fields[12]).decode()
+        contract.trading_class = bytearray(fields[13]).decode()
 
         # decode execution fields
         execution = Execution()
-        execution.orderId = orderId
-        execution.execId :bytearray(fields[]).decode()
-        execution.time :bytearray(fields[]).decode()
-        execution.acctNumber :bytearray(fields[]).decode()
-        execution.exchange :bytearray(fields[]).decode()
-        execution.side :bytearray(fields[]).decode()
-
-        if self.server_version >= MIN_SERVER_VER_FRACTIONAL_POSITIONS:
-            execution.shares = decode(float, fields)
-        else:
-            execution.shares = decode(int, fields)
-
-        execution.price = decode(float, fields)
-        execution.permId = decode(int, fields)  # ver 2 field
-        execution.clientId = decode(int, fields)  # ver 3 field
-        execution.liquidation = decode(int, fields)  # ver 4 field
-
-        if version >= 6:
-            execution.cumQty = decode(float, fields)
-            execution.avgPrice = decode(float, fields)
-
-        if version >= 8:
-            execution.orderRef :bytearray(fields[]).decode()
-
-        if version >= 9:
-            execution.evRule :bytearray(fields[]).decode()
-            execution.evMultiplier = decode(float, fields)
-        if self.server_version >= MIN_SERVER_VER_MODELS_SUPPORT:
-            execution.modelCode :bytearray(fields[]).decode()
-        if self.server_version >= MIN_SERVER_VER_LAST_LIQUIDITY:
-            execution.lastLiquidity = decode(int, fields)
+        execution.order_id   = order_id
+        execution.execId     = bytearray(fields[14]).decode()
+        execution.time       = bytearray(fields[15]).decode()
+        execution.acctNumber = bytearray(fields[16]).decode()
+        execution.exchange   = bytearray(fields[17]).decode()
+        execution.side       = bytearray(fields[18]).decode()
+        execution.shares     = float(fields[19])
 
 
-    def processHistoricalDataUpdateMsg(self, fields):
+        execution.price = float(fields[20])
+        execution.permId = int(fields[21])
+        execution.clientId = int(fields[22])
+        execution.liquidation = int(fields[23])
+
+
+        execution.cumQty = float(fields[[24]])
+        execution.avgPrice = float(fields[25])
+        execution.orderRef = bytearray(fields[26]).decode()
+        execution.evRule = bytearray(fields[27]).decode()
+        execution.evMultiplier = float(fields[28])
+        execution.modelCode = bytearray(fields[29]).decode()
+        execution.lastLiquidity = int(fields[30])
+
+
+    @staticmethod
+    def historical_data_update(fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        bar = BarData()
-        bar.barCount = decode(int, fields)
-        bar.date :bytearray(fields[]).decode()
-        bar.open = decode(float, fields)
-        bar.close = decode(float, fields)
-        bar.high = decode(float, fields)
-        bar.low = decode(float, fields)
-        bar.average = decode(float, fields)
-        bar.volume = decode(int, fields)
+        bar = Bar()
+        bar.bar_count = int(fields[2])
+        bar.date      = bytearray(fields[3]).decode()
+        bar.open      = float(fields[4])
+        bar.close     = float(fields[5])
+        bar.high      = float(fields[6])
+        bar.low       = float(fields[7])
+        bar.average   = float(fields[8])
+        bar.volume    = int(fields[9])
 
-    def processRealTimeBarMsg(self, fields):
+        return message_id, request_id, bar
+
+    @staticmethod
+    def real_time_bar(fields):
         message_id = int(fields[0])
-        decode(int, fields)
         request_id = int(fields[1])
 
-        bar = RealTimeBar()
+        bar = Bar()
         bar.time = decode(int, fields)
         bar.open = decode(float, fields)
         bar.high = decode(float, fields)
@@ -902,7 +831,7 @@ class MessageParser(object):
         message_id = int(fields[0])
         version = decode(int, fields)
         request_id = int(fields[1])
-        tickTypeInt = decode(int, fields)
+        tick_typeInt = decode(int, fields)
 
         impliedVol = decode(float, fields)
         delta = decode(float, fields)
@@ -913,8 +842,8 @@ class MessageParser(object):
             delta = None
 
         if version >= 6 or \
-                tickTypeInt == TickTypeEnum.MODEL_OPTION or \
-                tickTypeInt == TickTypeEnum.DELAYED_MODEL_OPTION:
+                tick_typeInt == TickTypeEnum.MODEL_OPTION or \
+                tick_typeInt == TickTypeEnum.DELAYED_MODEL_OPTION:
 
             optPrice = decode(float, fields)
             pvDividend = decode(float, fields)
@@ -939,19 +868,22 @@ class MessageParser(object):
             if undPrice == -1:  # -1 is the "not computed" indicator
                 undPrice = None
 
-    def processDeltaNeutralValidationMsg(self, fields):
+    @staticmethod
+    def delta_neutral_validation(fields):
         message_id = int(fields[0])
-        decode(int, fields)
         request_id = int(fields[1])
 
-        deltaNeutralContract = DeltaNeutralContract()
+        #deltaNeutralContract = DeltaNeutralContract() #TODO: decide if we should have a DeltaNeutralContract
+        delta_neutral_contract = Contract()
 
-        deltaNeutralContract.conId = decode(int, fields)
-        deltaNeutralContract.delta = decode(float, fields)
-        deltaNeutralContract.price = decode(float, fields)
+        delta_neutral_contract.contract_id = int(fields[2])
+        delta_neutral_contract.delta       = float(fields[3])
+        delta_neutral_contract.price       = float(fields[4])
+        return message_id, request_id, delta_neutral_contract
 
 
-    def processPositionDataMsg(self, fields):
+    @staticmethod
+    def processPositionDataMsg(fields):
         message_id = int(fields[0])
         version = decode(int, fields)
 
@@ -983,30 +915,31 @@ class MessageParser(object):
 
         # self.response_handler.position(account, contract, position, avgCost)
 
-    def processPositionMultiMsg(self, fields):
+    @staticmethod
+    def position_multi(fields):
         message_id = int(fields[0])
-        decode(int, fields)
         request_id = int(fields[1])
-        account :bytearray(fields[]).decode()
+        account = bytearray(fields[2]).decode()
 
         # decode contract fields
         contract = Contract()
-        contract.id = decode(int, fields)
-        contract.symbol :bytearray(fields[]).decode()
-        contract.security_type :bytearray(fields[]).decode()
-        contract.last_trade_date_or_contract_month :bytearray(fields[]).decode()
-        contract.strike = decode(float, fields)
-        contract.right :bytearray(fields[]).decode()
-        contract.multiplier :bytearray(fields[]).decode()
-        contract.exchange :bytearray(fields[]).decode()
-        contract.currency :bytearray(fields[]).decode()
-        contract.localSymbol :bytearray(fields[]).decode()
-        contract.tradingClass :bytearray(fields[]).decode()
-        position = decode(float, fields)
-        avgCost = decode(float, fields)
-        modelCode :bytearray(fields[]).decode()
+        contract.id = int(fields[3])
+        contract.symbol = bytearray(fields[4]).decode()
+        contract.security_type = bytearray(fields[5]).decode()
+        contract.last_trade_date_or_contract_month = bytearray(fields[6]).decode()
+        contract.strike = float(fields[7])
+        contract.right = bytearray(fields[8]).decode()
+        contract.multiplier = bytearray(fields[9]).decode()
+        contract.exchange = bytearray(fields[10]).decode()
+        contract.currency = bytearray(fields[11]).decode()
+        contract.local_symbol = bytearray(fields[12]).decode()
+        contract.trading_class = bytearray(fields[13]).decode()
 
-        # self.response_handler.positionMulti(reqId, account, modelCode, contract, position, avgCost)
+        position = float(fields[14])
+        average_cost = float(fields[15])
+        modelCode :bytearray(fields[16]).decode()
+
+        return
 
     def processSecurityDefinitionOptionParameterMsg(self, fields):
         message_id = int(fields[0])
@@ -1029,14 +962,13 @@ class MessageParser(object):
             strike = decode(float, fields)
             strikes.add(strike)
 
-        # self.response_handler.securityDefinitionOptionParameter(reqId, exchange,
-        #    underlyingConId, tradingClass, multiplier, expirations, strikes)
+
 
     def processSecurityDefinitionOptionParameterEndMsg(self, fields):
         message_id = int(fields[0])
 
         request_id = int(fields[1])
-        # self.response_handler.securityDefinitionOptionParameterEnd(reqId)
+
 
     def processSmartComponents(self, fields):
         message_id = int(fields[0])
@@ -1097,36 +1029,45 @@ class MessageParser(object):
                 newsProviders.append(provider)
 
 
-    def processNewsArticle(self, fields):
+    @staticmethod
+    def news_articles(fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        articleType = decode(int, fields)
-        articleText :bytearray(fields[]).decode()
+        article = {
+        'type' :  int(fields[2]),
+        'text' : bytearray(fields[3]).decode()
+        }
+        return message_id, request_id, article
 
-    def processHistoricalNews(self, fields):
+    @staticmethod
+    def historical_news(fields):
         message_id = int(fields[0])
-        requestId = decode(int, fields)
-        time :bytearray(fields[]).decode()
-        providerCode :bytearray(fields[]).decode()
-        articleId :bytearray(fields[]).decode()
-        headline :bytearray(fields[]).decode()
+        request_id = int(fields[1])
+        time = bytearray(fields[2]).decode()
+        providerCode = bytearray(fields[3]).decode()
+        articleId = bytearray(fields[4]).decode()
+        headline = bytearray(fields[5]).decode()
 
     def processHistoricalNewsEnd(self, fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        hasMore = decode(bool, fields)
+        has_more = decode(bool, fields)
 
-    def processHistogramData(self, fields):
+    @staticmethod
+    def histogram_data(fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        numPoints = decode(int, fields)
-
+        num_points = int(fields[2])
+        field_index = 3
         histogram = []
-        for _ in range(numPoints):
-            dataPoint = HistogramData()
-            dataPoint.price = decode(float, fields)
-            dataPoint.count = decode(int, fields)
-            histogram.append(dataPoint)
+        for index in range(num_points):
+            data_point = {
+                'price': float(fields[field_index]),
+                'count': int(fields[field_index + 1])
+            }
+            field_index += 2
+            histogram.append(data_point)
+        return message_id, request_id, histogram
 
 
     def processMarketRuleMsg(self, fields):
@@ -1144,43 +1085,47 @@ class MessageParser(object):
                 priceIncrements.append(prcInc)
 
 
-    def processPnLMsg(self, fields):
+    def pnl(self, fields):
+        """
+
+        :param fields: Message Fields
+        :returns: message_id, request_id, pnl
+        """
         message_id = int(fields[0])
         request_id = int(fields[1])
-        dailyPnL = decode(float, fields)
-        unrealizedPnL = None
-        realizedPnL = None
+        pnl = {
+            'daily'      : float(fields[2]),
+            'unrealized' : float(fields[3]),
+            'realized'   : float(fields[4])
+        }
+        return message_id, request_id, pnl
 
-        if self.server_version >= MIN_SERVER_VER_UNREALIZED_PNL:
-            unrealizedPnL = decode(float, fields)
 
-        if self.server_version >= MIN_SERVER_VER_REALIZED_PNL:
-            realizedPnL = decode(float, fields)
 
-        # self.response_handler.pnl(reqId, dailyPnL, unrealizedPnL, realizedPnL)
+    @staticmethod
+    def pnl_single(fields):
+        """
+        Gets the profit and loss for a single position
+        :param fields:
+        :return:
+        """
 
-    def processPnLSingleMsg(self, fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        pos = decode(int, fields)
-        dailyPnL = decode(float, fields)
-        unrealizedPnL = None
-        realizedPnL = None
+        pnl = {
+            'position':int(fields[2]),
+            'daily': float(fields[3]),
+            'unrealized':float(fields[4]),
+            'realized':float(fields[5]),
+            'value':float(fields[6])
+        }
+        return message_id, request_id, pnl
 
-        if self.server_version >= MIN_SERVER_VER_UNREALIZED_PNL:
-            unrealizedPnL = decode(float, fields)
-
-        if self.server_version >= MIN_SERVER_VER_REALIZED_PNL:
-            realizedPnL = decode(float, fields)
-
-        value = decode(float, fields)
-
-        # self.response_handler.pnlSingle(reqId, pos, dailyPnL, unrealizedPnL, realizedPnL, value)
-
-    def processHistoricalTicks(self, fields):
+    @staticmethod
+    def historical_ticks(self, fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        tickCount = decode(int, fields)
+        tickCount = int(fields[2])
 
         ticks = []
 
@@ -1194,9 +1139,9 @@ class MessageParser(object):
 
         done = decode(bool, fields)
 
-        # self.response_handler.historicalTicks(reqId, ticks, done)
 
-    def processHistoricalTicksBidAsk(self, fields):
+    @staticmethod
+    def historical_ticks_bid_ask(fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
         tickCount = decode(int, fields)
@@ -1219,12 +1164,13 @@ class MessageParser(object):
 
         done = decode(bool, fields)
 
-        # self.response_handler.historicalTicksBidAsk(reqId, ticks, done)
 
-    def processHistoricalTicksLast(self, fields):
+
+    @staticmethod
+    def historical_ticks_last(fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        tickCount = decode(int, fields)
+        tick_count = int(fields[2])
 
         ticks = []
 
@@ -1246,16 +1192,17 @@ class MessageParser(object):
 
         # self.response_handler.historicalTicksLast(reqId, ticks, done)
 
-    def processTickByTickMsg(self, fields):
+    @staticmethod
+    def processTickByTickMsg(fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        tickType = decode(int, fields)
-        time = decode(int, fields)
+        tick_type  = int(fields[2])
+        time       = int(fields[3])
 
-        if tickType == 0:
+        if tick_type == 0:
             # None
             pass
-        elif tickType == 1 or tickType == 2:
+        elif tick_type == 1 or tick_type == 2:
             # Last or AllLast
             price = decode(float, fields)
             size = decode(int, fields)
@@ -1267,9 +1214,9 @@ class MessageParser(object):
             exchange :bytearray(fields[]).decode()
             specialConditions :bytearray(fields[]).decode()
 
-            # self.response_handler.tickByTickAllLast(reqId, tickType, time, price, size, tickAttribLast,
+            # self.response_handler.tickByTickAllLast(reqId, tick_type, time, price, size, tickAttribLast,
             #                               exchange, specialConditions)
-        elif tickType == 3:
+        elif tick_type == 3:
             # BidAsk
             bidPrice = decode(float, fields)
             askPrice = decode(float, fields)
@@ -1282,7 +1229,7 @@ class MessageParser(object):
 
             # self.response_handler.tickByTickBidAsk(reqId, time, bidPrice, askPrice, bidSize,
             #                              askSize, tickAttribBidAsk)
-        elif tickType == 4:
+        elif tick_type == 4:
             # MidPoint
             midPoint = decode(float, fields)
 
