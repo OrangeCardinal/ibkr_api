@@ -10,6 +10,7 @@ from classes.order import Order
 from classes.execution import Execution
 
 from classes.bar import Bar
+from classes.tick_type import TickType
 
 import logging
 import time
@@ -37,9 +38,8 @@ class MessageParser(object):
         return message_id, request_id, commission_report
 
     @staticmethod
-    def contract_data(message):
+    def contract_data(fields):
         contract = Contract()
-        fields = message['fields']
         
         version = fields[0]
         request_id = int(fields[1])
@@ -75,7 +75,7 @@ class MessageParser(object):
 
         """
         Not yet ported
-        secIdListCount = decode(int, fields)
+        secIdListCount = int(fields[])
         if secIdListCount > 0:
             contract.secIdList = []
             for _ in range(secIdListCount):
@@ -85,7 +85,7 @@ class MessageParser(object):
                 contract.secIdList.append(tagValue)
 
         if self.server_version >= MIN_SERVER_VER_AGG_GROUP:
-            contract.aggGroup = decode(int, fields)
+            contract.aggGroup = int(fields[])
 
         if self.server_version >= MIN_SERVER_VER_UNDERLYING_INFO:
             contract.underSymbol :bytearray(fields[]).decode()
@@ -149,7 +149,7 @@ class MessageParser(object):
 
 
     @staticmethod
-    def current_time(message):
+    def current_time(fields):
         """
         Parse data from the current_time response message
 
@@ -166,7 +166,7 @@ class MessageParser(object):
         return request_id, timestamp
 
     @staticmethod
-    def family_codes(message):
+    def family_codes(fields):
         fields = message['fields']
 
         num_family_codes = int(fields[0])
@@ -181,7 +181,7 @@ class MessageParser(object):
         return family_codes
 
     @staticmethod
-    def historical_data(message):
+    def historical_data(fields):
         """
 
         :param message:
@@ -214,7 +214,7 @@ class MessageParser(object):
         return message_id, request_id, bars
     
     @staticmethod
-    def info_message(message):
+    def info_message(fields):
         """
         Message Fields
         0 - Message ID
@@ -238,7 +238,7 @@ class MessageParser(object):
 
 
     @staticmethod
-    def market_data_type(message):
+    def market_data_type(fields):
         fields = message['fields']
         data = {
             'message_id':int(fields[0]),
@@ -249,7 +249,7 @@ class MessageParser(object):
 
 
     @staticmethod
-    def market_depth_l2(message):
+    def market_depth_l2(fields):
         fields = message['fields']
         data = {
             'message_id':int(fields[0]),
@@ -274,7 +274,7 @@ class MessageParser(object):
         return message_id, request_id, api_client_id, api_order_id
 
     @staticmethod
-    def reroute_market_data_request(message):
+    def reroute_market_data_request(fields):
         fields = message['fields']
         data = {
             'request_id':int(fields[0]),
@@ -284,7 +284,7 @@ class MessageParser(object):
         return data
     
     @staticmethod
-    def reroute_market_depth_request(message):
+    def reroute_market_depth_request(fields):
         fields = message['fields']
         data = {
             'request_id':int(fields[0]),
@@ -294,7 +294,7 @@ class MessageParser(object):
         return data
 
     @staticmethod
-    def scanner_data(message):
+    def scanner_data(fields):
         fields = message['fields']
 
         message_id = int(fields[0])
@@ -347,7 +347,7 @@ class MessageParser(object):
         return message_id, request_id, tiers
 
     @staticmethod
-    def symbol_samples(message):
+    def symbol_samples(fields):
         fields = message['fields']
 
         request_id = int(fields[1])
@@ -381,37 +381,30 @@ class MessageParser(object):
         price = float(fields[3])
         size = int(fields[4])
         attr_mask = int(fields[5])
-        
 
-        attributes = {}
-        #attrib = TickAttrib()
-        
-        attrib.canAutoExecute = attrMask == 1
-
-        if self.server_version >= MIN_SERVER_VER_PAST_LIMIT:
-            attrib.canAutoExecute = attrMask & 1 != 0
-            attrib.pastLimit = attrMask & 2 != 0
-            if self.server_version >= MIN_SERVER_VER_PRE_OPEN_BID_ASK:
-                attrib.preOpen = attrMask & 4 != 0
-
-
+        # attrib = TickAttrib()
+        attributes ={
+            'can_auto_execute' : attr_mask & 1 != 0,
+            'past_limit' : attr_mask & 2 != 0 ,
+            'pre_open': attr_mask & 4 != 0
+        }
 
         # process ver 2 fields
-        sizeTickType = TickTypeEnum.NOT_SET
-        if TickTypeEnum.BID == tick_type:
-            sizeTickType = TickTypeEnum.BID_SIZE
-        elif TickTypeEnum.ASK == tick_type:
-            sizeTickType = TickTypeEnum.ASK_SIZE
-        elif TickTypeEnum.LAST == tick_type:
-            sizeTickType = TickTypeEnum.LAST_SIZE
-        elif TickTypeEnum.DELAYED_BID == tick_type:
-            sizeTickType = TickTypeEnum.DELAYED_BID_SIZE
-        elif TickTypeEnum.DELAYED_ASK == tick_type:
-            sizeTickType = TickTypeEnum.DELAYED_ASK_SIZE
-        elif TickTypeEnum.DELAYED_LAST == tick_type:
-            sizeTickType = TickTypeEnum.DELAYED_LAST_SIZE
+        size_tick_type = TickType.NOT_SET
+        if TickType.BID == tick_type:
+            size_tick_type = TickType.BID_SIZE
+        elif TickType.ASK == tick_type:
+            size_tick_type = TickType.ASK_SIZE
+        elif TickType.LAST == tick_type:
+            size_tick_type = TickType.LAST_SIZE
+        elif TickType.DELAYED_BID == tick_type:
+            size_tick_type = TickType.DELAYED_BID_SIZE
+        elif TickType.DELAYED_ASK == tick_type:
+            size_tick_type = TickType.DELAYED_ASK_SIZE
+        elif TickType.DELAYED_LAST == tick_type:
+            size_tick_type = TickType.DELAYED_LAST_SIZE
 
-        if sizeTickType != TickTypeEnum.NOT_SET:
+        if size_tick_type != TickType.NOT_SET:
             pass
 
 
@@ -498,7 +491,7 @@ class MessageParser(object):
         order.percentOffset = fields[38]
         #order.percentOffset = decode(float, fields, SHOW_UNSET)  # ver 9 field
         order.settlingFirm = bytearray(fields[39]).decode()  # ver 9 field
-        order.shortSaleSlot = decode(int, fields)  # ver 9 field
+        order.shortSaleSlot = int(fields[])  # ver 9 field
         order.designatedLocation = bytearray(fields[40]).decode()  # ver 9 field
         order.exemptCode = int(fields[41])
         order.auctionStrategy = int(fields[42])
@@ -527,49 +520,43 @@ class MessageParser(object):
         order.deltaNeutralOrderType = bytearray(fields[59]).decode()  # ver 11 field (had a hack for ver 11)
         order.deltaNeutralAuxPrice = float(fields[60])
 
-        if version >= 27 and order.deltaNeutralOrderType:
-            order.deltaNeutralConId = decode(int, fields)
-            order.deltaNeutralSettlingFirm :bytearray(fields[]).decode()
-            order.deltaNeutralClearingAccount :bytearray(fields[]).decode()
-            order.deltaNeutralClearingIntent :bytearray(fields[]).decode()
+        if order.deltaNeutralOrderType:
+            order.deltaNeutralConId = int(fields[61])
+            order.deltaNeutralSettlingFirm = bytearray(fields[62]).decode()
+            order.deltaNeutralClearingAccount = bytearray(fields[63]).decode()
+            order.deltaNeutralClearingIntent = bytearray(fields[64]).decode()
+            order.deltaNeutralOpenClose = bytearray(fields[65]).decode()
+            order.deltaNeutralShortSale = int(fields[66])
+            order.deltaNeutralShortSaleSlot = int(fields[67])
+            order.deltaNeutralDesignatedLocation = bytearray(fields[68]).decode()
 
-        if version >= 31 and order.deltaNeutralOrderType:
-            order.deltaNeutralOpenClose :bytearray(fields[]).decode()
-            order.deltaNeutralShortSale = decode(bool, fields)
-            order.deltaNeutralShortSaleSlot = decode(int, fields)
-            order.deltaNeutralDesignatedLocation :bytearray(fields[]).decode()
+        order.continuousUpdate = int(fields[69]) == 1
+        order.referencePriceType = int(fields[70])
+        order.trailStopPrice = float(fields[71])
+        order.trailingPercent = float(fields[72])
 
-        order.continuousUpdate = decode(bool, fields)  # ver 11 field
-
-        order.referencePriceType = decode(int, fields)  # ver 11 field
-
-        order.trailStopPrice = decode(float, fields, SHOW_UNSET)  # ver 13 field
-
-        if version >= 30:
-            order.trailingPercent = decode(float, fields, SHOW_UNSET)
-
-        order.basisPoints = decode(float, fields, SHOW_UNSET)  # ver 14 field
-        order.basisPointsType = decode(int, fields, SHOW_UNSET)  # ver 14 field
-        contract.comboLegsDescrip :bytearray(fields[]).decode()  # ver 14 field
+        order.basisPoints = float(fields[73])
+        order.basisPointsType = int(fields[74])
+        contract.comboLegsDescrip = bytearray(fields[75]).decode()  # ver 14 field
 
         if version >= 29:
-            comboLegsCount = decode(int, fields)
+            comboLegsCount = int(fields[])
 
             if comboLegsCount > 0:
                 contract.comboLegs = []
                 for _ in range(comboLegsCount):
                     comboLeg = ComboLeg()
-                    comboLeg.conId = decode(int, fields)
-                    comboLeg.ratio = decode(int, fields)
+                    comboLeg.conId = int(fields[])
+                    comboLeg.ratio = int(fields[])
                     comboLeg.action :bytearray(fields[]).decode()
                     comboLeg.exchange :bytearray(fields[]).decode()
-                    comboLeg.openClose = decode(int, fields)
-                    comboLeg.shortSaleSlot = decode(int, fields)
+                    comboLeg.openClose = int(fields[])
+                    comboLeg.shortSaleSlot = int(fields[])
                     comboLeg.designatedLocation :bytearray(fields[]).decode()
-                    comboLeg.exemptCode = decode(int, fields)
+                    comboLeg.exemptCode = int(fields[])
                     contract.comboLegs.append(comboLeg)
 
-            orderComboLegsCount = decode(int, fields)
+            orderComboLegsCount = int(fields[])
             if orderComboLegsCount > 0:
                 order.orderComboLegs = []
                 for _ in range(orderComboLegsCount):
@@ -578,7 +565,7 @@ class MessageParser(object):
                     order.orderComboLegs.append(orderComboLeg)
 
         if version >= 26:
-            smartComboRoutingParamsCount = decode(int, fields)
+            smartComboRoutingParamsCount = int(fields[])
             if smartComboRoutingParamsCount > 0:
                 order.smartComboRoutingParams = []
                 for _ in range(smartComboRoutingParamsCount):
@@ -621,15 +608,15 @@ class MessageParser(object):
         if version >= 20:
             deltaNeutralContractPresent = decode(bool, fields)
             if deltaNeutralContractPresent:
-                contract.deltaNeutralContract = DeltaNeutralContract()
-                contract.deltaNeutralContract.conId = decode(int, fields)
-                contract.deltaNeutralContract.delta = decode(float, fields)
-                contract.deltaNeutralContract.price = decode(float, fields)
+                contract.deltaNeutralContract = Contract()
+                contract.deltaNeutralContract.conId = int(fields[])
+                contract.deltaNeutralContract.delta = float(fields[])
+                contract.deltaNeutralContract.price = float(fields[])
 
         if version >= 21:
             order.algoStrategy :bytearray(fields[]).decode()
             if order.algoStrategy:
-                algoParamsCount = decode(int, fields)
+                algoParamsCount = int(fields[])
                 if algoParamsCount > 0:
                     order.algoParams = []
                     for _ in range(algoParamsCount):
@@ -670,17 +657,17 @@ class MessageParser(object):
 
         if self.server_version >= MIN_SERVER_VER_PEGGED_TO_BENCHMARK:
             if order.orderType == "PEG BENCH":
-                order.referenceContractId = decode(int, fields)
+                order.referenceContractId = int(fields[])
                 order.isPeggedChangeAmountDecrease = decode(bool, fields)
-                order.peggedChangeAmount = decode(float, fields)
-                order.referenceChangeAmount = decode(float, fields)
+                order.peggedChangeAmount = float(fields[])
+                order.referenceChangeAmount = float(fields[])
                 order.referenceExchangeId :bytearray(fields[]).decode()
 
-            conditionsSize = decode(int, fields)
+            conditionsSize = int(fields[])
             if conditionsSize > 0:
                 order.conditions = []
                 for _ in range(conditionsSize):
-                    conditionType = decode(int, fields)
+                    conditionType = int(fields[])
                     condition = order_condition.Create(conditionType)
                     condition.decode(fields)
                     order.conditions.append(condition)
@@ -689,13 +676,13 @@ class MessageParser(object):
                 order.conditionsCancelOrder = decode(bool, fields)
 
             order.adjustedOrderType :bytearray(fields[]).decode()
-            order.triggerPrice = decode(float, fields)
-            order.trailStopPrice = decode(float, fields)
-            order.lmtPriceOffset = decode(float, fields)
-            order.adjustedStopPrice = decode(float, fields)
-            order.adjustedStopLimitPrice = decode(float, fields)
-            order.adjustedTrailingAmount = decode(float, fields)
-            order.adjustableTrailingUnit = decode(int, fields)
+            order.triggerPrice = float(fields[])
+            order.trailStopPrice = float(fields[])
+            order.lmtPriceOffset = float(fields[])
+            order.adjustedStopPrice = float(fields[])
+            order.adjustedStopLimitPrice = float(fields[])
+            order.adjustedTrailingAmount = float(fields[])
+            order.adjustableTrailingUnit = int(fields[])
 
         if self.server_version >= MIN_SERVER_VER_SOFT_DOLLAR_TIER:
             name :bytearray(fields[]).decode()
@@ -704,7 +691,7 @@ class MessageParser(object):
             order.softDollarTier = SoftDollarTier(name, value, displayName)
 
         if self.server_version >= MIN_SERVER_VER_CASH_QTY:
-            order.cashQty = decode(float, fields)
+            order.cashQty = float(fields[])
 
         if self.server_version >= MIN_SERVER_VER_AUTO_PRICE_FOR_HEDGE:
             order.dontUseAutoPriceForHedge = decode(bool, fields)
@@ -811,14 +798,14 @@ class MessageParser(object):
         request_id = int(fields[1])
 
         bar = Bar()
-        bar.time = decode(int, fields)
-        bar.open = decode(float, fields)
-        bar.high = decode(float, fields)
-        bar.low = decode(float, fields)
-        bar.close = decode(float, fields)
-        bar.volume = decode(int, fields)
-        bar.wap = decode(float, fields)
-        bar.count = decode(int, fields)
+        bar.time = int(fields[2])
+        bar.open = float(fields[3])
+        bar.high = float(fields[4])
+        bar.low = float(fields[5])
+        bar.close = float(fields[6])
+        bar.volume = int(fields[])
+        bar.wap = float(fields[])
+        bar.count = int(fields[])
 
     def processTickOptionComputationMsg(self, fields):
         optPrice = None
@@ -829,12 +816,12 @@ class MessageParser(object):
         undPrice = None
 
         message_id = int(fields[0])
-        version = decode(int, fields)
-        request_id = int(fields[1])
-        tick_typeInt = decode(int, fields)
+        version = int(fields[1])
+        request_id = int(fields[2])
+        tick_typeInt = int(fields[3])
 
-        impliedVol = decode(float, fields)
-        delta = decode(float, fields)
+        impliedVol = float(fields[4])
+        delta = float(fields[5])
 
         if impliedVol < 0:  # -1 is the "not computed" indicator
             impliedVol = None
@@ -842,11 +829,11 @@ class MessageParser(object):
             delta = None
 
         if version >= 6 or \
-                tick_typeInt == TickTypeEnum.MODEL_OPTION or \
-                tick_typeInt == TickTypeEnum.DELAYED_MODEL_OPTION:
+                tick_typeInt == TickType.MODEL_OPTION or \
+                tick_typeInt == TickType.DELAYED_MODEL_OPTION:
 
-            optPrice = decode(float, fields)
-            pvDividend = decode(float, fields)
+            optPrice = float(fields[])
+            pvDividend = float(fields[])
 
             if optPrice == -1:  # -1 is the "not computed" indicator
                 optPrice = None
@@ -854,10 +841,10 @@ class MessageParser(object):
                 pvDividend = None
 
         if version >= 6:
-            gamma = decode(float, fields)
-            vega = decode(float, fields)
-            theta = decode(float, fields)
-            undPrice = decode(float, fields)
+            gamma = float(fields[])
+            vega = float(fields[])
+            theta = float(fields[])
+            undPrice = float(fields[])
 
             if gamma == -2:  # -2 is the "not yet computed" indicator
                 gamma = None
@@ -883,35 +870,32 @@ class MessageParser(object):
 
 
     @staticmethod
-    def processPositionDataMsg(fields):
+    def position_data(fields):
         message_id = int(fields[0])
-        version = decode(int, fields)
+        version = int(fields[1])
 
-        account :bytearray(fields[]).decode()
+        account = bytearray(fields[2]).decode()
 
         # decode contract fields
         contract = Contract()
-        contract.id = decode(int, fields)
-        contract.symbol :bytearray(fields[]).decode()
-        contract.security_type :bytearray(fields[]).decode()
-        contract.last_trade_date_or_contract_month :bytearray(fields[]).decode()
-        contract.strike = decode(float, fields)
-        contract.right :bytearray(fields[]).decode()
-        contract.multiplier :bytearray(fields[]).decode()
-        contract.exchange :bytearray(fields[]).decode()
-        contract.currency :bytearray(fields[]).decode()
-        contract.localSymbol :bytearray(fields[]).decode()
-        if version >= 2:
-            contract.tradingClass :bytearray(fields[]).decode()
+        contract.id = int(fields[3])
+        contract.symbol = bytearray(fields[4]).decode()
+        contract.security_type                     = bytearray(fields[5]).decode()
+        contract.last_trade_date_or_contract_month = bytearray(fields[6]).decode()
+        contract.strike                            = float(fields[7])
+        contract.right       = bytearray(fields[8]).decode()
+        contract.multiplier  = bytearray(fields[9]).decode()
+        contract.exchange    = bytearray(fields[10]).decode()
+        contract.currency    = bytearray(fields[11]).decode()
+        contract.localSymbol = bytearray(fields[12]).decode()
+        contract.tradingClass = bytearray(fields[13]).decode()
 
-        if self.server_version >= MIN_SERVER_VER_FRACTIONAL_POSITIONS:
-            position = decode(float, fields)
-        else:
-            position = decode(int, fields)
+        position = float(fields[14])
+
 
         avgCost = 0.
         if version >= 3:
-            avgCost = decode(float, fields)
+            avgCost = float(fields[])
 
         # self.response_handler.position(account, contract, position, avgCost)
 
@@ -946,20 +930,20 @@ class MessageParser(object):
 
         request_id = int(fields[1])
         exchange :bytearray(fields[]).decode()
-        underlyingConId = decode(int, fields)
+        underlyingConId = int(fields[])
         tradingClass :bytearray(fields[]).decode()
         multiplier :bytearray(fields[]).decode()
 
-        expCount = decode(int, fields)
+        expCount = int(fields[])
         expirations = set()
         for _ in range(expCount):
             expiration :bytearray(fields[]).decode()
             expirations.add(expiration)
 
-        strikeCount = decode(int, fields)
+        strikeCount = int(fields[])
         strikes = set()
         for _ in range(strikeCount):
-            strike = decode(float, fields)
+            strike = float(fields[])
             strikes.add(strike)
 
 
@@ -973,27 +957,27 @@ class MessageParser(object):
     def processSmartComponents(self, fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        n = decode(int, fields)
+        n = int(fields[])
 
         smartComponentMap = []
         for _ in range(n):
             smartComponent = SmartComponent()
-            smartComponent.bitNumber = decode(int, fields)
+            smartComponent.bitNumber = int(fields[])
             smartComponent.exchange :bytearray(fields[]).decode()
             smartComponent.exchangeLetter :bytearray(fields[]).decode()
             smartComponentMap.append(smartComponent)
 
     def processTickReqParams(self, fields):
         message_id = int(fields[0])
-        tickerId = decode(int, fields)
-        minTick = decode(float, fields)
+        tickerId = int(fields[])
+        minTick = float(fields[])
         bboExchange :bytearray(fields[]).decode()
-        snapshotPermissions = decode(int, fields)
+        snapshotPermissions = int(fields[])
 
     def processMktDepthExchanges(self, fields):
         message_id = int(fields[0])
         depthMktDataDescriptions = []
-        nDepthMktDataDescriptions = decode(int, fields)
+        nDepthMktDataDescriptions = int(fields[])
 
         if nDepthMktDataDescriptions > 0:
             for _ in range(nDepthMktDataDescriptions):
@@ -1003,15 +987,15 @@ class MessageParser(object):
                 if self.server_version >= MIN_SERVER_VER_SERVICE_DATA_TYPE:
                     desc.listingExch :bytearray(fields[]).decode()
                     desc.serviceDataType :bytearray(fields[]).decode()
-                    desc.aggGroup = decode(int, fields)
+                    desc.aggGroup = int(fields[])
                 else:
-                    decode(int, fields)  # boolean notSuppIsL2
+                    int(fields[])  # boolean notSuppIsL2
                 depthMktDataDescriptions.append(desc)
 
     def processTickNews(self, fields):
         message_id = int(fields[0])
-        tickerId = decode(int, fields)
-        timeStamp = decode(int, fields)
+        tickerId = int(fields[])
+        timeStamp = int(fields[])
         providerCode :bytearray(fields[]).decode()
         articleId :bytearray(fields[]).decode()
         headline :bytearray(fields[]).decode()
@@ -1020,7 +1004,7 @@ class MessageParser(object):
     def processNewsProviders(self, fields):
         message_id = int(fields[0])
         newsProviders = []
-        nNewsProviders = decode(int, fields)
+        nNewsProviders = int(fields[])
         if nNewsProviders > 0:
             for _ in range(nNewsProviders):
                 provider = NewsProvider()
@@ -1072,16 +1056,16 @@ class MessageParser(object):
 
     def processMarketRuleMsg(self, fields):
         message_id = int(fields[0])
-        marketRuleId = decode(int, fields)
+        marketRuleId = int(fields[])
 
-        nPriceIncrements = decode(int, fields)
+        nPriceIncrements = int(fields[])
         priceIncrements = []
 
         if nPriceIncrements > 0:
             for _ in range(nPriceIncrements):
                 prcInc = PriceIncrement()
-                prcInc.lowEdge = decode(float, fields)
-                prcInc.increment = decode(float, fields)
+                prcInc.lowEdge = float(fields[])
+                prcInc.increment = float(fields[])
                 priceIncrements.append(prcInc)
 
 
@@ -1125,46 +1109,48 @@ class MessageParser(object):
     def historical_ticks(self, fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        tickCount = int(fields[2])
+        tick_count = int(fields[2])
+        field_index = 3
 
         ticks = []
 
-        for _ in range(tickCount):
-            historicalTick = HistoricalTick()
-            historicalTick.time = decode(int, fields)
-            message_id = int(fields[0])  # for consistency
-            historicalTick.price = decode(float, fields)
-            historicalTick.size = decode(int, fields)
-            ticks.append(historicalTick)
+        for _ in range(tick_count):
+            historical_tick = {
+                'message_id': int(fields[0]),
+                'time':int(fields[field_index]),
+                'price':float(fields[field_index+1]),
+                'size':int(fields[field_index+2])
+            }
+            field_index += 3
+            ticks.append(historical_tick)
 
-        done = decode(bool, fields)
+        done = int(fields[field_index]) == 1
 
 
     @staticmethod
     def historical_ticks_bid_ask(fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        tickCount = decode(int, fields)
+        tick_count = int(fields[2])
+        field_index = 3
 
         ticks = []
 
-        for _ in range(tickCount):
-            historicalTickBidAsk = HistoricalTickBidAsk()
-            historicalTickBidAsk.time = decode(int, fields)
-            mask = decode(int, fields)
-            tickAttribBidAsk = TickAttribBidAsk()
-            tickAttribBidAsk.askPastHigh = mask & 1 != 0
-            tickAttribBidAsk.bidPastLow = mask & 2 != 0
-            historicalTickBidAsk.tickAttribBidAsk = tickAttribBidAsk
-            historicalTickBidAsk.priceBid = decode(float, fields)
-            historicalTickBidAsk.priceAsk = decode(float, fields)
-            historicalTickBidAsk.sizeBid = decode(int, fields)
-            historicalTickBidAsk.sizeAsk = decode(int, fields)
-            ticks.append(historicalTickBidAsk)
+        for _ in range(tick_count):
+            mask = int(fields[field_index + 1])
+            historical_tick_bid_ask = {
+                'time':int(fields[field_index]),
+                'mask':int(fields[field_index+1]),
+                'ask_past_high': mask & 1 != 0,
+                'bid_past_low': mask & 2 != 0,
+                'price_bid' : fields[field_index+2],
+                'price_ask': float(fields[field_index+3]),
+                'size_bid': int(fields[field_index+4]),
+                'size_ask': int(fields[field_index+5])
+            }
+            ticks.append(historical_tick_bid_ask)
 
-        done = decode(bool, fields)
-
-
+        done = int(fields[field_index]) == 1
 
     @staticmethod
     def historical_ticks_last(fields):
@@ -1174,26 +1160,25 @@ class MessageParser(object):
 
         ticks = []
 
-        for _ in range(tickCount):
+        for _ in range(tick_count):
             historicalTickLast = HistoricalTickLast()
-            historicalTickLast.time = decode(int, fields)
-            mask = decode(int, fields)
+            historicalTickLast.time = int(fields[])
+            mask = int(fields[])
             tickAttribLast = TickAttribLast()
             tickAttribLast.pastLimit = mask & 1 != 0
             tickAttribLast.unreported = mask & 2 != 0
             historicalTickLast.tickAttribLast = tickAttribLast
-            historicalTickLast.price = decode(float, fields)
-            historicalTickLast.size = decode(int, fields)
+            historicalTickLast.price = float(fields[])
+            historicalTickLast.size = int(fields[])
             historicalTickLast.exchange :bytearray(fields[]).decode()
             historicalTickLast.specialConditions :bytearray(fields[]).decode()
             ticks.append(historicalTickLast)
 
         done = decode(bool, fields)
 
-        # self.response_handler.historicalTicksLast(reqId, ticks, done)
 
     @staticmethod
-    def processTickByTickMsg(fields):
+    def tick_by_tick(fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
         tick_type  = int(fields[2])
@@ -1204,37 +1189,31 @@ class MessageParser(object):
             pass
         elif tick_type == 1 or tick_type == 2:
             # Last or AllLast
-            price = decode(float, fields)
-            size = decode(int, fields)
-            mask = decode(int, fields)
+            price = float(fields[4])
+            size = int(fields[5])
+            mask = int(fields[6])
 
             tickAttribLast = TickAttribLast()
             tickAttribLast.pastLimit = mask & 1 != 0
             tickAttribLast.unreported = mask & 2 != 0
-            exchange :bytearray(fields[]).decode()
-            specialConditions :bytearray(fields[]).decode()
-
-            # self.response_handler.tickByTickAllLast(reqId, tick_type, time, price, size, tickAttribLast,
-            #                               exchange, specialConditions)
+            exchange = bytearray(fields[7]).decode()
+            specialConditions = bytearray(fields[8]).decode()
         elif tick_type == 3:
             # BidAsk
-            bidPrice = decode(float, fields)
-            askPrice = decode(float, fields)
-            bidSize = decode(int, fields)
-            askSize = decode(int, fields)
-            mask = decode(int, fields)
+            bidPrice = float(fields[4])#float(fields[])
+            askPrice = float(fields[5])#float(fields[])
+            bidSize = float(fields[6])#int(fields[])
+            askSize = int(fields[7])#int(fields[])
+            mask = int(fields[8])#int(fields[])
             tickAttribBidAsk = TickAttribBidAsk()
             tickAttribBidAsk.bidPastLow = mask & 1 != 0
             tickAttribBidAsk.askPastHigh = mask & 2 != 0
 
-            # self.response_handler.tickByTickBidAsk(reqId, time, bidPrice, askPrice, bidSize,
-            #                              askSize, tickAttribBidAsk)
+
         elif tick_type == 4:
             # MidPoint
-            midPoint = decode(float, fields)
-
-            # self.response_handler.tickByTickMidPoint(reqId, time, midPoint)
-
+            midPoint = float(fields[])
+            
 
     ######################################################################
 
