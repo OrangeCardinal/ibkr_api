@@ -1,5 +1,11 @@
 # ibkr-api
-Unofficial pythonic API for interfacing with Interactive Brokers.
+Officially the best unofficial pythonic API for interfacing with Interactive Brokers in the entire interwebs. 
+A great tool for Greed Monsters and Evil Investors!
+
+## Status
+<a href='https://ibkr-api.readthedocs.io/en/latest/?badge=latest'>
+    <img src='https://readthedocs.org/projects/ibkr-api/badge/?version=latest' alt='Documentation Status' />
+</a>
 
 ## Objectives
 1. Provide an easy to use interface for simple api requests (IBKR_API)
