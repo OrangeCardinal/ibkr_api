@@ -25,15 +25,15 @@ class ApiCalls(object):
 
     def __init__(self, response_handler=None, request_handler=None):
         self.application_state = "Detached from Bridge"
-        self.conn = None  # Connection between this application and the bridge
-        self.host = None  # Bridge's Host
-        self.port = None  # Bridge's Port
+        self.conn = None                 # Connection between this application and the bridge
+        self.host = None                 # Bridge's Host
+        self.port = None                 # Bridge's Port
         self.optional_capabilities = ""  # Hell if I know, IBKR's documentation has nothing...
-        self.request_id = 0  # Unique Identifier for the request
-        self.server_version_ = None
+        self.request_id            = 0   # Unique Identifier for the request
+        self.server_version_      = None
 
-        self.message_parser = MessageParser()  # Converts from message data to object(s)
-        self.request_handler = request_handler  # Functions if exist are called before and/or after api calls
+        self.message_parser   = MessageParser()   # Converts from message data to object(s)
+        self.request_handler  = request_handler   # Functions if exist are called before and/or after api calls
         self.response_handler = response_handler  # API Responses Functions provided by the end user
 
     def _send_message(self, fields):
@@ -71,8 +71,6 @@ class ApiCalls(object):
         contract:Contract -  Describes the contract.
         option_price:double - The price of the option.
         underlying_price:double - Price of the underlying."""
-
-        self.log_request(current_fn_name(), vars())
 
         if not self.conn.is_connected():
             self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
@@ -155,8 +153,6 @@ class ApiCalls(object):
 
         request_id:int - The ID of the data request being canceled."""
 
-        self.log_request(current_fn_name(), vars())
-
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
@@ -188,8 +184,6 @@ class ApiCalls(object):
 
         request_id:int - The request ID.  """
 
-        self.log_request(current_fn_name(), vars())
-
         if not self.conn.is_connected():
             self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
@@ -204,8 +198,6 @@ class ApiCalls(object):
         price and greek values for a supplied volatility and underlying price.
 
         request_id:int - The request ID.  """
-
-        self.log_request(current_fn_name(), vars())
 
         if not self.conn.is_connected():
             self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
@@ -292,8 +284,6 @@ class ApiCalls(object):
 
     def cancel_positions(self):
         """Cancels real-time position updates."""
-
-        self.log_request(current_fn_name(), vars())
 
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
@@ -478,7 +468,7 @@ class ApiCalls(object):
                 return
 
         if self.server_version() < MIN_SERVER_VER_ALGO_ORDERS:
-            if order.algoStrategy:
+            if order.algorithmic_strategy:
                 self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
                                             "  It does not support algo orders.")
                 return
@@ -525,9 +515,9 @@ class ApiCalls(object):
                 return
 
         if self.server_version() < MIN_SERVER_VER_DELTA_NEUTRAL_CONID:
-            if order.deltaNeutralConId > 0 \
-                    or order.deltaNeutralSettlingFirm \
-                    or order.deltaNeutralClearingAccount \
+            if order.delta_neutral_con_id > 0 \
+                    or order.delta_neutral_settling_firm \
+                    or order.delta_neutral_clearing_account \
                     or order.deltaNeutralClearingIntent:
                 self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
                                             "  It does not support deltaNeutral parameters: ConId, SettlingFirm, ClearingAccount, ClearingIntent.")
@@ -565,7 +555,7 @@ class ApiCalls(object):
                         return
 
         if self.server_version() < MIN_SERVER_VER_TRAILING_PERCENT:
-            if order.trailingPercent != UNSET_DOUBLE:
+            if order.trailing_percent != UNSET_DOUBLE:
                 self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
                                             "  It does not support trailing percent parameter")
                 return
@@ -577,9 +567,9 @@ class ApiCalls(object):
                 return
 
         if self.server_version() < MIN_SERVER_VER_SCALE_TABLE:
-            if order.scaleTable or order.activeStartTime or order.activeStopTime:
+            if order.scaleTable or order.active_start_time or order.active_stop_time:
                 self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support scaleTable, activeStartTime and activeStopTime parameters")
+                                            "  It does not support scaleTable, active_start_time and active_stop_time parameters")
                 return
 
         if self.server_version() < MIN_SERVER_VER_ALGO_ID:
@@ -613,7 +603,7 @@ class ApiCalls(object):
                 return
 
         if self.server_version() < MIN_SERVER_VER_CASH_QTY:
-            if order.cashQty:
+            if order.cash_qty:
                 self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
                                             " It does not support cash quantity parameter")
                 return
@@ -675,16 +665,16 @@ class ApiCalls(object):
         fields.append(order.action)
 
         if self.server_version() >= MIN_SERVER_VER_FRACTIONAL_POSITIONS:
-            fields.append(order.totalQuantity)
+            fields.append(order.total_quantity)
         else:
-            fields.append(int(order.totalQuantity))
+            fields.append(int(order.total_quantity))
 
-        fields.append(order.orderType)
+        fields.append(order.order_type)
         if self.server_version() < MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE:
             fields.append(
-                order.lmtPrice if order.lmtPrice != UNSET_DOUBLE else 0)
+                order.limit_price if order.limit_price != UNSET_DOUBLE else 0)
         else:
-            fields.append(self.conn.make_field_handle_empty(order.lmtPrice))
+            fields.append(self.conn.make_field_handle_empty(order.limit_price))
         if self.server_version() < MIN_SERVER_VER_TRAILING_PERCENT:
             fields.append(
                 order.auxPrice if order.auxPrice != UNSET_DOUBLE else 0)
@@ -760,10 +750,10 @@ class ApiCalls(object):
                    order.goodAfterTime,  # srv v11 and above
                    order.goodTillDate,  # srv v12 and above
 
-                   order.faGroup,  # srv v13 and above
-                   order.faMethod,  # srv v13 and above
-                   order.faPercentage,  # srv v13 and above
-                   order.faProfile]  # srv v13 and above
+                   order.fa_group,  # srv v13 and above
+                   order.fa_method,  # srv v13 and above
+                   order.fa_percentage,  # srv v13 and above
+                   order.fa_profile]  # srv v13 and above
 
         if self.server_version() >= MIN_SERVER_VER_MODELS_SUPPORT:
             fields.append(order.model_code)
@@ -780,8 +770,8 @@ class ApiCalls(object):
         fields += [order.rule80A,
                    order.settlingFirm,
                    order.allOrNone,
-                   self.conn.make_field_handle_empty(order.minQty),
-                   self.conn.make_field_handle_empty(order.percentOffset),
+                   self.conn.make_field_handle_empty(order.min_qty),
+                   self.conn.make_field_handle_empty(order.percent_offset),
                    order.eTradeOnly,
                    order.firmQuoteOnly,
                    self.conn.make_field_handle_empty(order.nbboPriceCap),
@@ -793,19 +783,19 @@ class ApiCalls(object):
                    self.conn.make_field_handle_empty(order.stockRangeLower),
                    self.conn.make_field_handle_empty(order.stockRangeUpper),
 
-                   order.overridePercentageConstraints,  # srv v22 and above
+                   order.override_percentage_constraints,  # srv v22 and above
 
                    # Volatility orders (srv v26 and above)
                    self.conn.make_field_handle_empty(order.volatility),
-                   self.conn.make_field_handle_empty(order.volatilityType),
-                   order.deltaNeutralOrderType,  # srv v28 and above
-                   self.conn.make_field_handle_empty(order.deltaNeutralAuxPrice)]  # srv v28 and above
+                   self.conn.make_field_handle_empty(order.volatility_type),
+                   order.delta_neutral_order_type,  # srv v28 and above
+                   self.conn.make_field_handle_empty(order.delta_neutral_aux_price)]  # srv v28 and above
 
-        if self.server_version() >= MIN_SERVER_VER_DELTA_NEUTRAL_CONID and order.deltaNeutralOrderType:
-            fields += [order.deltaNeutralConId, order.deltaNeutralSettlingFirm, order.deltaNeutralClearingAccount,
+        if self.server_version() >= MIN_SERVER_VER_DELTA_NEUTRAL_CONID and order.delta_neutral_order_type:
+            fields += [order.delta_neutral_con_id, order.delta_neutral_settling_firm, order.delta_neutral_clearing_account,
                        order.deltaNeutralClearingIntent]
 
-        if self.server_version() >= MIN_SERVER_VER_DELTA_NEUTRAL_OPEN_CLOSE and order.deltaNeutralOrderType:
+        if self.server_version() >= MIN_SERVER_VER_DELTA_NEUTRAL_OPEN_CLOSE and order.delta_neutral_order_type:
             fields += [order.deltaNeutralOpenClose,
                        order.deltaNeutralShortSale,
                        order.deltaNeutralShortSaleSlot,
@@ -813,10 +803,10 @@ class ApiCalls(object):
 
         fields += [order.continuousUpdate,
                    self.conn.make_field_handle_empty(order.referencePriceType),
-                   self.conn.make_field_handle_empty(order.trailStopPrice)]  # srv v30 and above
+                   self.conn.make_field_handle_empty(order.trail_stop_price)]  # srv v30 and above
 
         if self.server_version() >= MIN_SERVER_VER_TRAILING_PERCENT:
-            fields.append(self.conn.make_field_handle_empty(order.trailingPercent))
+            fields.append(self.conn.make_field_handle_empty(order.trailing_percent))
 
         # SCALE orders
         if self.server_version() >= MIN_SERVER_VER_SCALE_ORDERS2:
@@ -841,7 +831,7 @@ class ApiCalls(object):
                        order.scaleRandomPercent]
 
         if self.server_version() >= MIN_SERVER_VER_SCALE_TABLE:
-            fields += [order.scaleTable, order.activeStartTime, order.activeStopTime]
+            fields += [order.scaleTable, order.active_start_time, order.active_stop_time]
 
         # HEDGE orders
         if self.server_version() >= MIN_SERVER_VER_HEDGE_ORDERS:
@@ -868,8 +858,8 @@ class ApiCalls(object):
                 fields.append(False)
 
         if self.server_version() >= MIN_SERVER_VER_ALGO_ORDERS:
-            fields.append(order.algoStrategy)
-            if order.algoStrategy:
+            fields.append(order.algorithmic_strategy)
+            if order.algorithmic_strategy:
                 algoParamsCount = len(order.algoParams) if order.algoParams else 0
                 fields.append(algoParamsCount)
                 if algoParamsCount > 0:
@@ -896,9 +886,9 @@ class ApiCalls(object):
             fields.extend([order.randomizeSize, order.randomizePrice])
 
         if self.server_version() >= MIN_SERVER_VER_PEGGED_TO_BENCHMARK:
-            if order.orderType == "PEG BENCH":
-                fields.extend([order.referenceContractId, order.isPeggedChangeAmountDecrease, order.peggedChangeAmount,
-                               order.referenceChangeAmount, order.referenceExchangeId])
+            if order.order_type == "PEG BENCH":
+                fields.extend([order.reference_contract_id, order.is_pegged_change_amount_decrease, order.pegged_change_amount,
+                               order.reference_change_amount, order.reference_exchange_id])
 
             fields.append(len(order.conditions))
 
@@ -910,7 +900,7 @@ class ApiCalls(object):
 
                 fields.extend([order.conditionsIgnoreRth, order.conditionsCancelOrder])
 
-            fields.extend([order.adjustedOrderType, order.triggerPrice, order.lmtPriceOffset, order.adjustedStopPrice,
+            fields.extend([order.adjusted_order_type, order.trigger_price, order.lmt_price_offset, order.adjustedStopPrice,
                            order.adjustedTrailingAmount, order.adjustableTrailingUnit])
 
         if self.server_version() >= MIN_SERVER_VER_EXT_OPERATOR:
@@ -920,7 +910,7 @@ class ApiCalls(object):
             fields.extend([order.softDollarTier.name, order.softDollarTier.val])
 
         if self.server_version() >= MIN_SERVER_VER_CASH_QTY:
-            fields.append(order.cashQty)
+            fields.append(order.cash_qty)
 
         if self.server_version() >= MIN_SERVER_VER_DECISION_MAKER:
             fields.append(order.mifid2DecisionMaker)
@@ -1113,7 +1103,6 @@ class ApiCalls(object):
 
         # send req mkt data msg
         message_version = 8
-        print(contract.security_type)
         message_id = Messages.outbound['request_contract_data']
         fields = [message_id, message_version, request_id, contract.id, contract.symbol,
                   contract.security_type, contract.last_trade_date_or_contract_month,contract.strike, contract.right,
@@ -1333,8 +1322,6 @@ class ApiCalls(object):
         order_id will be generated. This association will persist over multiple
         API and TWS sessions.  """
 
-        self.log_request(current_fn_name(), vars())
-
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
@@ -1346,8 +1333,6 @@ class ApiCalls(object):
 
     def request_positions(self):
         """Requests real-time position data for all accounts."""
-
-        self.log_request(current_fn_name(), vars())
 
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
@@ -1975,21 +1960,16 @@ class ApiCalls(object):
 
     def request_scanner_subscription(self, request_id: int,
                                      subscription: ScannerSubscription,
-                                     scannerSubscriptionOptions: list,
+                                     scanner_subscription_options: list,
                                      scannerSubscriptionFilterOptions: list):
         """request_id:int - The ticker ID. Must be a unique value.
         scannerSubscription:ScannerSubscription - This structure contains
             possible parameters used to filter results.
-        scannerSubscriptionOptions:list - For internal use only.
+        scanner_subscription_options:list - For internal use only.
             Use default value XYZ."""
 
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-        if self.server_version() < MIN_SERVER_VER_SCANNER_GENERIC_OPTS and scannerSubscriptionFilterOptions is not None:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        " It does not support API scanner subscription generic filter options")
             return
 
         message_version = 4
@@ -2023,20 +2003,18 @@ class ApiCalls(object):
                    subscription.stockTypeFilter]  # srv v27 and above
 
         # send scannerSubscriptionFilterOptions parameter
-        if self.server_version() >= MIN_SERVER_VER_SCANNER_GENERIC_OPTS:
-            scannerSubscriptionFilterOptionsStr = ""
-            if scannerSubscriptionFilterOptions:
-                for tagValueOpt in scannerSubscriptionFilterOptions:
-                    scannerSubscriptionFilterOptionsStr += str(tagValueOpt)
-            fields += [scannerSubscriptionFilterOptionsStr]
+        scannerSubscriptionFilterOptionsStr = ""
+        if scannerSubscriptionFilterOptions:
+            for tagValueOpt in scannerSubscriptionFilterOptions:
+                scannerSubscriptionFilterOptionsStr += str(tagValueOpt)
+        fields += [scannerSubscriptionFilterOptionsStr]
 
-        # send scannerSubscriptionOptions parameter
-        if self.server_version() >= MIN_SERVER_VER_LINKING:
-            scannerSubscriptionOptionsStr = ""
-            if scannerSubscriptionOptions:
-                for tagValueOpt in scannerSubscriptionOptions:
-                    scannerSubscriptionOptionsStr += str(tagValueOpt)
-            fields += [scannerSubscriptionOptionsStr, ]
+        # send scanner_subscription_options parameter
+        scannerSubscriptionOptionsStr = ""
+        if scanner_subscription_options:
+            for tagValueOpt in scanner_subscription_options:
+                scannerSubscriptionOptionsStr += str(tagValueOpt)
+        fields += [scannerSubscriptionOptionsStr, ]
 
         self.conn.send_message(fields)
 
@@ -2076,27 +2054,20 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_TRADING_CLASS:
-            if contract.trading_class:
-                self.response_handler.error(request_id, UPDATE_TWS.code(),
-                                            UPDATE_TWS.msg() + "  It does not support id and trading_class parameter in reqRealTimeBars.")
-                return
-
         message_version = 3
         message_id = Messages.outbound['request_real_time_bars']
         fields = [message_id, message_version, request_id]
 
         # send contract fields
-        if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
-            fields.append(contract.id)
+        fields.append(contract.id)
 
         fields.extend([contract.symbol, contract.security_type, contract.last_trade_date_or_contract_month,
                        contract.strike, contract.right, contract.multiplier, contract.exchange,
                        contract.primary_exchange,
                        contract.currency, contract.local_symbol])
 
-        if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
-            fields += [contract.trading_class, ]
+
+        fields += [contract.trading_class, ]
 
         fields += [barSize, whatToShow, useRTH]
 
@@ -2140,6 +2111,7 @@ class ApiCalls(object):
             RESC (analyst estimates)
             CalendarReport (company calendar) """
 
+        logger.info("Request #{0} - Calling request_fundamental_data".format(request_id))
         # Create the message body
         message_version = 2
         message_id = Messages.outbound['request_fundamental_data']
@@ -2163,21 +2135,16 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_NEWS_ARTICLE:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support news article request.")
-            return
-
         fields = []
         message_id = Messages.outbound['request_news_article']
         fields += [message_id, request_id, providerCode, articleId]
 
         # send newsArticleOptions parameter
-        if self.server_version() >= MIN_SERVER_VER_NEWS_QUERY_ORIGINS:
-            newsArticleOptionsStr = ""
-            if newsArticleOptions:
-                for tagValue in newsArticleOptions:
-                    newsArticleOptionsStr += str(tagValue)
+
+        newsArticleOptionsStr = ""
+        if newsArticleOptions:
+            for tagValue in newsArticleOptions:
+                newsArticleOptionsStr += str(tagValue)
 
             fields.append(newsArticleOptionsStr)
 
@@ -2198,19 +2165,14 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_LINKING:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support query_display_groups request.")
-            return
-
         message_version = 1
         message_id = Messages.outbound['query_display_groups']
         fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
-    def update_display_group(self, request_id: int, contractInfo: str):
+    def update_display_group(self, request_id: int, contract_info: str):
         """request_id:int - The requestId specified in subscribeToGroupEvents().
-        contractInfo:str - The encoded value that uniquely represents the
+        contract_info:str - The encoded value that uniquely represents the
             contract in IB. Possible values include:
 
             none = empty selection
@@ -2222,14 +2184,9 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_LINKING:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support update_display_group request.")
-            return
-
         message_version = 1
         message_id = Messages.outbound['update_display_group']
-        fields = [message_id, message_version, request_id, contractInfo]
+        fields = [message_id, message_version, request_id, contract_info]
         self.conn.send_message(fields)
 
     def unsubscribe_from_group_events(self, request_id: int):
@@ -2237,11 +2194,6 @@ class ApiCalls(object):
 
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-        if self.server_version() < MIN_SERVER_VER_LINKING:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support unsubscribe_from_group_events request.")
             return
 
         message_version = 1
@@ -2255,11 +2207,6 @@ class ApiCalls(object):
 
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-        if self.server_version() < MIN_SERVER_VER_LINKING:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support verification request.")
             return
 
         message_version = 1
@@ -2277,10 +2224,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_LINKING:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support verification request.")
-            return
 
         if not self.extraAuth:
             self.response_handler.error(NO_VALID_ID, BAD_MESSAGE.code(), BAD_MESSAGE.msg() +
@@ -2311,15 +2254,15 @@ class ApiCalls(object):
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
 
-    def request_sec_def_opt_params(self, request_id: int, underlying_symbol: str,
-                                   futFopExchange: str, underlyingSecType: str,
-                                   underlyingConId: int):
+    def request_security_definition_option_parameters(self, request_id: int, underlying_symbol: str,
+                                                      futFopExchange: str, underlyingSecType: str,
+                                                      underlying_contract_id: int):
         """Requests security definition option parameters for viewing a
         contract's option chain request_id the ID chosen for the request
         underlying_symbol futFopExchange The exchange on which the returned
         options are trading. Can be set to the empty string "" for all
         exchanges. underlyingSecType The type of the underlying security,
-        i.e. STK underlyingConId the contract ID of the underlying security.
+        i.e. STK underlying_contract_id the contract ID of the underlying security.
         Response comes via EWrapper.securityDefinitionOptionParameter()"""
 
         if not self.conn.is_connected():
@@ -2327,9 +2270,9 @@ class ApiCalls(object):
             return
 
 
-        message_id = Messages.outbound['request_sec_def_opt_params']
+        message_id = Messages.outbound['request_security_definition_option_parameters']
         fields = [message_id, request_id, underlying_symbol,
-                  futFopExchange, underlyingSecType, underlyingConId]
+                  futFopExchange, underlyingSecType, underlying_contract_id]
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
 
