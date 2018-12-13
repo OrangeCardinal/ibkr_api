@@ -39,6 +39,13 @@ release = ''
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.coverage',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.githubpages',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -48,7 +55,7 @@ templates_path = ['_templates']
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = '.txt'
 
 # The master toctree document.
 master_doc = 'index'
@@ -171,3 +178,11 @@ epub_title = project
 
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ['search.html']
+
+
+# -- Extension configuration -------------------------------------------------
+
+# -- Options for intersphinx extension ---------------------------------------
+
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {'https://docs.python.org/': None}
