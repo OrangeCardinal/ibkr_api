@@ -14,7 +14,7 @@ A great tool for Greed Monsters and Evil Investors!
 4. Create a codebase that is intuitive to understand, easy to implement, and well documented
 
 ## Requirements
-Python 3 (Not currently support Python 2)
-Latest TWS Client (Not supporting older versions currently)
+1. Python 3 (Not currently support Python 2)
+2. Latest TWS Client (Not supporting older versions currently)
 
 
