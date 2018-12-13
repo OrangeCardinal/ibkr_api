@@ -1,5 +1,11 @@
 # ibkr-api
-Unofficial pythonic API for interfacing with Interactive Brokers.
+Officially the best unofficial pythonic API for interfacing with Interactive Brokers in the entire interwebs. 
+A great tool for Greed Monsters and Evil Investors!
+
+## Status
+<a href='https://ibkr-api.readthedocs.io/en/latest/?badge=latest'>
+    <img src='https://readthedocs.org/projects/ibkr-api/badge/?version=latest' alt='Documentation Status' />
+</a>
 
 ## Objectives
 1. Provide an easy to use interface for simple api requests (IBKR_API)
@@ -8,7 +14,7 @@ Unofficial pythonic API for interfacing with Interactive Brokers.
 4. Create a codebase that is intuitive to understand, easy to implement, and well documented
 
 ## Requirements
-Python 3 (Not currently support Python 2)
-Latest TWS Client (Not supporting older versions currently)
+1. Python 3 (Not currently support Python 2)
+2. Latest TWS Client (Not supporting older versions currently)
 
 
