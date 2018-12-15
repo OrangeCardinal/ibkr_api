@@ -2,7 +2,7 @@
 Extracts data from messages and returns the appropriate class(es)
 
 """
-
+from base.constants import UNSET_DOUBLE
 from classes.contracts.contract import Contract
 from classes.contracts.contract_details import ContractDetails
 from classes.order import Order
@@ -12,7 +12,9 @@ from classes.execution import Execution
 from classes.bar import Bar
 from classes.enum.tick_type import TickType
 
-from datetime import date
+
+from dateutil import parser as date_parser
+from datetime import date, datetime
 import logging
 import time
 
@@ -42,7 +44,7 @@ class MessageParser(object):
     #TODO: Remove this function? not sure, probably
     @staticmethod
     def _parse_last_trade_or_contract_month(fields, contract: ContractDetails, is_bond: bool):
-        last_trade_date_or_contract_month :bytearray(fields[1]).decode()
+        last_trade_date_or_contract_month = bytearray(fields[1]).decode()
         if last_trade_date_or_contract_month is not None:
             field_parts = last_trade_date_or_contract_month.split()
             if len(field_parts) > 0:
@@ -59,39 +61,59 @@ class MessageParser(object):
 
     @staticmethod
     def contract_data(fields):
+        """
+        Parses the contract_data message returned by the BridgeConnection
+        :param fields:
+        :return:
+        """
+
         contract = Contract()
-        
-        version = fields[0]
-        request_id = int(fields[1])
-        contract.symbol = bytearray(fields[2]).decode() 
-        contract.security_type         = bytearray(fields[3]).decode()
-        #self._parse_last_trade_or_contract_month(fields, contract, False) ???
-        contract.strike                  = float(fields[4])
-        contract.right                   = bytearray(fields[5]).decode()
-        contract.exchange                = bytearray(fields[6]).decode()
-        contract.currency                = bytearray(fields[7]).decode()
-        contract.local_symbol            = bytearray(fields[8]).decode()
-        contract.market_name             = bytearray(fields[9]).decode()          # New to contract
-        contract.trading_class           = bytearray(fields[10]).decode()
-        contract.id                      = int(fields[11])
-        contract.min_tick                = float(fields[12])                     # New to contract
-        contract.md_size_multiplier      = int(fields[13])
-        contract.multiplier              = bytearray(fields[14]).decode()
-        contract.order_types             = bytearray(fields[15]).decode()
-        contract.valid_exchanges         = bytearray(fields[16]).decode()
-        contract.price_magnifier         = int(fields[17])
-        contract.under_contract_id       = int(fields[18])
-        contract.long_name               = bytearray(fields[19]).decode()
-        contract.primary_exchange        = bytearray(fields[20]).decode()
-        contract.contract_month          = bytearray(fields[21]).decode()
-        contract.industry                = bytearray(fields[22]).decode()
-        contract.category                = bytearray(fields[23]).decode()
-        contract.sub_category            = bytearray(fields[24]).decode()
-        contract.time_zone_id     =  bytearray(fields[25]).decode()
-        contract.trading_hours    = bytearray(fields[26]).decode()
-        contract.liquid_hours     =  bytearray(fields[27]).decode()
-        contract.ev_rule          = bytearray(fields[28]).decode()
-        contract.ev_multiplier    = int(fields[29])
+
+        message_id                                  = int(fields[0])
+        version                                     = fields[1]
+        request_id                                  = int(fields[2])
+        contract.symbol                             = bytearray(fields[3]).decode()
+        contract.security_type                      = bytearray(fields[4]).decode()
+        contract.last_trade_date_or_contract_month  = date_parser.parse(bytearray(fields[5]).decode())
+
+        contract.strike                 = float(fields[6])
+        contract.right                  = bytearray(fields[7]).decode()
+        contract.exchange               = bytearray(fields[8]).decode()
+        contract.currency               = bytearray(fields[9]).decode()
+        contract.local_symbol           = bytearray(fields[10]).decode()
+        contract.market_name            = bytearray(fields[11]).decode()
+        contract.trading_class          = bytearray(fields[12]).decode()
+        contract.id                     = int(fields[13])
+        contract.min_tick               = float(fields[14])
+        contract.md_size_multiplier     = int(fields[15])
+        contract.multiplier             = bytearray(fields[16]).decode()
+        contract.order_types            = bytearray(fields[17]).decode()
+        contract.valid_exchanges        = bytearray(fields[18]).decode()
+        contract.price_magnifier        = int(fields[19])
+        contract.under_contract_id      = int(fields[20])
+        contract.long_name              = bytearray(fields[21]).decode()
+        contract.primary_exchange       = bytearray(fields[22]).decode()
+        contract.contract_month         = bytearray(fields[23]).decode()
+        contract.industry               = bytearray(fields[24]).decode()
+        contract.category               = bytearray(fields[25]).decode()
+        contract.sub_category           = bytearray(fields[25]).decode()
+        contract.time_zone_id           = bytearray(fields[26]).decode()
+        contract.trading_hours          = bytearray(fields[27]).decode()
+
+        # Parse Regular Trading Hour Information
+        contract.regular_trading_hours  = bytearray(fields[28]).decode()
+        if contract.regular_trading_hours:
+            regular_trading_hours = {}
+            daily_schedule = contract.regular_trading_hours.split(';')
+            for date_hours in daily_schedule:
+                parts = date_hours.split(':')
+                regular_trading_hours[parts[0]] = parts[1:]
+            contract.regular_trading_hours = regular_trading_hours
+        contract.ev_rule                = bytearray(fields[29]).decode()
+        contract.ev_multiplier          = bytearray(fields[30]).decode()
+
+        #security_id_list_count          = int(fields[31])
+        #print("Security: {0}".format(security_id_list_count)) #TODO: Fix here down
 
         """
         Not yet ported
@@ -117,6 +139,7 @@ class MessageParser(object):
         if self.server_version >= MIN_SERVER_VER_REAL_EXPIRATION_DATE:
             contract.realExpirationDate :bytearray(fields[]).decode()
         """
+        return request_id, message_id, contract
 
     @staticmethod
     def bond_contract_data(fields):
@@ -201,21 +224,21 @@ class MessageParser(object):
     @staticmethod
     def historical_data(fields):
         """
-
-        :param message:
-        :return: Message ID, Request ID, Bar Data
+        :param fields: The previously parsed message fields
+        :return: Message ID, Request ID, Data
         """
-        print(fields)
         bars = []
         message_id = int(fields[0])
         request_id = int(fields[1])
-        start_date = fields[2]
-        end_date   = fields[3]
-        bar_count = int(fields[4])
+        data       = {
+            'start_date' : fields[2],
+            'end_date'   : fields[3],
+            'bar_count'  : int(fields[4])
+        }
         current_bar = 1
         bar_index = 5
 
-        while current_bar <= bar_count:
+        while current_bar <= data['bar_count']:
             bar = Bar()
             bar_date = bytearray(fields[bar_index]).decode()
             year, month, day   = int(bar_date[0:4]), int(bar_date[4:6]), int(bar_date[6:8])
@@ -231,7 +254,8 @@ class MessageParser(object):
             current_bar       += 1
             bars.append(bar)
 
-        return message_id, request_id, bars
+        data ['bars'] = bars
+        return message_id, request_id, data
     
     @staticmethod
     def info_message(fields):
@@ -247,11 +271,14 @@ class MessageParser(object):
         :param fields:
         :return:
         """
-        print(fields)
-        ticker_id = int(fields[2])
-        info_code = int(fields[3])
-        text      = bytearray(fields[4]).decode()
-        return ticker_id, info_code, text
+        message_id = int(fields[0])
+        request_id = int(fields[1])
+        info = {
+            'ticker_id' : int(fields[2]),
+            'code'      : int(fields[3]),
+            'text'      : bytearray(fields[4]).decode()
+        }
+        return message_id, request_id, info
 
     @staticmethod
     def managed_accounts(fields):
@@ -497,17 +524,17 @@ class MessageParser(object):
 
         _sharesAllocation = bytearray(fields[30]).decode()  # deprecated ver 6 field
 
-        order.faGroup = bytearray(fields[31]).decode()  
-        order.faMethod = bytearray(fields[32]).decode()  
-        order.faPercentage = bytearray(fields[33]).decode()  
-        order.faProfile = bytearray(fields[34]).decode()  
+        order.fa_group = bytearray(fields[31]).decode()
+        order.fa_method = bytearray(fields[32]).decode()
+        order.fa_percentage = bytearray(fields[33]).decode()
+        order.fa_profile = bytearray(fields[34]).decode()
 
         order.modelCode = bytearray(fields[35]).decode()
 
         order.goodTillDate = bytearray(fields[36]).decode()  # ver 8 field
 
         order.rule80A = bytearray(fields[37]).decode()  # ver 9 field
-        order.percentOffset = float(fields[38])
+        order.percent_offset = float(fields[38])
         order.settlingFirm = bytearray(fields[39]).decode()  # ver 9 field
         order.shortSaleSlot      = int(fields[40])  # ver 9 field
         order.designatedLocation = bytearray(fields[41]).decode()  # ver 9 field
@@ -524,7 +551,7 @@ class MessageParser(object):
         order.blockOrder    = int(fields[48]) == 1
         order.sweepToFill   = int(fields[49]) == 1
         order.allOrNone     = int(fields[50]) == 1
-        order.minQty        = int(fields[51])
+        order.min_qty        = int(fields[51])
         order.ocaType       = int(fields[52])
         order.eTradeOnly    = int(fields[53]) == 1
         order.firmQuoteOnly = int(fields[54]) == 1
@@ -534,14 +561,14 @@ class MessageParser(object):
         order.trigger_method = int(fields[57])
 
         order.volatility = float(fields[58])
-        order.volatilityType = int(fields[59])
-        order.deltaNeutralOrderType = bytearray(fields[59]).decode()  # ver 11 field (had a hack for ver 11)
-        order.deltaNeutralAuxPrice = float(fields[60])
+        order.volatility_type = int(fields[59])
+        order.delta_neutral_order_type = bytearray(fields[59]).decode()  # ver 11 field (had a hack for ver 11)
+        order.delta_neutral_aux_price = float(fields[60])
 
-        if order.deltaNeutralOrderType:
-            order.deltaNeutralConId              = int(fields[61])
-            order.deltaNeutralSettlingFirm       = bytearray(fields[62]).decode()
-            order.deltaNeutralClearingAccount    = bytearray(fields[63]).decode()
+        if order.delta_neutral_order_type:
+            order.delta_neutral_con_id              = int(fields[61])
+            order.delta_neutral_settling_firm       = bytearray(fields[62]).decode()
+            order.delta_neutral_clearing_account    = bytearray(fields[63]).decode()
             order.deltaNeutralClearingIntent     = bytearray(fields[64]).decode()
             order.deltaNeutralOpenClose          = bytearray(fields[65]).decode()
             order.deltaNeutralShortSale          = int(fields[66])
@@ -550,8 +577,8 @@ class MessageParser(object):
 
         order.continuousUpdate   = int(fields[69]) == 1
         order.referencePriceType = int(fields[70])
-        order.trailStopPrice     = float(fields[71])
-        order.trailingPercent    = float(fields[72])
+        order.trail_stop_price     = float(fields[71])
+        order.trailing_percent    = float(fields[72])
 
         order.basisPoints         = float(fields[73])
         order.basisPointsType     = int(fields[74])
@@ -706,20 +733,20 @@ class MessageParser(object):
         order.conditionsIgnoreRth = int(fields[field_index]) == 1
         order.conditionsCancelOrder = int(fields[field_index+1]) == 1
 
-        order.adjustedOrderType :bytearray(fields[field_index+2]).decode()
-        order.triggerPrice = float(fields[field_index+3])
-        order.trailStopPrice = float(fields[field_index+4])
-        order.lmt_price_offset = float(fields[field_index + 5])
-        order.adjustedStopPrice = float(fields[field_index+6])
-        order.adjustedStopLimitPrice = float(fields[field_index+7])
-        order.adjustedTrailingAmount = float(fields[field_index+8])
-        order.adjustableTrailingUnit = int(fields[field_index+9])
+        order.adjusted_order_type  = bytearray(fields[field_index + 2]).decode()
+        order.trigger_price = float(fields[field_index + 3])
+        order.trail_stop_price = float(fields[field_index + 4])
+        order.limit_price_offset = float(fields[field_index + 5])
+        order.adjusted_stop_price = float(fields[field_index + 6])
+        order.adjusted_stop_limit_price = float(fields[field_index + 7])
+        order.adjusted_trailing_amount = float(fields[field_index + 8])
+        order.adjustable_trailing_unit = int(fields[field_index + 9])
         name = bytearray(fields[field_index+10]).decode()
         value = bytearray(fields[field_index+11]).decode()
         displayName = bytearray(fields[field_index+12]).decode()
         #order.softDollarTier = SoftDollarTier(name, value, displayName)
 
-        order.cashQty = float(fields[field_index+13])
+        order.cash_qty = float(fields[field_index + 13])
         order.dontUseAutoPriceForHedge = int(fields[field_index+14]) == 1
         order.isOmsContainer = int(fields[field_index+15]) == 1
             
@@ -790,12 +817,12 @@ class MessageParser(object):
         execution.liquidation = int(fields[23])
 
 
-        execution.cumQty = float(fields[[24]])
-        execution.avgPrice = float(fields[25])
-        execution.orderRef = bytearray(fields[26]).decode()
-        execution.evRule = bytearray(fields[27]).decode()
-        execution.evMultiplier = float(fields[28])
-        execution.modelCode = bytearray(fields[29]).decode()
+        execution.cumQty        = float(fields[[24]])
+        execution.avgPrice      = float(fields[25])
+        execution.orderRef      = bytearray(fields[26]).decode()
+        execution.evRule        = bytearray(fields[27]).decode()
+        execution.evMultiplier  = float(fields[28])
+        execution.modelCode     = bytearray(fields[29]).decode()
         execution.lastLiquidity = int(fields[30])
 
 
@@ -803,6 +830,7 @@ class MessageParser(object):
     def historical_data_update(fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
+
         bar = Bar()
         bar.bar_count = int(fields[2])
         bar.date      = bytearray(fields[3]).decode()
@@ -818,17 +846,17 @@ class MessageParser(object):
     @staticmethod
     def real_time_bar(fields):
         message_id = int(fields[0])
-        request_id = int(fields[1])
+        request_id  = int(fields[1])
 
-        bar = Bar()
-        bar.time = int(fields[2])
-        bar.open = float(fields[3])
-        bar.high = float(fields[4])
-        bar.low = float(fields[5])
-        bar.close = float(fields[6])
-        bar.volume = int(fields[7])
-        bar.wap = float(fields[8])
-        bar.count = int(fields[9])
+        bar         = Bar()
+        bar.time    = int(fields[2])
+        bar.open    = float(fields[3])
+        bar.high    = float(fields[4])
+        bar.low     = float(fields[5])
+        bar.close   = float(fields[6])
+        bar.volume  = int(fields[7])
+        bar.wap     = float(fields[8])
+        bar.count   = int(fields[9])
         return message_id, request_id, bar
 
     @staticmethod
@@ -906,12 +934,12 @@ class MessageParser(object):
         contract = Contract()
         contract.id = int(fields[3])
         contract.symbol = bytearray(fields[4]).decode()
-        contract.security_type                     = bytearray(fields[5]).decode()
-        contract.last_trade_date_or_contract_month = bytearray(fields[6]).decode()
-        contract.strike                            = float(fields[7])
-        contract.right       = bytearray(fields[8]).decode()
-        contract.multiplier  = bytearray(fields[9]).decode()
-        contract.exchange    = bytearray(fields[10]).decode()
+        contract.security_type                      = bytearray(fields[5]).decode()
+        contract.last_trade_date_or_contract_month  = bytearray(fields[6]).decode()
+        contract.strike                             = float(fields[7])
+        contract.right                              = bytearray(fields[8]).decode()
+        contract.multiplier                         = bytearray(fields[9]).decode()
+        contract.exchange                           = bytearray(fields[10]).decode()
         contract.currency    = bytearray(fields[11]).decode()
         contract.localSymbol = bytearray(fields[12]).decode()
         contract.tradingClass = bytearray(fields[13]).decode()
@@ -947,30 +975,35 @@ class MessageParser(object):
         return
 
     @staticmethod
-    def process_security_definition_option_parameter(fields):
-        message_id = int(fields[0])
-
-        request_id = int(fields[1])
-        exchange = bytearray(fields[2]).decode()
-        underlying_contract_id = int(fields[3])
-        tradingClass = bytearray(fields[4]).decode()
-        multiplier = bytearray(fields[5]).decode()
-
-        expCount = int(fields[6])
+    def security_definition_option_parameter(fields):
+        #print(fields)
+        message_id              = int(fields[0])
+        request_id              = int(fields[1])
+        option_chain = {
+        'exchange'                : bytearray(fields[2]).decode() ,
+        'underlying_contract_id'  : int(fields[3])                ,
+        'trading_class'           : bytearray(fields[4]).decode() ,
+        'multiplier'              : bytearray(fields[5]).decode() ,
+        'exp_count'               : int(fields[6])                ,
+        }
         expirations = set()
-        field_index = 7
-        for _ in range(expCount):
-            expiration :bytearray(fields[field_index]).decode()
+        field_index  = 7
+        for _ in range(option_chain['exp_count']):
+            expiration = bytearray(fields[field_index]).decode()
             field_index += 1
             expirations.add(expiration)
+        option_chain['expirations'] = expirations
 
-        strikeCount = int(fields[field_index])
+        strike_count = int(fields[field_index])
         field_index += 1
         strikes = set()
-        for _ in range(strikeCount):
+        for _ in range(strike_count):
             strike = float(fields[field_index])
             field_index += 1
             strikes.add(strike)
+        option_chain['strikes'] = strikes
+
+        return message_id, request_id, option_chain
 
     @staticmethod
     def security_definition_option_parameter_end(fields):
