@@ -11,6 +11,7 @@ It takes care of almost everything:
 - gathering and returning the api response data
 """
 
+import logging
 import time
 
 from base.api_calls import ApiCalls
@@ -20,7 +21,7 @@ from classes.contracts.contract import Contract
 from classes.order import Order
 from classes.scanner import ScannerSubscription
 
-
+logger = logging.getLogger(__name__)
 class IBKR_API(ApiCalls):
     def __init__(self, host, port):
         client_id = 0
@@ -28,18 +29,61 @@ class IBKR_API(ApiCalls):
         super().__init__()
         super().connect(host, port, client_id)
 
-    def _process_response(self, inbound_message_name):
-        message_parser = MessageParser()
-        action_message_id = Messages.inbound[inbound_message_name]
-        data_received = False
+    def _process_response(self, inbound_message_name, end_on_codes=[]):
+        """
+
+        :param inbound_message_name: String or list of strings.
+               The last element of the list is considered the flag to trigger the end of receiving data.
+        :param end_on_codes: Informational Codes that should be used to flag the end of receiving data
+        :return:
+        """
+        # Create a list of Inbound Messages we need to process
+        if isinstance(inbound_message_name,str):
+            inbound_messages = [inbound_message_name]
+        elif isinstance(inbound_message_name,list):
+            inbound_messages = inbound_message_name
+
+
+        # Generate a list of message ids
+        inbound_message_ids = []
+        for name in inbound_messages:
+            inbound_message_ids.append(Messages.inbound[name])
+
+        message_parser    = MessageParser()
+        info_message_id   = Messages.inbound['info_message']
+        data_received     = False
+        all_data          = []
+
+        #TODO: add code to check if no data received after x seconds
         while not data_received:
             messages = self.conn.receive_messages()
             for msg in messages:
-                if msg['id'] == action_message_id:
-                    func = getattr(message_parser, msg['action'])
-                    data = func(msg)
-                    data_received = True
-        return data
+                if msg['id'] in inbound_message_ids:
+                    func            = getattr(message_parser, msg['action'])
+                    data            = func(msg['fields'])
+                    all_data.append(data)
+                    if msg['id'] == inbound_message_ids[-1]:
+                        data_received   = True
+                elif msg['id'] == info_message_id:
+                    func    = getattr(message_parser, msg['action'])
+                    data    = func(msg['fields'])
+                    info    = data[2]
+
+                    # Log any message received
+                    logger.info("{0}:{1}".format(info['code'],info['text']))
+
+                    # See if we need to consider this code end of processing
+                    if info['code'] in end_on_codes:
+                        data_received = True
+
+        # If there is no data return None instead
+        # If there is only one result, send it back without the unnecessary list
+        if len(all_data) == 0:
+            all_data = None
+        elif len(all_data) == 1:
+            all_data = all_data[0]
+
+        return all_data
 
     def calculate_implied_volatility(self, request_id: int, contract: Contract,
                                      option_price: float, underlying_price: float,
@@ -67,9 +111,10 @@ class IBKR_API(ApiCalls):
         contract:Contract - Describes the contract.
         volatility:double - The volatility.
         underlying_price:double - Price of the underlying."""
-
-    pass
-
+        super().calculate_option_price(request_id, contract, volatility, underlying_price, option_price_options)
+        # Process the response from the bridge
+        data = self._process_response('')
+        return data
 
     def cancel_account_summary(self, request_id: int):
         """Cancels the request for Account Window Summary tab data.
@@ -83,6 +128,7 @@ class IBKR_API(ApiCalls):
     def cancel_account_updates_multi(self, request_id: int):
         super().cancel_account_updates_multi(request_id)
         # Process the response from the bridge
+        super().cancel_account_updates_multi()
         data = self._process_response('cancel_accounts_multi')
         return data
 
@@ -93,7 +139,7 @@ class IBKR_API(ApiCalls):
         request_id:int - The request ID.  """
         super().cancel_calculate_implied_volatility(request_id)
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('cancel_calculate_implied_volatility')
         return data
 
     def cancel_calculate_option_price(self, request_id: int):
@@ -103,7 +149,7 @@ class IBKR_API(ApiCalls):
         request_id:int - The request ID.  """
         super().cancel_calculate_option_price(request_id)
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('cancel_calculate_option_price')
         return data
 
     def cancel_fundamental_data(self, request_id: int):
@@ -112,11 +158,14 @@ class IBKR_API(ApiCalls):
         request_id:int - The ID of the data request."""
         super().cancel_fundamental_data(request_id)
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('cancel_fundamental_data')
         return data
 
     def cancel_head_time_stamp(self, request_id: int):
-        pass
+        super().cancel_head_time_stamp(request_id)
+        # Process the response from the bridge
+        data = self._process_response('cancel_head_time_stamp')
+        return data
 
 
     def cancel_historical_data(self, request_id: int):
@@ -127,7 +176,7 @@ class IBKR_API(ApiCalls):
         request_id:int - The ticker ID. Must be a unique value."""
         super().cancel_historical_data(request_id)
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('cancel_historical_data')
         return data
 
     def cancel_market_data(self, request_id: int):
@@ -137,10 +186,10 @@ class IBKR_API(ApiCalls):
         request_id: int - The ID that was specified in the call to
             reqMktData(). """
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('cancel_market_data')
         return data
 
-    def cancel_market_depth(self, request_id: int, isSmartDepth: bool):
+    def cancel_market_depth(self, request_id: int, is_smart_depth: bool):
         """After calling this function, market depth data for the specified id
         will stop flowing.
 
@@ -148,7 +197,8 @@ class IBKR_API(ApiCalls):
             reqMktDepth().
         isSmartDepth:bool - specifies SMART depth request"""
         # Process the response from the bridge
-        data = self._process_response('')
+        super().cancel_market_depth(request_id, is_smart_depth)
+        data = self._process_response('cancel_market_depth')
         return data
 
     def cancel_order(self, order_id: int):
@@ -157,20 +207,39 @@ class IBKR_API(ApiCalls):
         order_id:int - The order ID that was specified previously in the call
             to placeOrder()"""
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('cancel_order')
         return data
 
     def cancel_positions(self):
         """Cancels real-time position updates."""
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('cancel_positions')
         return data
 
     def cancel_positions_multi(self, request_id: int):
         # Process the response from the bridge
+        data = self._process_response('cancel_positions_multi')
+        return data
+
+    def request_account_updates(self, subscribe: bool, account_code: str):
+        """Call this function to start getting account values, portfolio,
+        and last update time information via EWrapper.updateAccountValue(),
+        EWrapperi.updatePortfolio() and Wrapper.updateAccountTime().
+
+        subscribe:bool - If set to TRUE, the client will start receiving account
+            and Portfoliolio updates. If set to FALSE, the client will stop
+            receiving this information.
+        account_code:str -The account code for which to receive account and
+            portfolio updates."""
+        super().request_account_updates()
+        # Process the response from the bridge
         data = self._process_response('')
         return data
 
+    def request_family_codes(self):
+        # Process the response from the bridge
+        data = self._process_response('family_codes')
+        return data
 
     def request_matching_symbols(self, pattern: str):
         # Make the underlying API call
@@ -181,6 +250,31 @@ class IBKR_API(ApiCalls):
         data = self._process_response('symbol_samples')
         return data
 
+    def request_positions(self):
+        """
+        Requests real-time position data for all accounts.
+        """
+        # Make the actual api call
+        super().request_positions()
+
+        # Process relevant response messages
+        messages_to_process = ['position_data','position_end']
+        raw_position_data   = self._process_response(messages_to_process)
+
+        # Strip out the message_ids and request_ids
+        position_data = []
+        for raw_data in raw_position_data:
+            if raw_data[2]:
+                position_data.append(raw_data[2])
+        return position_data
+
+    def request_soft_dollar_tiers(self, request_id: int):
+        """Requests pre-defined Soft Dollar Tiers. This is only supported for
+        registered professional advisors and hedge and mutual funds who have
+        configured Soft Dollar Tiers in Account Management."""
+        # Process the response from the bridge
+        data = self._process_response('soft_dollar_tiers')
+        return data
 
     # Not alphabetic
     def cancel_pnl(self, request_id: int):
@@ -190,23 +284,23 @@ class IBKR_API(ApiCalls):
         :return:
         """
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('cancel_pnl')
         return data
 
     def cancel_pnl_single(self, request_id: int):
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('cancel_pnl_single')
         return data
 
     def cancel_scanner_subscription(self, request_id: int):
         """request_id:int - The ticker ID. Must be a unique value."""
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('cancel_scanner_subscription')
         return data
 
     def cancel_tick_by_tick_data(self, request_id: int):
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('cancel_tick_by_tick_data')
         return data
 
     def exercise_options(self, request_id: int, contract: Contract,
@@ -260,24 +354,11 @@ class IBKR_API(ApiCalls):
         data = self._process_response('')
         return data
 
-    def request_account_updates(self, subscribe: bool, account_code: str):
-        """Call this function to start getting account values, portfolio,
-        and last update time information via EWrapper.updateAccountValue(),
-        EWrapperi.updatePortfolio() and Wrapper.updateAccountTime().
-
-        subscribe:bool - If set to TRUE, the client will start receiving account
-            and Portfoliolio updates. If set to FALSE, the client will stop
-            receiving this information.
-        account_code:str -The account code for which to receive account and
-            portfolio updates."""
-        # Process the response from the bridge
-        data = self._process_response('')
-        return data
 
     def request_account_updates_multi(self, request_id: int, account: str, model_code: str,
                                       ledgerAndNLV: bool):
         """Requests account updates for account and/or model."""
-
+        super().request_account_updates_multi()
         # Process the response from the bridge
         data = self._process_response('')
         return data
@@ -338,6 +419,7 @@ class IBKR_API(ApiCalls):
             currencies."""
 
         # Process the response from the bridge
+        super().request_account_summary(request_id, group_name, tags)
         data = self._process_response('')
         return data
 
@@ -349,6 +431,7 @@ class IBKR_API(ApiCalls):
         Note:  No association is made between the returned orders and the
         requesting client."""
         # Process the response from the bridge
+        super().request_all_open_orders()
         data = self._process_response('')
         return data
 
@@ -365,6 +448,7 @@ class IBKR_API(ApiCalls):
         made.
 
         """
+        super().request_auto_open_orders()
         # Process the response from the bridge
         data = self._process_response('')
         return data
@@ -409,34 +493,36 @@ class IBKR_API(ApiCalls):
         return data
 
     def request_global_cancel(self):
-        """Use this function to cancel all open orders globally. It
-        cancels both API and TWS open orders.
+        """
+        Use this function to cancel all open orders globally.
+        It cancels both API and TWS open orders.
 
         If the order was created in TWS, it also gets canceled. If the order
         was initiated in the API, it also gets canceled."""
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('request_global_cancel')
         return data
 
     # Note that formatData parameter affects intraday bars only
     # 1-day bars always return with date in YYYYMMDD format
     def request_head_time_stamp(self, request_id: int, contract: Contract,
-                                whatToShow: str, useRTH: int, formatDate: int):
+                                whatToShow: str, useRTH: int, format_date: int):
+        super().request_head_time_stamp()
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('request_head_time_stamp')
         return data
 
     def request_historical_news(self, request_id: int, conId: int, providerCodes: str,
                                 startDateTime: str, end_date_time: str, totalResults: int, historicalNewsOptions: list):
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('request_historical_news')
         return data
 
     def request_historical_ticks(self, request_id: int, contract: Contract, startDateTime: str,
                                  end_date_time: str, number_of_ticks: int, whatToShow: str, useRth: int,
                                  ignoreSize: bool, miscOptions: list):
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('request_historical_ticks')
         return data
 
     def request_managed_accounts(self):
@@ -445,7 +531,7 @@ class IBKR_API(ApiCalls):
 
         Note:  This request can only be made when connected to a FA managed account."""
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('request_managed_accounts')
         return data
 
     def request_market_data_type(self, market_data_type: int):
@@ -460,21 +546,21 @@ class IBKR_API(ApiCalls):
         market_data_type:int - 1 for real-time streaming market data or 2 for
             frozen market data"""
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('request_market_data_type')
         return data
 
-    def request_market_depth_exhanges(self):
+    def request_market_depth_exchanges(self):
         """
 
         :return:
         """
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('request_market_depth_exchanges')
         return data
 
     def request_market_rule(self, market_rule_id: int):
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('request_market_rule')
         return data
 
     def request_news_providers(self):
@@ -484,7 +570,7 @@ class IBKR_API(ApiCalls):
         :return: True/False - True if message was sent, False otherwise
         """
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('request_news_providers')
         return data
 
     def request_open_orders(self):
@@ -497,13 +583,7 @@ class IBKR_API(ApiCalls):
         order_id will be generated. This association will persist over multiple
         API and TWS sessions.  """
         # Process the response from the bridge
-        data = self._process_response('')
-        return data
-
-    def request_positions(self):
-        """Requests real-time position data for all accounts."""
-        # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('request_open_orders')
         return data
 
     def request_positions_multi(self, request_id: int, account: str, model_code: str):
@@ -511,57 +591,52 @@ class IBKR_API(ApiCalls):
         Results are delivered via EWrapper.positionMulti() and
         EWrapper.positionMultiEnd() """
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('request_positions_multi')
         return data
 
     def request_smart_components(self, request_id: int, bboExchange: str):
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('request_smart_components')
         return data
 
-    def set_server_log_level(self, logLevel: int):
+    def set_server_log_level(self, log_level: int):
         """The default detail level is ERROR. For more details, see API
         Logging."""
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('set_server_log_level')
         return data
 
-    def subscribe_to_group_events(self, request_id: int, groupId: int):
+    def subscribe_to_group_events(self, request_id: int, group_id: int):
         """request_id:int - The unique number associated with the notification.
-        groupId:int - The ID of the group, currently it is a number from 1 to 7.
+        group_id:int - The ID of the group, currently it is a number from 1 to 7.
             This is the display group subscription request sent by the API to TWS."""
         # Process the response from the bridge
-        data = self._process_response('')
+        super().subscribe_to_group_events(request_id,group_id)
+        data = self._process_response('subscribe_to_group_events')
         return data
 
     #################
     ### API Calls ###
     #################
-    def request_contract_details(self, contract: Contract):
+    def request_contract_data(self, contract: Contract):
         """
 
         :param contract:
         :return:
-        """
-        #"""Call this function to download all details for a particular
+
+        #Call this function to download all details for a particular
         #underlying. The contract details will be received via the contractDetails()
         #function on the EWrapper.
 
         #request_id:int - The ID of the data request. Ensures that responses are
         #    make_fieldatched to requests if several requests are in process.
         #contract:Contract - The summary description of the contract being looked
-        #    up."""
-        super().request_contract_details(contract)
-        # Receive the response
-        while True:
-            message = self.conn.receive_messages()
-            print(message)
-            time.sleep(1)
+        #    up.
+        """
+        super().request_contract_data(contract)
+        data = self._process_response('contract_data')
+        return data[2]
 
-        # Call the message parser to get extract the data
-        action_func = getattr(self.message_parser, message['action'])
-        #(request_id, timestamp) = action_func(message)
-        #pass
 
     def request_historical_data(self, contract: Contract, end_date_time: str,
                                 duration: str, bar_size_setting: str, what_to_show: str,
@@ -619,22 +694,9 @@ class IBKR_API(ApiCalls):
             2 - dates are returned as a long integer specifying the number of seconds since
                 1/1/1970 GMT.
         chartOptions:list - For internal use only. Use default value XYZ. """
-        super().request_historical_data(contract,end_date_time,duration, bar_size_setting, what_to_show, use_rth,
-                                        format_date, keep_up_to_date, chart_options)
-
-        message_parser = MessageParser()
-        historical_data_id = Messages.inbound['historical_data']
-        data_received = False
-        while not data_received:
-            messages = self.conn.receive_messages()
-            for msg in messages:
-                # Process any historical_data messages, and ignore all others
-                if msg['id'] == historical_data_id:
-                    # data is (message_id:int, request_id:int, bars:list)
-                    func = getattr(message_parser, msg['action'])
-                    data = func(msg)
-                    data_received = True
-
+        super().request_historical_data(contract,end_date_time,duration, bar_size_setting, what_to_show,
+                                        use_rth, format_date, keep_up_to_date, chart_options)
+        data = self._process_response('historical_data')
         return data
 
     def request_news_bulletins(self, allMsgs: bool):
@@ -654,6 +716,7 @@ class IBKR_API(ApiCalls):
         return data
 
     def request_pnl_single(self, request_id: int, account: str, model_code: str, contract_id: int):
+        super().request_pnl_single(request_id,account,model_code, contract_id)
         # Process the response from the bridge
         data = self._process_response('')
         return data
@@ -687,6 +750,7 @@ class IBKR_API(ApiCalls):
                 mktDataOptions:list - For internal use only.
                     Use default value XYZ. """
         # Process the response from the bridge
+        super().request_market_data(request_id, contract, generic_tick_list, snapshot, regulatory_snapshot, market_data_options)
         data = self._process_response('')
         return data
 
@@ -735,6 +799,7 @@ class IBKR_API(ApiCalls):
 
     def cancel_news_bulletins(self):
         """Call this function to stop receiving news bulletins."""
+        super().cancel_news_bulletins()
         # Process the response from the bridge
         data = self._process_response('')
         return data
@@ -748,12 +813,13 @@ class IBKR_API(ApiCalls):
             1 = GROUPS
             2 = PROFILE
             3 = ACCOUNT ALIASES"""
+        super().request_uestFA()
         # Process the response from the bridge
         data = self._process_response('')
         return data
 
-    def request_histogram_data(self, tickerId: int, contract: Contract,
-                               useRTH: bool, timePeriod: str):
+    def request_histogram_data(self, ticker_id: int, contract: Contract,
+                               useRTH: bool, time_period: str):
         # Process the response from the bridge
         data = self._process_response('')
         return data
@@ -771,13 +837,14 @@ class IBKR_API(ApiCalls):
 
     def request_scanner_subscription(self, request_id: int,
                                      subscription: ScannerSubscription,
-                                     scannerSubscriptionOptions: list,
+                                     scanner_subscription_options: list,
                                      scannerSubscriptionFilterOptions: list):
         """request_id:int - The ticker ID. Must be a unique value.
         scannerSubscription:ScannerSubscription - This structure contains
             possible parameters used to filter results.
-        scannerSubscriptionOptions:list - For internal use only.
+        scanner_subscription_options:list - For internal use only.
             Use default value XYZ."""
+        super().request_scanner_subscription(request_id, subscription, scanner_subscription_options, scannerSubscriptionFilterOptions)
         # Process the response from the bridge
         data = self._process_response('')
         return data
@@ -809,6 +876,7 @@ class IBKR_API(ApiCalls):
                 requested is returned, even if the time time span falls
                 partially or completely outside.
         realTimeBarOptions:list - For internal use only. Use default value XYZ."""
+        super().request__real_time_bars()
         # Process the response from the bridge
         data = self._process_response('')
         return data
@@ -833,7 +901,7 @@ class IBKR_API(ApiCalls):
         is used only for stocks and stocks do not have a multiplier and
         trading class.
 
-        request_id:tickerId - The ID of the data request. Ensures that responses are
+        request_id: The ID of the data request. Ensures that responses are
              matched to requests if several requests are in process.
         contract:Contract - This structure contains a description of the
             contract for which fundamental data is being requested.
@@ -847,13 +915,14 @@ class IBKR_API(ApiCalls):
         # Make the Request
         request_id = self.get_local_request_id()
         super().request_fundamental_data(request_id, contract, report_type, request_options)
-        time.sleep(5)
-        messages = self.conn.receive_messages()
-        print(messages)
+        end_on_codes = [430]
+        message_id, request_id, data = self._process_response('fundamental_data', end_on_codes)
+        return data
 
-    def request_NewsArticle(self, request_id: int, providerCode: str, articleId: str, newsArticleOptions: list):
+
+    def request_news_article(self, request_id: int, provider_code: str, article_id: str, newsArticleOptions: list):
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('news_article')
         return data
 
     def queryDisplayGroups(self, request_id: int):
@@ -866,9 +935,9 @@ class IBKR_API(ApiCalls):
         data = self._process_response('')
         return data
 
-    def update_display_group(self, request_id: int, contractInfo: str):
+    def update_display_group(self, request_id: int, contract_info: str):
         """request_id:int - The requestId specified in subscribeToGroupEvents().
-        contractInfo:str - The encoded value that uniquely represents the
+        contract_info:str - The encoded value that uniquely represents the
             contract in IB. Possible values include:
 
             none = empty selection
@@ -913,33 +982,38 @@ class IBKR_API(ApiCalls):
         super().verify_request(api_name, api_version)
         while True:
             messages = self.conn.receive_messages()
-            print(messages)
             time.sleep(1)
 
 
-    def request_sec_def_opt_params(self, request_id: int, underlying_symbol: str,
-                                   futFopExchange: str, underlyingSecType: str,
-                                   underlyingConId: int):
-        """Requests security definition option parameters for viewing a
-        contract's option chain request_id the ID chosen for the request
-        underlying_symbol futFopExchange The exchange on which the returned
-        options are trading. Can be set to the empty string "" for all
-        exchanges. underlyingSecType The type of the underlying security,
-        i.e. STK underlyingConId the contract ID of the underlying security.
-        Response comes via EWrapper.securityDefinitionOptionParameter()"""
-        # Process the response from the bridge
-        data = self._process_response('')
-        return data
+    def request_option_chain(self, underlying: Contract, exchange=""):
+        """
+        Convenience function for request_security_definition_option_parameters
+        :param underlying:
+        :param exchange:
+        :return:
+        """
+        # Get a
+        request_id = self.get_local_request_id()
 
-    def request_soft_dollar_tiers(self, request_id: int):
-        """Requests pre-defined Soft Dollar Tiers. This is only supported for
-        registered professional advisors and hedge and mutual funds who have
-        configured Soft Dollar Tiers in Account Management."""
-        # Process the response from the bridge
-        data = self._process_response('')
-        return data
+        # Check if we have a valid contract id, if not attempt to get it
+        if underlying.id == 0:
+            print("Get Contract Data")
+            #underlying2 = self.request_contract_data(underlying)
+            #print(underlying2)
 
-    def request_family_codes(self):
+        super().request_security_definition_option_parameters(request_id, underlying.symbol, exchange,
+                                                              underlying.security_type, underlying.id)
+        data = self._process_response('security_definition_option_parameter')
+        return data[2]
+
+    def request_security_definition_option_parameters(self, underlying_symbol: str,
+                                                      exchange: str,
+                                                      underlying_sec_type: str,
+                                                      underlying_contract_id: int):
+
         # Process the response from the bridge
-        data = self._process_response('')
+        request_id = self.get_local_request_id()
+        super().request_security_definition_option_parameters(request_id, underlying_symbol, exchange,
+                                                              underlying_sec_type, underlying_contract_id)
+        data = self._process_response('security_definition_option_parameter')
         return data
