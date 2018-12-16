@@ -222,9 +222,15 @@ class MessageParser(object):
 
     @staticmethod
     def family_codes(fields):
-        num_family_codes = int(fields[0])
-        family_codes = []
-        field_index = 1
+        """
+
+        :param fields:
+        :return: Family Codes
+        """
+        message_id          = int(fields[0])
+        num_family_codes    = int(fields[1])
+        family_codes        = []
+        field_index         = 2
         for i in range(num_family_codes):
             data = {}
             data['account_id']  = bytearray(fields[field_index]).decode()
