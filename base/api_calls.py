@@ -677,25 +677,25 @@ class ApiCalls(object):
             fields.append(self.conn.make_field_handle_empty(order.limit_price))
         if self.server_version() < MIN_SERVER_VER_TRAILING_PERCENT:
             fields.append(
-                order.auxPrice if order.auxPrice != UNSET_DOUBLE else 0)
+                order.aux_price if order.aux_price != UNSET_DOUBLE else 0)
         else:
-            fields.append(self.conn.make_field_handle_empty(order.auxPrice))
+            fields.append(self.conn.make_field_handle_empty(order.aux_price))
 
             # send extended order fields
-            fields += [order.tif,
-                       order.ocaGroup,
-                       order.account,
-                       order.openClose,
-                       order.origin,
-                       order.orderRef,
-                       order.transmit,
-                       order.parentId,  # srv v4 and above
-                       order.blockOrder,  # srv v5 and above
-                       order.sweepToFill,  # srv v5 and above
-                       order.displaySize,  # srv v5 and above
-                       order.triggerMethod,  # srv v5 and above
-                       order.outsideRth,  # srv v5 and above
-                       order.hidden]  # srv v7 and above
+            fields += [order.tif            ,
+                       order.ocaGroup       ,
+                       order.account        ,
+                       order.openClose      ,
+                       order.origin         ,
+                       order.order_ref      ,
+                       order.transmit       ,
+                       order.parent_id      ,  
+                       order.block_order    ,  
+                       order.sweep_to_fill  ,  
+                       order.display_size   ,  
+                       order.trigger_method ,  
+                       order.outside_rth    ,  
+                       order.hidden]  
 
         # Send combo legs for BAG requests (srv v8 and above)
         if contract.security_type == "BAG":
@@ -744,16 +744,16 @@ class ApiCalls(object):
         #          U101/20,U203/80
         #####################################################################
         # send deprecated sharesAllocation field
-        fields += ["",  # srv v9 and above
+        fields += ["",
 
-                   order.discretionaryAmt,  # srv v10 and above
-                   order.goodAfterTime,  # srv v11 and above
-                   order.goodTillDate,  # srv v12 and above
+                   order.discretionaryAmt,
+                   order.goodAfterTime,
+                   order.goodTillDate,
 
-                   order.fa_group,  # srv v13 and above
-                   order.fa_method,  # srv v13 and above
-                   order.fa_percentage,  # srv v13 and above
-                   order.fa_profile]  # srv v13 and above
+                   order.fa_group,  
+                   order.fa_method,  
+                   order.fa_percentage,  
+                   order.fa_profile]  
 
         if self.server_version() >= MIN_SERVER_VER_MODELS_SUPPORT:
             fields.append(order.model_code)
@@ -857,33 +857,33 @@ class ApiCalls(object):
             else:
                 fields.append(False)
 
-        if self.server_version() >= MIN_SERVER_VER_ALGO_ORDERS:
-            fields.append(order.algorithmic_strategy)
-            if order.algorithmic_strategy:
-                algoParamsCount = len(order.algoParams) if order.algoParams else 0
-                fields.append(algoParamsCount)
-                if algoParamsCount > 0:
-                    for algoParam in order.algoParams:
-                        fields += [algoParam.tag, algoParam.value]
 
-        if self.server_version() >= MIN_SERVER_VER_ALGO_ID:
-            fields.append(order.algoId)
+        fields.append(order.algorithmic_strategy)
+        if order.algorithmic_strategy:
+            algoParamsCount = len(order.algoParams) if order.algoParams else 0
+            fields.append(algoParamsCount)
+            if algoParamsCount > 0:
+                for algoParam in order.algoParams:
+                    fields += [algoParam.tag, algoParam.value]
 
-        fields.append(order.whatIf)  # srv v36 and above
+
+        fields.append(order.algoId)
+
+        fields.append(order.whatIf)
 
         # send miscOptions parameter
-        if self.server_version() >= MIN_SERVER_VER_LINKING:
-            miscOptionsStr = ""
-            if order.orderMiscOptions:
-                for tagValue in order.orderMiscOptions:
-                    miscOptionsStr += str(tagValue)
-            fields.append(miscOptionsStr)
 
-        if self.server_version() >= MIN_SERVER_VER_ORDER_SOLICITED:
-            fields.append(order.solicited)
+        miscOptionsStr = ""
+        if order.orderMiscOptions:
+            for tagValue in order.orderMiscOptions:
+                miscOptionsStr += str(tagValue)
+        fields.append(miscOptionsStr)
 
-        if self.server_version() >= MIN_SERVER_VER_RANDOMIZE_SIZE_AND_PRICE:
-            fields.extend([order.randomizeSize, order.randomizePrice])
+
+        fields.append(order.solicited)
+
+
+        fields.extend([order.randomizeSize, order.randomizePrice])
 
         if self.server_version() >= MIN_SERVER_VER_PEGGED_TO_BENCHMARK:
             if order.order_type == "PEG BENCH":
@@ -900,31 +900,19 @@ class ApiCalls(object):
 
                 fields.extend([order.conditionsIgnoreRth, order.conditionsCancelOrder])
 
-            fields.extend([order.adjusted_order_type, order.trigger_price, order.lmt_price_offset, order.adjustedStopPrice,
-                           order.adjustedTrailingAmount, order.adjustableTrailingUnit])
+            fields.extend([order.adjusted_order_type, order.trigger_price, order.limit_price_offset, order.adjusted_stop_price,
+                           order.adjusted_trailing_amount, order.adjusted_trailing_unit])
 
-        if self.server_version() >= MIN_SERVER_VER_EXT_OPERATOR:
-            fields.append(order.extOperator)
 
-        if self.server_version() >= MIN_SERVER_VER_SOFT_DOLLAR_TIER:
-            fields.extend([order.softDollarTier.name, order.softDollarTier.val])
-
-        if self.server_version() >= MIN_SERVER_VER_CASH_QTY:
-            fields.append(order.cash_qty)
-
-        if self.server_version() >= MIN_SERVER_VER_DECISION_MAKER:
-            fields.append(order.mifid2DecisionMaker)
-            fields.append(order.mifid2DecisionAlgo)
-
-        if self.server_version() >= MIN_SERVER_VER_MIFID_EXECUTION:
-            fields.append(order.mifid2ExecutionTrader)
-            fields.append(order.mifid2ExecutionAlgo)
-
-        if self.server_version() >= MIN_SERVER_VER_AUTO_PRICE_FOR_HEDGE:
-            fields.append(order.dontUseAutoPriceForHedge)
-
-        if self.server_version() >= MIN_SERVER_VER_ORDER_CONTAINER:
-            fields.append(order.isOmsContainer)
+        fields.append(order.extOperator)
+        fields.extend([order.softDollarTier.name, order.softDollarTier.val])
+        fields.append(order.cash_qty)
+        fields.append(order.mifid2DecisionMaker)
+        fields.append(order.mifid2DecisionAlgo)
+        fields.append(order.mifid2ExecutionTrader)
+        fields.append(order.mifid2ExecutionAlgo)
+        fields.append(order.dontUseAutoPriceForHedge)
+        fields.append(order.isOmsContainer)
 
         self.conn.send_message(fields)
 
@@ -1392,7 +1380,7 @@ class ApiCalls(object):
             return
 
         message_version = 1
-        message_id = Messages.outbound['set_server_loglevel']
+        message_id = Messages.outbound['set_server_log_level']
         fields = [message_id, message_version, logLevel]
         self.conn.send_message(fields)
 
@@ -1650,7 +1638,7 @@ class ApiCalls(object):
         """
 
 
-        #if not self.extraAuth:
+        #if not self.extra_auth:
         #    self.response_handler.error(NO_VALID_ID, BAD_MESSAGE.code(), BAD_MESSAGE.msg() +
         #                                "  Intent to authenticate needs to be expressed during initial connect request.")
         #    return
@@ -1777,7 +1765,7 @@ class ApiCalls(object):
         self.conn.send_message(fields)
 
     def request_MktDepth(self, request_id: int, contract: Contract,
-                         numRows: int, isSmartDepth: bool, mktDepthOptions: list):
+                         num_rows: int, is_smart_depth: bool, mkt_depth_options: list):
         """Call this function to request market depth for a specific
         contract. The market depth will be returned by the updateMktDepth() and
         updateMktDepthL2() events.
@@ -1792,9 +1780,9 @@ class ApiCalls(object):
             also used when canceling the market depth
         contract:Contact - This structure contains a description of the contract
             for which market depth data is being requested.
-        numRows:int - Specifies the numRowsumber of market depth rows to display.
-        isSmartDepth:bool - specifies SMART depth request
-        mktDepthOptions:list - For internal use only. Use default value
+        num_rows:int - Specifies the numRowsumber of market depth rows to display.
+        is_smart_depth:bool - specifies SMART depth request
+        mkt_depth_options:list - For internal use only. Use default value
             XYZ."""
 
         if not self.conn.is_connected():
@@ -1807,7 +1795,7 @@ class ApiCalls(object):
                                             "  It does not support id and trading_class parameters in reqMktDepth.")
                 return
 
-        if self.server_version() < MIN_SERVER_VER_SMART_DEPTH and isSmartDepth:
+        if self.server_version() < MIN_SERVER_VER_SMART_DEPTH and is_smart_depth:
             self.response_handler.error(request_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
                                         " It does not support SMART depth request.")
             return
@@ -1833,15 +1821,15 @@ class ApiCalls(object):
         if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
             fields += [contract.trading_class, ]
 
-        fields += [numRows, ]  # srv v19 and above
+        fields += [num_rows, ]  # srv v19 and above
 
         if self.server_version() >= MIN_SERVER_VER_SMART_DEPTH:
-            fields += [isSmartDepth, ]
+            fields += [is_smart_depth, ]
 
-        # send mktDepthOptions parameter
+        # send mkt_depth_options parameter
         if self.server_version() >= MIN_SERVER_VER_LINKING:
             # current doc says this part if for "internal use only" -> won't support it
-            if mktDepthOptions:
+            if mkt_depth_options:
                 raise NotImplementedError("not supported")
             mktDataOptionsStr = ""
             fields += [mktDataOptionsStr, ]
@@ -1911,8 +1899,8 @@ class ApiCalls(object):
         fields = [message_id, request_id]
         self.conn.send_message(fields)
 
-    def request_histogram_data(self, tickerId: int, contract: Contract,
-                              useRTH: bool, timePeriod: str):
+    def request_histogram_data(self, ticker_id: int, contract: Contract,
+                               useRTH: bool, time_period: str):
 
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
@@ -1924,11 +1912,11 @@ class ApiCalls(object):
             return
 
         message_id = Messages.outbound['request_histogram_data']
-        fields = [message_id, tickerId, contract.id, contract.symbol, contract.security_type,
+        fields = [message_id, ticker_id, contract.id, contract.symbol, contract.security_type,
                   contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
                   contract.exchange, contract.primary_exchange, contract.currency, contract.local_symbol,
                   contract.trading_class, contract.include_expired, useRTH,
-                  timePeriod]
+                  time_period]
         self.conn.send_message(fields)
 
     def cancel_histogram_data(self, tickerId: int):
@@ -1984,11 +1972,11 @@ class ApiCalls(object):
                    subscription.instrument,
                    subscription.locationCode,
                    subscription.scanCode,
-                   self.conn.make_field_handle_empty(subscription.abovePrice),
-                   self.conn.make_field_handle_empty(subscription.belowPrice),
-                   self.conn.make_field_handle_empty(subscription.aboveVolume),
-                   self.conn.make_field_handle_empty(subscription.marketCapAbove),
-                   self.conn.make_field_handle_empty(subscription.marketCapBelow),
+                   self.conn.make_field_handle_empty(subscription.above_price),
+                   self.conn.make_field_handle_empty(subscription.below_price),
+                   self.conn.make_field_handle_empty(subscription.above_volume),
+                   self.conn.make_field_handle_empty(subscription.market_cap_above),
+                   self.conn.make_field_handle_empty(subscription.market_cap_below),
                    subscription.moodyRatingAbove,
                    subscription.moodyRatingBelow,
                    subscription.spRatingAbove,
@@ -2225,7 +2213,7 @@ class ApiCalls(object):
             return
 
 
-        if not self.extraAuth:
+        if not self.extra_auth:
             self.response_handler.error(NO_VALID_ID, BAD_MESSAGE.code(), BAD_MESSAGE.msg() +
                                         "  Intent to authenticate needs to be expressed during initial connect request.")
             return
