@@ -2,8 +2,8 @@ from enum import Enum
 class Messages(object):
         class FieldType(Enum):
             INTEGER = 1
-            STRING = 2,
-            FLOAT = 3
+            STRING  = 2,
+            FLOAT   = 3
 
         field_types = FieldType
 
@@ -166,8 +166,8 @@ class Messages(object):
         def parse_message(message: bytes):
             """ Parse message into a list of fields.
             The message is made of fields separated by NULL character"""
-            fields = message.split(b"\0")
-            fields[0] = int(fields[0])
+            fields      = message.split(b"\0")
+            fields[0]   = int(fields[0])
             return tuple(fields[0:-1])
 
         @staticmethod
