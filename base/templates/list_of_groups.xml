@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <ListOfGroups>
+    <Group>
+        <name>Equal_Quantity</name>
+        <ListOfAccts varName="list">
+            <String>DU119915</String>
+            <String>DU119916</String>
+        </ListOfAccts>
+        <defaultMethod>EqualQuantity</defaultMethod>
+   </Group>
+</ListOfGroups>
