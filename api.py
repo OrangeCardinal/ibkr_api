@@ -210,6 +210,21 @@ class IBKR_API(ApiCalls):
         data = self._process_response('cancel_order')
         return data
 
+    def cancel_pnl(self, request_id: int):
+        """
+
+        :param request_id:
+        :return:
+        """
+        # Process the response from the bridge
+        data = self._process_response('cancel_pnl')
+        return data
+
+    def cancel_pnl_single(self, request_id: int):
+        # Process the response from the bridge
+        data = self._process_response('cancel_pnl_single')
+        return data
+
     def cancel_positions(self):
         """Cancels real-time position updates."""
         # Process the response from the bridge
@@ -238,6 +253,7 @@ class IBKR_API(ApiCalls):
 
     def request_family_codes(self):
         # Process the response from the bridge
+        super().request_family_codes()
         data = self._process_response('family_codes')
         return data
 
@@ -248,6 +264,39 @@ class IBKR_API(ApiCalls):
 
         # Process the response from the bridge
         data = self._process_response('symbol_samples')
+        return data
+
+    def request_option_chain(self, underlying: Contract, exchange=""):
+        """
+        Convenience function for request_security_definition_option_parameters
+        :param underlying:
+        :param exchange:
+        :return:
+        """
+        # Get a
+        request_id = self.get_local_request_id()
+
+        # Check if we have a valid contract id, if not attempt to get it
+        if underlying.id == 0:
+            print("Get Contract Data")
+            #underlying2 = self.request_contract_data(underlying)
+            #print(underlying2)
+
+        super().request_security_definition_option_parameters(request_id, underlying.symbol, exchange,
+                                                              underlying.security_type, underlying.id)
+        data = self._process_response('security_definition_option_parameter')
+        return data[2]
+
+    def request_security_definition_option_parameters(self, underlying_symbol: str,
+                                                      exchange: str,
+                                                      underlying_sec_type: str,
+                                                      underlying_contract_id: int):
+
+        # Process the response from the bridge
+        request_id = self.get_local_request_id()
+        super().request_security_definition_option_parameters(request_id, underlying_symbol, exchange,
+                                                              underlying_sec_type, underlying_contract_id)
+        data = self._process_response('security_definition_option_parameter')
         return data
 
     def request_positions(self):
@@ -277,21 +326,6 @@ class IBKR_API(ApiCalls):
         return data
 
     # Not alphabetic
-    def cancel_pnl(self, request_id: int):
-        """
-
-        :param request_id:
-        :return:
-        """
-        # Process the response from the bridge
-        data = self._process_response('cancel_pnl')
-        return data
-
-    def cancel_pnl_single(self, request_id: int):
-        # Process the response from the bridge
-        data = self._process_response('cancel_pnl_single')
-        return data
-
     def cancel_scanner_subscription(self, request_id: int):
         """request_id:int - The ticker ID. Must be a unique value."""
         # Process the response from the bridge
@@ -983,37 +1017,3 @@ class IBKR_API(ApiCalls):
         while True:
             messages = self.conn.receive_messages()
             time.sleep(1)
-
-
-    def request_option_chain(self, underlying: Contract, exchange=""):
-        """
-        Convenience function for request_security_definition_option_parameters
-        :param underlying:
-        :param exchange:
-        :return:
-        """
-        # Get a
-        request_id = self.get_local_request_id()
-
-        # Check if we have a valid contract id, if not attempt to get it
-        if underlying.id == 0:
-            print("Get Contract Data")
-            #underlying2 = self.request_contract_data(underlying)
-            #print(underlying2)
-
-        super().request_security_definition_option_parameters(request_id, underlying.symbol, exchange,
-                                                              underlying.security_type, underlying.id)
-        data = self._process_response('security_definition_option_parameter')
-        return data[2]
-
-    def request_security_definition_option_parameters(self, underlying_symbol: str,
-                                                      exchange: str,
-                                                      underlying_sec_type: str,
-                                                      underlying_contract_id: int):
-
-        # Process the response from the bridge
-        request_id = self.get_local_request_id()
-        super().request_security_definition_option_parameters(request_id, underlying_symbol, exchange,
-                                                              underlying_sec_type, underlying_contract_id)
-        data = self._process_response('security_definition_option_parameter')
-        return data
