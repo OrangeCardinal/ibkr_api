@@ -300,8 +300,12 @@ class MessageParser(object):
 
     @staticmethod
     def managed_accounts(fields):
-        accounts = []  # List of Accounts to Return
-        return accounts
+        message_id = int(fields[0])
+        request_id = int(fields[1])
+        account    = bytearray(fields[2]).decode()
+
+        #accounts = []  # List of Accounts to Return
+        return message_id, request_id, account
 
 
     @staticmethod
@@ -330,6 +334,19 @@ class MessageParser(object):
             }
         
         return data
+
+    @staticmethod
+    def next_valid_id(fields):
+        """
+        Parses the next_valid_id message from the Bridge
+        Contains the next request id that can be used
+        :param fields:
+        :return:
+        """
+        message_id      = int(fields[0])
+        request_id      = int(fields[1])
+        next_id         = int(fields[2])
+        return message_id, request_id, next_id
 
     @staticmethod
     def order_bound(fields):
