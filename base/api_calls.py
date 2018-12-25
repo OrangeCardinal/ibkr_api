@@ -1,17 +1,31 @@
 import logging
 
+
 from base.bridge_connection import BridgeConnection
-from base.constants import *
-from base.errors import NOT_CONNECTED, UPDATE_TWS, Errors
-from base.messages import Messages
-from base.message_parser import MessageParser
+from base.constants         import *
+from base.errors            import NOT_CONNECTED, UPDATE_TWS, Errors, BAD_MESSAGE
+from base.messages          import Messages
+from base.message_parser    import MessageParser
 
 from classes.contracts.contract import Contract
 from classes.order import Order
 from classes.scanner import ScannerSubscription
 
+from functools import wraps
+import socket
+
 logger = logging.getLogger(__name__)
 
+
+def check_connection(func):
+    @wraps(func)
+    def new_func(self, *func_args,**func_kwargs):
+        if not self.conn.is_connected():
+            #self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            logger.warning("Not connected to the Bridge Application (TWS/IB Gateway).")
+            return None
+        func(self,*func_args, **func_kwargs)
+    return new_func
 
 class ApiCalls(object):
     """
@@ -24,14 +38,17 @@ class ApiCalls(object):
 
 
     def __init__(self, response_handler=None, request_handler=None):
-        self.application_state = "Detached from Bridge"
-        self.conn = None                 # Connection between this application and the bridge
-        self.host = None                 # Bridge's Host
-        self.port = None                 # Bridge's Port
-        self.optional_capabilities = ""  # Hell if I know, IBKR's documentation has nothing...
-        self.request_id            = 0   # Unique Identifier for the request
-        self.server_version_      = None
+        self.api_state              = "Detached from Bridge"
+        self.client_id              = None
+        self.conn                   = None                 # Connection between this application and the bridge
 
+        self.host                   = None                 # Bridge's Host
+        self.optional_capabilities  = ""                   # Hell if I know, IBKR's documentation has nothing...
+        self.port                   = None                 # Bridge's Port
+        self.request_id             = 0                    # Unique Identifier for the request
+        self.server_version_        = None
+
+        self.connection_time  = None
         self.message_parser   = MessageParser()   # Converts from message data to object(s)
         self.request_handler  = request_handler   # Functions if exist are called before and/or after api calls
         self.response_handler = response_handler  # API Responses Functions provided by the end user
@@ -60,26 +77,24 @@ class ApiCalls(object):
         self.request_id += 1
         return request_id
 
+    @check_connection
     def calculate_implied_volatility(self, request_id: int, contract: Contract,
                                      option_price: float, underlying_price: float,
                                      implVolOptions: list):
-        """Call this function to calculate volatility for a supplied
+        """
+        Call this function to calculate volatility for a supplied
         option price and underlying price. Result will be delivered
         via EWrapper.tickOptionComputation()
 
         request_id:int -  The request id.
         contract:Contract -  Describes the contract.
         option_price:double - The price of the option.
-        underlying_price:double - Price of the underlying."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
+        underlying_price:double - Price of the underlying.
+        """
 
         message_version = 3
 
-        # send req mkt data msg
+        # send req market data msg
         message_id = Messages.outbound['request_calc_implied_volat']
         fields = [message_id, message_version, request_id, contract.id, contract.symbol,
                   contract.security_type, contract.last_trade_date_or_contract_month, contract.strike,
@@ -91,16 +106,17 @@ class ApiCalls(object):
 
         fields.extend([option_price, underlying_price])
 
-        if self.server_version() >= MIN_SERVER_VER_LINKING:
-            implVolOptStr = ""
-            tag_values_count = len(implVolOptions) if implVolOptions else 0
-            if implVolOptions:
-                for implVolOpt in implVolOptions:
-                    implVolOptStr += str(implVolOpt)
-            fields.extend([tag_values_count, implVolOptStr])
+
+        implVolOptStr = ""
+        tag_values_count = len(implVolOptions) if implVolOptions else 0
+        if implVolOptions:
+            for implVolOpt in implVolOptions:
+                implVolOptStr += str(implVolOpt)
+        fields.extend([tag_values_count, implVolOptStr])
 
         self.conn.send_message(fields)
 
+    @check_connection
     def calculate_option_price(self, request_id: int, contract: Contract,
                                volatility: float, underlying_price: float,
                                optPrcOptions: list):
@@ -110,244 +126,191 @@ class ApiCalls(object):
         request_id:int -    The ticker ID.
         contract:Contract - Describes the contract.
         volatility:double - The volatility.
-        underlying_price:double - Price of the underlying."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
+        underlying_price:double - Price of the underlying.
+        """
 
         message_version = 3
 
-        # send req mkt data msg
+        # send req market data msg
         message_id = Messages.outbound['request_calc_option_price']
         fields = [message_id, message_version, request_id, contract.id, contract.symbol,
                   contract.security_type, contract.last_trade_date_or_contract_month, contract.strike,
                   contract.right, contract.multiplier, contract.exchange, contract.currency, contract.local_symbol]
 
-        if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
-            fields.extend([contract.trading_class, volatility, underlying_price])
+        fields.extend([contract.trading_class, volatility, underlying_price])
 
-        if self.server_version() >= MIN_SERVER_VER_LINKING:
-            option_price_options = ""
-            tag_values_count = len(optPrcOptions) if optPrcOptions else 0
-            if optPrcOptions:
-                for implVolOpt in optPrcOptions:
-                    option_price_options += str(implVolOpt)
-            fields.extend([tag_values_count, optPrcOptions])
+
+        option_price_options = ""
+        tag_values_count = len(optPrcOptions) if optPrcOptions else 0
+        if optPrcOptions:
+            for implVolOpt in optPrcOptions:
+                option_price_options += str(implVolOpt)
+        fields.extend([tag_values_count, optPrcOptions])
 
         self.conn.send_message(fields)
 
+    @check_connection
     def cancel_account_summary(self, request_id: int):
         """Cancels the request for Account Window Summary tab data.
 
         request_id:int - The ID of the data request being canceled."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
 
         message_version = 1
         message_id = Messages.outbound['cancel_account_summary']
         fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def cancel_account_updates_multi(self, request_id: int):
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-
         message_version = 1
         message_id = Messages.outbound['cancel_account_updates_multi']
         fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
+
+    @check_connection
     def cancel_calculate_implied_volatility(self, request_id: int):
         """Call this function to cancel a request to calculate
         volatility for a supplied option price and underlying price.
 
         request_id:int - The request ID.  """
-
-        if not self.conn.is_connected():
-            self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['cancel_calc_implied_volat']
         fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def cancel_calculate_option_price(self, request_id: int):
         """Call this function to cancel a request to calculate the option
         price and greek values for a supplied volatility and underlying price.
 
         request_id:int - The request ID.  """
 
-        if not self.conn.is_connected():
-            self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['cancel_calc_option_price']
         fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
+
+
+    @check_connection
     def cancel_fundamental_data(self, request_id: int):
-        """Call this function to stop receiving fundamental data.
+        """
+        Call this function to stop receiving fundamental data.
 
-        request_id:int - The ID of the data request."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
+        request_id:int - The ID of the data request.
+        """
         message_version = 1
         message_id = Messages.outbound['cancel_fundamental_data']
         fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
+
+    @check_connection
     def cancel_market_data(self, request_id: int):
         """After calling this function, market data for the specified id
         will stop flowing.
 
         request_id: int - The ID that was specified in the call to
             reqMktData(). """
-
-        if not self.conn.is_connected():
-            self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-        # send req mkt data msg
+        # send req market data msg
         message_version = 2
-        message_id = Messages.outbound['cancel_mkt_data']
+        message_id = Messages.outbound['cancel_market_data']
         fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
-    def cancel_market_depth(self, request_id: int, isSmartDepth: bool):
+    @check_connection
+    def cancel_market_depth(self, request_id: int, is_smart_depth: bool):
         """After calling this function, market depth data for the specified id
         will stop flowing.
 
         request_id:int - The ID that was specified in the call to
             reqMktDepth().
-        isSmartDepth:bool - specifies SMART depth request"""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
+        is_smart_depth:bool - specifies SMART depth request"""
 
         message_version = 1
 
-        # send cancel mkt depth msg
-        message_id = Messages.outbound['cancel_mkt_depth']
+        # send cancel market depth msg
+        message_id = Messages.outbound['cancel_market_depth']
         fields = [message_id, message_version, request_id]
 
         if self.server_version() >= MIN_SERVER_VER_SMART_DEPTH:
-            fields.append(isSmartDepth)
+            fields.append(is_smart_depth)
 
         self.conn.send_message(fields)
 
+    @check_connection
     def cancel_order(self, order_id: int):
         """Call this function to cancel an order.
 
         order_id:int - The order ID that was specified previously in the call
             to placeOrder()"""
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['cancel_order']
         fields = [message_id, message_version, order_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def cancel_positions(self):
         """Cancels real-time position updates."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-
         message_version = 1
         message_id = Messages.outbound['cancel_positions']
         fields = [message_id, message_version]
         self.conn.send_message(fields)
 
+    @check_connection
     def cancel_positions_multi(self, request_id: int):
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['cancel_positions_multi']
         fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def cancel_pnl(self, request_id: int):
         """
 
         :param request_id:
         :return:
         """
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_id = Messages.outbound['cancel_pnl']
         fields = [message_id, request_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def cancel_pnl_single(self, request_id: int):
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_id = Messages.outbound['cancel_pnl_single']
         fields = [message_id, request_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def cancel_real_time_bars(self, request_id: int):
         """Call the cancel_real_time_bars() function to stop receiving real time bar results.
 
         request_id:int - The Id that was specified in the call to reqRealTimeBars(). """
 
-        if not self.conn.is_connected():
-            self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-        # send req mkt data msg
+        # send req market data msg
         message_version = 1
         message_id = Messages.outbound['cancel_real_time_bars']
         fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def cancel_scanner_subscription(self, request_id: int):
         """request_id:int - The ticker ID. Must be a unique value."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['cancel_scanner_subscription']
         fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
+
+    @check_connection
     def cancel_tick_by_tick_data(self, request_id: int):
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_id = Messages.outbound['cancel_tick_by_tick_data']
         fields = [message_id, request_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def exercise_options(self, request_id: int, contract: Contract,
                          exercize_action: int, exercize_quantity: int,
                          account: str, override: int):
@@ -365,10 +328,6 @@ class ApiCalls(object):
             exercise. If you have override set to "yes" the natural action would
              be overridden and the out-of-the money option would be exercised.
             Values are: 0 = no, 1 = yes."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
 
         insert_offset = 0
         message_version = 2
@@ -391,6 +350,7 @@ class ApiCalls(object):
 
         self.conn.send_message(fields)
 
+    @check_connection
     def place_order(self, order_id: int, contract: Contract, order: Order):
         """Call this function to place an order. The order status will
         be returned by the orderStatus event.
@@ -402,16 +362,6 @@ class ApiCalls(object):
             contract which is being traded.
         order:Order - This structure contains the details of tradedhe order.
             Note: Each client MUST connect with a unique client_id."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(order_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-
-        if self.server_version() < MIN_SERVER_VER_SSHORTX:
-            if order.exemptCode != -1:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg('exemptCode'))
-                return
 
         if self.server_version() < MIN_SERVER_VER_DELTA_NEUTRAL_CONID:
             if order.delta_neutral_con_id > 0 \
@@ -649,10 +599,10 @@ class ApiCalls(object):
 
         fields.append(order.algorithmic_strategy)
         if order.algorithmic_strategy:
-            algoParamsCount = len(order.algoParams) if order.algoParams else 0
+            algoParamsCount = len(order.algo_params) if order.algo_params else 0
             fields.append(algoParamsCount)
             if algoParamsCount > 0:
-                for algoParam in order.algoParams:
+                for algoParam in order.algo_params:
                     fields += [algoParam.tag, algoParam.value]
 
 
@@ -705,11 +655,12 @@ class ApiCalls(object):
 
         self.conn.send_message(fields)
 
-    def replace_financial_advisor(self, faData: int, cxml: str):
+    @check_connection
+    def replace_financial_advisor(self, financial_advisor_data: int, cxml: str):
         """Call this function to modify FA configuration information from the
         API. Note that this can also be done manually in TWS itself.
 
-        faData:int - Specifies the type of Financial Advisor
+        financial_advisor_data:int - Specifies the type of Financial Advisor
             configuration data beingingg requested. Valid values include:
             1 = GROUPS
             2 = PROFILE
@@ -717,49 +668,38 @@ class ApiCalls(object):
         cxml: str - The XML string containing the new FA configuration
             information.  """
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['replace_fa']
-        fields = [message_id, message_version, faData, cxml]
+        fields = [message_id, message_version, financial_advisor_data, cxml]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_account_updates(self, subscribe: bool, account_code: str):
         """Call this function to start getting account values, portfolio,
-        and last update time information via EWrapper.updateAccountValue(),
-        EWrapperi.updatePortfolio() and Wrapper.updateAccountTime().
+
 
         subscribe:bool - If set to TRUE, the client will start receiving account
-            and Portfoliolio updates. If set to FALSE, the client will stop
+            and Portfolio updates. If set to FALSE, the client will stop
             receiving this information.
         account_code:str -The account code for which to receive account and
             portfolio updates."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 2
         message_id = Messages.outbound['request_acct_data']
         fields = [message_id, message_version, subscribe, account_code]
         self.conn.send_message(fields)
 
+
+    @check_connection
     def request_account_updates_multi(self, request_id: int, account: str, model_code: str,
                                       ledgerAndNLV: bool):
         """Requests account updates for account and/or model."""
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-
-        message_version = 1
-        message_id = Messages.outbound['request_account_updates_multi']
-        fields = [message_id, message_version, request_id, account, model_code, ledgerAndNLV]
+        message_version         = 1
+        message_id              = Messages.outbound['request_account_updates_multi']
+        fields                  = [message_id, message_version, request_id, account, model_code, ledgerAndNLV]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_account_summary(self, request_id: int, group_name: str, tags: str):
         """Call this method to request and keep up to date the data that appears
         on the TWS Account Window Summary tab. The data is returned by
@@ -814,16 +754,12 @@ class ApiCalls(object):
                 the specified currency.
             $LEDGER:ALL - Single flag to relay all cash balance tags* in all
             currencies."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['request_account_summary']
         fields = [message_id, message_version, request_id, group_name, tags]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_all_open_orders(self):
         """Call this function to request the open orders placed from all
         clients and also from TWS. Each open order will be fed back through the
@@ -831,16 +767,12 @@ class ApiCalls(object):
 
         Note:  No association is made between the returned orders and the
         requesting client."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['request_all_open_orders']
         fields = [message_id, message_version]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_auto_open_orders(self, auto_bind: bool):
         """Call this function to request that newly created TWS orders
         be implicitly associated with the client. When a new TWS order is
@@ -854,11 +786,6 @@ class ApiCalls(object):
         made.
 
         """
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['request_auto_open_orders']
         fields = [message_id, message_version, auto_bind]
@@ -878,7 +805,7 @@ class ApiCalls(object):
         if request_id is None:
            request_id = self.get_local_request_id()
 
-        # send req mkt data msg
+        # send req market data msg
         message_version = 8
         message_id = Messages.outbound['request_contract_data']
         fields = [message_id, message_version, request_id, contract.id, contract.symbol,
@@ -924,16 +851,13 @@ class ApiCalls(object):
                    symbol, security_type, exchange, side]
         self._send_message(fields)
 
+    @check_connection
     def request_global_cancel(self):
         """Use this function to cancel all open orders globally. It
         cancels both API and TWS open orders.
 
         If the order was created in TWS, it also gets canceled. If the order
         was initiated in the API, it also gets canceled."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
 
         message_version = 1
         message_id = Messages.outbound['request_global_cancel']
@@ -942,12 +866,9 @@ class ApiCalls(object):
 
     # Note that formatData parameter affects intraday bars only
     # 1-day bars always return with date in YYYYMMDD format
+    @check_connection
     def request_head_time_stamp(self, request_id: int, contract: Contract,
                                 whatToShow: str, useRTH: int, formatDate: int):
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
 
         message_id = Messages.outbound['request_head_timestamp']
         fields = [message_id, request_id, contract.id, contract.symbol, contract.security_type,
@@ -957,12 +878,9 @@ class ApiCalls(object):
                   contract.include_expired, useRTH, whatToShow, formatDate]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_historical_news(self, request_id: int, conId: int, providerCodes: str,
                                 startDateTime: str, end_date_time: str, totalResults: int, historicalNewsOptions: list):
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
 
         message_id = Messages.outbound['request_historical_news']
         fields = [message_id, request_id, conId, providerCodes, startDateTime, end_date_time, totalResults]
@@ -977,14 +895,10 @@ class ApiCalls(object):
 
         self.conn.send_message(fields)
 
+    @check_connection
     def request_historical_ticks(self, request_id: int, contract: Contract, startDateTime: str,
                                  end_date_time: str, number_of_ticks: int, whatToShow: str, useRth: int,
                                  ignoreSize: bool, miscOptions: list):
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
 
         miscOptionsString = ""
         if miscOptions:
@@ -1000,21 +914,19 @@ class ApiCalls(object):
                   ignoreSize, miscOptionsString]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_managed_accounts(self):
         """Call this function to request the list of managed accounts. The list
         will be returned by the managedAccounts() function on the EWrapper.
 
         Note:  This request can only be made when connected to a FA managed account."""
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['request_managed_accounts']
         fields = [message_id, message_version]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_market_data_type(self, market_data_type: int):
         """The API can receive frozen market data from Trader
         Workstation. Frozen market data is the last data recorded in our system.
@@ -1027,42 +939,37 @@ class ApiCalls(object):
         market_data_type:int - 1 for real-time streaming market data or 2 for
             frozen market data"""
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-
         # Create and send the message
         message_version = 1
         message_id = Messages.outbound['request_market_data_type']
         fields = [message_id, message_version, market_data_type]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_market_depth_exchanges(self):
         """
 
         :return:
         """
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-
-        message_id = Messages.outbound['request_mkt_depth']
+        message_id = Messages.outbound['request_market_depth']
         fields = [message_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_market_rule(self, market_rule_id: int):
+        """
+        Request Market Rule Information
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
+        :param market_rule_id:
+        :return:
+        """
 
         message_id = Messages.outbound['request_market_rule']
         fields = [message_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_news_providers(self):
         """
         Request a list of news providers.
@@ -1070,15 +977,12 @@ class ApiCalls(object):
         :return: True/False - True if message was sent, False otherwise
         """
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_id = Messages.outbound['request_news_providers']
         fields = [message_id]
         message_sent = self.conn.send_message(fields)
         return message_sent
 
+    @check_connection
     def request_open_orders(self):
         """Call this function to request the open orders that were
         placed from this client. Each open order will be fed back through the
@@ -1089,90 +993,63 @@ class ApiCalls(object):
         order_id will be generated. This association will persist over multiple
         API and TWS sessions.  """
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['request_open_orders']
         fields = [message_id, message_version]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_positions(self):
         """Requests real-time position data for all accounts."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
 
         message_version = 1
         message_id = Messages.outbound['request_positions']
         fields = [message_id, message_version]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_positions_multi(self, request_id: int, account: str, model_code: str):
-        """Requests positions for account and/or model.
-        Results are delivered via EWrapper.positionMulti() and
-        EWrapper.positionMultiEnd() """
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
+        """
+        Requests positions for account and/or model.
+        """
 
         message_version = 1
         message_id = Messages.outbound['request_positions_multi']
         fields = [message_id, message_version, request_id, account, model_code]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_smart_components(self, request_id: int, bboExchange: str):
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-
-        message_id = Messages.outbound['request_smart_components']
-        fields = [message_id, request_id, bboExchange]
+        message_id  = Messages.outbound['request_smart_components']
+        fields      = [message_id, request_id, bboExchange]
         self.conn.send_message(fields)
 
+    @check_connection
     def set_server_log_level(self, logLevel: int):
         """The default detail level is ERROR. For more details, see API
         Logging."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(),
-                                        NOT_CONNECTED.msg())
-            return
 
         message_version = 1
         message_id = Messages.outbound['set_server_log_level']
         fields = [message_id, message_version, logLevel]
         self.conn.send_message(fields)
 
+    @check_connection
     def start_api(self):
         """  Initiates the message exchange between the client application and
         the TWS/IB Gateway. """
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 2
         message_id = Messages.outbound['start_api']
         fields = [message_id, message_version, self.client_id, self.optional_capabilities]
         self.conn.send_message(fields)
 
+
+    @check_connection
     def subscribe_to_group_events(self, request_id: int, groupId: int):
         """request_id:int - The unique number associated with the notification.
         groupId:int - The ID of the group, currently it is a number from 1 to 7.
             This is the display group subscription request sent by the API to TWS."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-
         message_version = 1
         message_id = Messages.outbound['subscribe_to_group_events']
         fields = [message_id, message_version, request_id, groupId]
@@ -1195,50 +1072,38 @@ class ApiCalls(object):
             Note: Each client MUST connect with a unique client_id."""
 
         # Establish connection to the bridge (TWS/IBGW)
-        self.application_state = "Establishing Connection to Bridge (TWS/IBGW)"
+        self.api_state = "Establishing Connection to the Bridge Application(TWS/IB Gateway)"
         self.host = host
         self.port = port
         self.client_id = client_id
         logger.info("Connecting to %s:%d w/ id:%d", self.host, self.port, self.client_id)
         self.conn = BridgeConnection(self.host, self.port)
 
-        #try:
-        self.conn.connect()
+        try:
+            self.conn.connect()
 
-        # Send a message to connect to the Bridge (No response is given)
-        v100prefix = "API\0"
-        v100version = "v%d..%d" % (MIN_CLIENT_VER, MAX_CLIENT_VER)
-        msg = self.conn.make_msg(v100version)
-        msg = str.encode(v100prefix, 'ascii') + msg
-        self.conn.send_message(msg)
+            # Send a message to connect to the Bridge (No response is given)
+            v100prefix = "API\0"
+            v100version = "v%d..%d" % (MIN_CLIENT_VER, MAX_CLIENT_VER)
+            msg = self.conn.make_msg(v100version)
+            msg = str.encode(v100prefix, 'ascii') + msg
+            self.conn.send_message(msg)
 
-        message = self.conn.receive_messages(False)[0]
-        (server_version, conn_time) = message
+            message = self.conn.receive_messages(False)[0]
+            (server_version, conn_time) = message
 
-        self.connection_time = conn_time
-        logger.info("Connection Time: {0}".format(self.connection_time))
+            self.connection_time = conn_time
+            logger.info("Connection Time: {0}".format(self.connection_time))
 
-        self.server_version_ = int(server_version)
-        logger.info("Server Version: {0}".format(self.server_version_))
+            self.server_version_ = int(server_version)
+            logger.info("Server Version: {0}".format(self.server_version_))
 
-        self.start_api()
-        logger.info("Connected to %s:%d w/ id:%d", self.host, self.port, self.client_id)
+            self.start_api()
+            logger.info("Connected to %s:%d w/ id:%d", self.host, self.port, self.client_id)
 
-        if self.response_handler:
-            self.response_handler.connectAck()
-
-        #except socket.error:
-        #    logging.error(socket.error)
-        #    if self.response_handler:
-        #        self.response_handler.error(NO_VALID_ID, CONNECT_FAIL.code(), CONNECT_FAIL.msg())
-        #    logger.info("could not connect")
-        #    self.conn.disconnect()
-        #except Exception as e:
-        #    if hasattr(e, 'message'):
-        #        print(e.message)
-        #    else:
-        #        print(e)
-
+        except socket.error:
+            logging.error(socket.error)
+            self.api_state  = "Disconnected from the Bridge Application(TWS/IB Gateway)."
 
     def request_historical_data(self, contract: Contract, end_date_time: str,
                                 duration: str, bar_size_setting: str, what_to_show: str,
@@ -1332,6 +1197,7 @@ class ApiCalls(object):
         self._send_message(fields)
 
 
+    @check_connection
     def request_news_bulletins(self, allMsgs: bool):
         """Call this function to start receiving news bulletins. Each bulletin
         will be returned by the updateNewsBulletin() event.
@@ -1340,45 +1206,27 @@ class ApiCalls(object):
         the currencyent day and any new ones. If set to FALSE, will only
         return new bulletins. """
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['request_news_bulletins']
         fields = [message_id, message_version, allMsgs]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_pnl(self, request_id: int, account: str, model_code: str):
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-
-        message_id = Messages.outbound['request_pnl']
-        fields = [message_id, request_id, account, model_code]
+        message_id  = Messages.outbound['request_pnl']
+        fields      = [message_id, request_id, account, model_code]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_pnl_single(self, request_id: int, account: str, model_code: str, contract_id: int):
-
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-
         message_id = Messages.outbound['request_pnl_single']
         fields = [message_id, request_id, account, model_code, contract_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_tick_by_tick_data(self, request_id: int, contract: Contract, tick_type: str,
                                   number_of_ticks: int, ignoreSize: bool):
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
 
         message_id = Messages.outbound['request_tick_by_tick_data']
         fields = [message_id, request_id, contract.id, contract.symbol, contract.security_type,
@@ -1414,6 +1262,7 @@ class ApiCalls(object):
         fields = [message_id, message_version, apiName, api_version]
         self._send_message(fields)
 
+    @check_connection
     def request_market_data(self, request_id: int, contract: Contract, generic_tick_list: str,
                             snapshot: bool, regulatory_snapshot: bool, market_data_options: list):
         """Call this function to request market data. The market data
@@ -1426,7 +1275,7 @@ class ApiCalls(object):
                     Contractt for which market data is being requested.
                 genericTickList:str - A commma delimited list of generic tick types.
                     Tick types can be found in the Generic Tick Types page.
-                    Prefixing w/ 'mdoff' indicates that top mkt data shouldn't tick.
+                    Prefixing w/ 'mdoff' indicates that top market data shouldn't tick.
                     You can specify the news source by postfixing w/ ':<source>.
                     Example: "mdoff,292:FLY+BRF"
                 snapshot:bool - Check to return a single snapshot of Market data and
@@ -1437,16 +1286,11 @@ class ApiCalls(object):
                 mktDataOptions:list - For internal use only.
                     Use default value XYZ. """
 
-        if not self.conn.is_connected():
-            self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-
         message_version = 11
 
-        # send req mkt data msg
+        # send req market data msg
         insert_offset = 0
-        message_id = Messages.outbound['request_mkt_data']
+        message_id = Messages.outbound['request_market_data']
         fields = [message_id, message_version, request_id, contract.symbol, contract.security_type,
                           contract.last_trade_date_or_contract_month,
                           contract.strike, contract.right, contract.multiplier, contract.exchange,
@@ -1500,19 +1344,19 @@ class ApiCalls(object):
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
 
-    def twsConnectionTime(self):
+    def tws_connection_time(self):
         """Returns the time the API application made a connection to TWS."""
 
         return self.connection_time
 
-    def request_ids(self, numIds: int):
+    def request_ids(self, num_ids: int):
         """Call this function to request from TWS the next valid ID that
         can be used when placing an order.  After calling this function, the
         nextValidId() event will be triggered, and the id returned is that next
         valid ID. That ID will reflect any autobinding that has occurred (which
         generates new IDs and increments the next valid ID therein).
 
-        numIds:int - deprecated"""
+        num_ids:int - deprecated"""
 
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
@@ -1520,11 +1364,11 @@ class ApiCalls(object):
 
         message_version = 1
         message_id = Messages.outbound['request_ids']
-        fields = [message_id, message_version, numIds]
+        fields = [message_id, message_version, num_ids]
         self.conn.send_message(fields)
 
     def request_MktDepth(self, request_id: int, contract: Contract,
-                         num_rows: int, is_smart_depth: bool, mkt_depth_options: list):
+                         num_rows: int, is_smart_depth: bool, market_depth_options: list):
         """Call this function to request market depth for a specific
         contract. The market depth will be returned by the updateMktDepth() and
         updateMktDepthL2() events.
@@ -1541,7 +1385,7 @@ class ApiCalls(object):
             for which market depth data is being requested.
         num_rows:int - Specifies the numRowsumber of market depth rows to display.
         is_smart_depth:bool - specifies SMART depth request
-        mkt_depth_options:list - For internal use only. Use default value
+        market_depth_options:list - For internal use only. Use default value
             XYZ."""
 
         if not self.conn.is_connected():
@@ -1549,8 +1393,8 @@ class ApiCalls(object):
             return
 
         message_version = 5
-        message_id = Messages.outbound['request_mkt_depth']
-        # send req mkt depth msg
+        message_id = Messages.outbound['request_market_depth']
+        # send req market depth msg
         fields = [message_id, message_version, request_id]
 
         # send contract fields
@@ -1574,10 +1418,10 @@ class ApiCalls(object):
         if self.server_version() >= MIN_SERVER_VER_SMART_DEPTH:
             fields += [is_smart_depth, ]
 
-        # send mkt_depth_options parameter
+        # send market_depth_options parameter
         if self.server_version() >= MIN_SERVER_VER_LINKING:
             # current doc says this part if for "internal use only" -> won't support it
-            if mkt_depth_options:
+            if market_depth_options:
                 raise NotImplementedError("not supported")
             mktDataOptionsStr = ""
             fields += [mktDataOptionsStr, ]
@@ -1616,39 +1460,32 @@ class ApiCalls(object):
         fields = [message_id, message_version, int(faData)]
         self.conn.send_message(fields)
 
+    @check_connection
     def cancel_historical_data(self, request_id: int):
         """Used if an internet disconnect has occurred or the results of a query
         are otherwise delayed and the application is no longer interested in receiving
         the data.
 
         request_id:int - The ticker ID. Must be a unique value."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['cancel_historical_data']
         fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def cancel_head_time_stamp(self, request_id: int):
+        """
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
+        :param request_id:
+        :return:
+        """
         message_id = Messages.outbound['cancel_head_timestamp']
         fields = [message_id, request_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_histogram_data(self, ticker_id: int, contract: Contract,
                                useRTH: bool, time_period: str):
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
 
         message_id = Messages.outbound['request_histogram_data']
         fields = [message_id, ticker_id, contract.id, contract.symbol, contract.security_type,
@@ -1658,29 +1495,27 @@ class ApiCalls(object):
                   time_period]
         self.conn.send_message(fields)
 
-    def cancel_histogram_data(self, tickerId: int):
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-
+    @check_connection
+    def cancel_histogram_data(self, request_id: int):
         message_id = Messages.outbound['cancel_histogram_data']
-        fields = [message_id, tickerId]
+        fields = [message_id, request_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def request_scanner_parameters(self):
         """Requests an XML string that describes all possible scanner queries."""
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
+        #if not self.conn.is_connected():
+        #    self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+        #    return
 
         message_version = 1
         message_id = Messages.outbound['request_scanner_parameters']
         fields = [message_id, message_version]
         self.conn.send_message(fields)
 
+
+    @check_connection
     def request_scanner_subscription(self, request_id: int,
                                      subscription: ScannerSubscription,
                                      scanner_subscription_options: list,
@@ -1690,10 +1525,6 @@ class ApiCalls(object):
             possible parameters used to filter results.
         scanner_subscription_options:list - For internal use only.
             Use default value XYZ."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
 
         message_version = 4
         message_id = Messages.outbound['request_scanner_subscription']
@@ -1741,10 +1572,7 @@ class ApiCalls(object):
 
         self.conn.send_message(fields)
 
-    #########################################################################
-    ################## Real Time Bars
-    #########################################################################
-
+    @check_connection
     def request__real_time_bars(self, request_id: int, contract: Contract, barSize: int,
                                 whatToShow: str, useRTH: bool,
                                 realTimeBarsOptions: list):
@@ -1773,10 +1601,6 @@ class ApiCalls(object):
                 partially or completely outside.
         realTimeBarOptions:list - For internal use only. Use default value XYZ."""
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 3
         message_id = Messages.outbound['request_real_time_bars']
         fields = [message_id, message_version, request_id]
@@ -1803,6 +1627,7 @@ class ApiCalls(object):
             fields += [realTimeBarsOptionsStr, ]
 
         self.conn.send_message(fields)
+
 
     def request_fundamental_data(self, request_id: int, contract: Contract,
                                  report_type: str, request_options: list):
@@ -1852,31 +1677,25 @@ class ApiCalls(object):
         # Make the actual request
         self._send_message(fields)
 
-    def request_news_article(self, request_id: int, providerCode: str, articleId: str, newsArticleOptions: list):
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
+    @check_connection
+    def request_news_article(self, request_id: int, provider_code: str, articleId: str, news_article_options: list):
 
         fields = []
         message_id = Messages.outbound['request_news_article']
-        fields += [message_id, request_id, providerCode, articleId]
+        fields += [message_id, request_id, provider_code, articleId]
 
-        # send newsArticleOptions parameter
+        # send news_article_options parameter
 
         newsArticleOptionsStr = ""
-        if newsArticleOptions:
-            for tagValue in newsArticleOptions:
+        if news_article_options:
+            for tagValue in news_article_options:
                 newsArticleOptionsStr += str(tagValue)
 
             fields.append(newsArticleOptionsStr)
 
         self.conn.send_message(fields)
 
-    #########################################################################
-    ################## Display Groups
-    #########################################################################
-
+    @check_connection
     def query_display_groups(self, request_id: int):
         """API requests used to integrate with TWS color-grouped windows (display groups).
         TWS color-grouped windows are identified by an integer number. Currently that number ranges from 1 to 7 and are mapped to specific colors, as indicated in TWS.
@@ -1884,15 +1703,12 @@ class ApiCalls(object):
         request_id:int - The unique number that will be associated with the
             response """
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['query_display_groups']
         fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def update_display_group(self, request_id: int, contract_info: str):
         """request_id:int - The requestId specified in subscribeToGroupEvents().
         contract_info:str - The encoded value that uniquely represents the
@@ -1903,50 +1719,35 @@ class ApiCalls(object):
                 Examples: 8314@SMART for IBM SMART; 8314@ARCA for IBM @ARCA.
             combo = if any combo is selected."""
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['update_display_group']
         fields = [message_id, message_version, request_id, contract_info]
         self.conn.send_message(fields)
 
+    @check_connection
     def unsubscribe_from_group_events(self, request_id: int):
         """request_id:int - The requestId specified in subscribeToGroupEvents()."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
 
         message_version = 1
         message_id = Messages.outbound['unsubscribe_from_group_events']
         fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
+    @check_connection
     def verify_message(self, api_data: str):
         """For IB's internal purpose. Allows to provide means of verification
         between the TWS and third party programs."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 1
         message_id = Messages.outbound['verify_message']
         fields = [message_id, message_version, api_data]
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
 
+    @check_connection
     def verify_and_auth_request(self, api_name: str, api_version: str,
                                 opaqueIsvKey: str):
         """For IB's internal purpose. Allows to provide means of verification
         between the TWS and third party programs."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
 
         if not self.extra_auth:
             self.response_handler.error(NO_VALID_ID, BAD_MESSAGE.code(), BAD_MESSAGE.msg() +
@@ -1958,13 +1759,10 @@ class ApiCalls(object):
         fields = [message_id, message_version, api_name, api_version, opaqueIsvKey]
         self.conn.send_message(fields)
 
+    @check_connection
     def verify_and_auth_message(self, api_data: str, xyzResponse: str):
         """For IB's internal purpose. Allows to provide means of verification
         between the TWS and third party programs."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
 
         message_version     = 1
         message_id          = Messages.outbound['verify_and_auth_message']
@@ -1972,6 +1770,7 @@ class ApiCalls(object):
         message             = self.conn.make_message(fields)
         self.conn.send_message(message)
 
+    @check_connection
     def request_security_definition_option_parameters(self, request_id: int, underlying_symbol: str,
                                                       futFopExchange: str, underlyingSecType: str,
                                                       underlying_contract_id: int):
@@ -1981,12 +1780,8 @@ class ApiCalls(object):
         options are trading. Can be set to the empty string "" for all
         exchanges. underlyingSecType The type of the underlying security,
         i.e. STK underlying_contract_id the contract ID of the underlying security.
-        Response comes via EWrapper.securityDefinitionOptionParameter()"""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
+        Response comes via EWrapper.securityDefinitionOptionParameter()
+        """
 
         message_id = Messages.outbound['request_security_definition_option_parameters']
         fields = [message_id, request_id, underlying_symbol,
@@ -1994,32 +1789,26 @@ class ApiCalls(object):
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
 
+    @check_connection
     def request_soft_dollar_tiers(self, request_id: int):
         """Requests pre-defined Soft Dollar Tiers. This is only supported for
         registered professional advisors and hedge and mutual funds who have
         configured Soft Dollar Tiers in Account Management."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
 
         message_id = Messages.outbound['request_soft_dollar_tiers']
         fields = [message_id, request_id]
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
 
+    @check_connection
     def request_family_codes(self):
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
 
         message_id = Messages.outbound['request_family_codes']
         fields = [message_id]
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
 
+    @check_connection
     def request_matching_symbols(self, request_id: int, pattern: str):
         """
 
@@ -2027,11 +1816,6 @@ class ApiCalls(object):
         :param pattern:
         :return:
         """
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-
         # Create and send the Message
 
         message_id = Messages.outbound['request_matching_symbols']
