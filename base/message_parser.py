@@ -19,6 +19,7 @@ from classes.enum.tick_type             import TickType
 from dateutil import parser as date_parser
 from datetime import date, datetime
 import logging
+import xmltodict
 import time
 
 logger = logging.getLogger(__name__)
@@ -380,37 +381,45 @@ class MessageParser(object):
     def scanner_data(fields):
 
 
-        message_id = int(fields[0])
-        request_id = int(fields[1])
-        number_of_elements = int(fields[2])
-        index = 1
-        field_index = 0
-        results = []
+        message_id          = int(fields[0])
+        request_id          = int(fields[1])
+        number_of_elements  = int(fields[2])
+        index               = 1
+        field_index         = 0
+        results             = []
         while index <= number_of_elements:
-            data = {}
-            contract = Contract()
-            data['rank'] = int(fields[field_index])
-            contract.id = int(fields[field_index+1])
-            contract.symbol                            = bytearray(fields[field_index+2]).decode()
-            contract.security_type                     = bytearray(fields[field_index+3]).decode()
-            contract.last_trade_date_or_contract_month = bytearray(fields[field_index+4]).decode()
-            contract.strike                            = int(fields[field_index+5])
-            contract.right                             = bytearray(fields[field_index+6]).decode()
-            contract.exchange                          = bytearray(fields[field_index+7]).decode()
-            contract.currency                          = bytearray(fields[field_index+8]).decode()
-            contract.local_symbol                      = bytearray(fields[field_index+9]).decode()
-            contract.market_name                       = bytearray(fields[field_index+10]).decode()
-            contract.trading_class                     = bytearray(fields[field_index+11]).decode()
+            data                                        = {}
+            contract                                    = Contract()
+            data['rank']                                = int(fields[field_index])
+            contract.id                                 = int(fields[field_index+1])
+            contract.symbol                             = bytearray(fields[field_index+2]).decode()
+            contract.security_type                      = bytearray(fields[field_index+3]).decode()
+            contract.last_trade_date_or_contract_month  = bytearray(fields[field_index+4]).decode()
+            contract.strike                             = int(fields[field_index+5])
+            contract.right                              = bytearray(fields[field_index+6]).decode()
+            contract.exchange                           = bytearray(fields[field_index+7]).decode()
+            contract.currency                           = bytearray(fields[field_index+8]).decode()
+            contract.local_symbol                       = bytearray(fields[field_index+9]).decode()
+            contract.market_name                        = bytearray(fields[field_index+10]).decode()
+            contract.trading_class                      = bytearray(fields[field_index+11]).decode()
 
-            data['contract'] = contract
-            data['distance'] = fields[field_index+12]
-            data['benchmark'] = fields[field_index+13]
-            data['projection'] = fields[field_index+14]
-            data['legs_str'] = fields[field_index+15]
-            field_index += 16
+            data['contract']     = contract
+            data['distance']     = fields[field_index+12]
+            data['benchmark']    = fields[field_index+13]
+            data['projection']   = fields[field_index+14]
+            data['legs_str']     = fields[field_index+15]
+            field_index         += 16
             results.append(data)
             index += 1
         return message_id,request_id,results
+
+    @staticmethod
+    def scanner_parameters(fields):
+        message_id          = int(fields[0])
+        request_id          = int(fields[1])
+        parameter_xml       = bytearray(fields[2]).decode()
+        scanner_parameters  = xmltodict.parse(parameter_xml)
+        return message_id, request_id, scanner_parameters
 
     @staticmethod
     def soft_dollar_tiers(fields):
@@ -421,9 +430,9 @@ class MessageParser(object):
         tiers = []
         for i in range(num_tiers):
             tier = {
-                'name':bytearray(fields[field_index]).decode(),
-                'value':bytearray(fields[field_index+1]).decode(),
-                'display_name':bytearray(fields[field_index+2]).decode()
+                'name'          : bytearray(fields[field_index]).decode()   ,
+                'value'         : bytearray(fields[field_index+1]).decode() ,
+                'display_name'  : bytearray(fields[field_index+2]).decode()
             }
             field_index += 3
             tiers.append(tier)
@@ -837,19 +846,19 @@ class MessageParser(object):
 
         # decode execution fields
         execution = Execution()
-        execution.order_id   = order_id
-        execution.execId     = bytearray(fields[14]).decode()
-        execution.time       = bytearray(fields[15]).decode()
-        execution.acctNumber = bytearray(fields[16]).decode()
-        execution.exchange   = bytearray(fields[17]).decode()
-        execution.side       = bytearray(fields[18]).decode()
-        execution.shares     = float(fields[19])
+        execution.order_id          = order_id
+        execution.id                = bytearray(fields[14]).decode()
+        execution.time              = bytearray(fields[15]).decode()
+        execution.account_number    = bytearray(fields[16]).decode()
+        execution.exchange          = bytearray(fields[17]).decode()
+        execution.side              = bytearray(fields[18]).decode()
+        execution.shares            = float(fields[19])
 
 
-        execution.price = float(fields[20])
-        execution.permId = int(fields[21])
-        execution.clientId = int(fields[22])
-        execution.liquidation = int(fields[23])
+        execution.price         = float(fields[20])
+        execution.permId        = int(fields[21])
+        execution.clientId      = int(fields[22])
+        execution.liquidation   = int(fields[23])
 
 
         execution.cumQty        = float(fields[[24]])
@@ -896,7 +905,7 @@ class MessageParser(object):
 
     @staticmethod
     def tick_option_computation(fields):
-        optPrice = None
+        option_price = None
         pvDividend = None
         gamma = None
         vega = None
@@ -919,12 +928,12 @@ class MessageParser(object):
 
         field_index = 6
         if  tick_type in [TickType.MODEL_OPTION,TickType.DELAYED_MODEL_OPTION]:
-            optPrice = float(fields[field_index])
+            option_price = float(fields[field_index])
             pvDividend = float(fields[field_index+1])
             field_index += 2
 
-            if optPrice == -1:  # -1 is the "not computed" indicator
-                optPrice = None
+            if option_price == -1:  # -1 is the "not computed" indicator
+                option_price = None
             if pvDividend == -1:  # -1 is the "not computed" indicator
                 pvDividend = None
 

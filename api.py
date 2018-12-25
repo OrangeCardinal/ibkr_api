@@ -236,6 +236,16 @@ class IBKR_API(ApiCalls):
         data = self._process_response('cancel_positions_multi')
         return data
 
+    def cancel_scanner_subscription(self, request_id: int):
+        """
+        Cancels a scanner subscription (so no further inbound messages will be provided)
+
+        request_id:int - The Request ID of the previous call to be cancelled"""
+        super().cancel_scanner_subscription(request_id)
+        # Process the response from the bridge
+        data = self._process_response('cancel_scanner_subscription')
+        return data
+
     def request_account_updates(self, subscribe: bool, account_code: str):
         """Call this function to start getting account values, portfolio,
         and last update time information via EWrapper.updateAccountValue(),
@@ -317,6 +327,15 @@ class IBKR_API(ApiCalls):
                 position_data.append(raw_data[2])
         return position_data
 
+    def request_scanner_parameters(self):
+        """Requests an XML string that describes all possible scanner queries."""
+        # Make the api call
+        super().request_scanner_parameters()
+
+        # Process the response from the bridge
+        data = self._process_response('scanner_parameters')
+        return data[2]
+
     def request_soft_dollar_tiers(self, request_id: int):
         """Requests pre-defined Soft Dollar Tiers. This is only supported for
         registered professional advisors and hedge and mutual funds who have
@@ -326,12 +345,6 @@ class IBKR_API(ApiCalls):
         return data
 
     # Not alphabetic
-    def cancel_scanner_subscription(self, request_id: int):
-        """request_id:int - The ticker ID. Must be a unique value."""
-        # Process the response from the bridge
-        data = self._process_response('cancel_scanner_subscription')
-        return data
-
     def cancel_tick_by_tick_data(self, request_id: int):
         # Process the response from the bridge
         data = self._process_response('cancel_tick_by_tick_data')
@@ -859,12 +872,6 @@ class IBKR_API(ApiCalls):
         return data
 
     def cancel_histogram_data(self, tickerId: int):
-        # Process the response from the bridge
-        data = self._process_response('')
-        return data
-
-    def request_scanner_parameters(self):
-        """Requests an XML string that describes all possible scanner queries."""
         # Process the response from the bridge
         data = self._process_response('')
         return data
