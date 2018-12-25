@@ -116,16 +116,6 @@ class ApiCalls(object):
             self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_CALC_IMPLIED_VOLAT:
-            self.response_handler.error(request_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support calculateImpliedVolatility req.")
-            return
-
-        if self.server_version() < MIN_SERVER_VER_TRADING_CLASS:
-            if contract.trading_class:
-                self.response_handler.error(request_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support trading_class parameter in calculateImpliedVolatility.")
-                return
 
         message_version = 3
 
@@ -168,10 +158,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_MODELS_SUPPORT:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support cancel account updates multi request.")
-            return
 
         message_version = 1
         message_id = Messages.outbound['cancel_account_updates_multi']
@@ -251,11 +237,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_SMART_DEPTH and isSmartDepth:
-            self.response_handler.error(request_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        " It does not support SMART depth cancel.")
-            return
-
         message_version = 1
 
         # send cancel mkt depth msg
@@ -289,10 +270,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_POSITIONS:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support positions request.")
-            return
 
         message_version = 1
         message_id = Messages.outbound['cancel_positions']
@@ -303,11 +280,6 @@ class ApiCalls(object):
 
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-        if self.server_version() < MIN_SERVER_VER_MODELS_SUPPORT:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support cancel positions multi request.")
             return
 
         message_version = 1
@@ -325,10 +297,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_PNL:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support PnL request.")
-            return
         message_id = Messages.outbound['cancel_pnl']
         fields = [message_id, request_id]
         self.conn.send_message(fields)
@@ -337,11 +305,6 @@ class ApiCalls(object):
 
         if not self.conn.is_connected():
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
-        if self.server_version() < MIN_SERVER_VER_PNL:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support PnL request.")
             return
 
         message_id = Messages.outbound['cancel_pnl_single']
@@ -381,11 +344,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_TICK_BY_TICK:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        " It does not support tick-by-tick data requests.")
-            return
-
         message_id = Messages.outbound['cancel_tick_by_tick_data']
         fields = [message_id, request_id]
         self.conn.send_message(fields)
@@ -411,12 +369,6 @@ class ApiCalls(object):
         if not self.conn.is_connected():
             self.response_handler.error(request_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
-
-        if self.server_version() < MIN_SERVER_VER_TRADING_CLASS:
-            if contract.trading_class:
-                self.response_handler.error(request_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support id, multiplier, trading_class parameter in exerciseOptions.")
-                return
 
         insert_offset = 0
         message_version = 2
@@ -455,63 +407,10 @@ class ApiCalls(object):
             self.response_handler.error(order_id, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_DELTA_NEUTRAL:
-            if contract.deltaNeutralContract:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support delta-neutral orders.")
-                return
-
-        if self.server_version() < MIN_SERVER_VER_SCALE_ORDERS2:
-            if order.scaleSubsLevelSize != UNSET_INTEGER:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support Subsequent Level Size for Scale orders.")
-                return
-
-        if self.server_version() < MIN_SERVER_VER_ALGO_ORDERS:
-            if order.algorithmic_strategy:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support algo orders.")
-                return
-
-        if self.server_version() < MIN_SERVER_VER_NOT_HELD:
-            if order.notHeld:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support notHeld parameter.")
-                return
-
-        if self.server_version() < MIN_SERVER_VER_SEC_ID_TYPE:
-            if contract.security_id_type or contract.security_id:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support security_id_type and security_id parameters.")
-                return
-
-        if self.server_version() < MIN_SERVER_VER_PLACE_ORDER_CONID:
-            if contract.id and contract.id > 0:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg("contract.id"))
-                return
 
         if self.server_version() < MIN_SERVER_VER_SSHORTX:
             if order.exemptCode != -1:
                 self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg('exemptCode'))
-                return
-
-        if self.server_version() < MIN_SERVER_VER_SSHORTX:
-            if contract.comboLegs:
-                for comboLeg in contract.comboLegs:
-                    if comboLeg.exemptCode != -1:
-                        self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                                    "  It does not support exemptCode parameter.")
-                        return
-
-        if self.server_version() < MIN_SERVER_VER_HEDGE_ORDERS:
-            if order.hedgeType:
-                self.response_handler.error(order_id, UPDATE_TWS.code(),
-                                            UPDATE_TWS.msg(extra="  It does not support hedge orders."))
-                return
-
-        if self.server_version() < MIN_SERVER_VER_OPT_OUT_SMART_ROUTING:
-            if order.optOutSmartRouting:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg("optOutSmartRouting"))
                 return
 
         if self.server_version() < MIN_SERVER_VER_DELTA_NEUTRAL_CONID:
@@ -521,15 +420,6 @@ class ApiCalls(object):
                     or order.deltaNeutralClearingIntent:
                 self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
                                             "  It does not support deltaNeutral parameters: ConId, SettlingFirm, ClearingAccount, ClearingIntent.")
-                return
-
-        if self.server_version() < MIN_SERVER_VER_DELTA_NEUTRAL_OPEN_CLOSE:
-            if order.deltaNeutralOpenClose \
-                    or order.deltaNeutralShortSale \
-                    or order.deltaNeutralShortSaleSlot > 0 \
-                    or order.deltaNeutralDesignatedLocation:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support deltaNeutral parameters: OpenClose, ShortSale, ShortSaleSlot, DesignatedLocation.")
                 return
 
         if self.server_version() < MIN_SERVER_VER_SCALE_ORDERS3:
@@ -546,89 +436,10 @@ class ApiCalls(object):
                                                 "ProfitOffset, AutoReset, InitPosition, InitFillQty and RandomPercent")
                     return
 
-        if self.server_version() < MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE and contract.security_type == "BAG":
-            if order.orderComboLegs:
-                for orderComboLeg in order.orderComboLegs:
-                    if orderComboLeg.price != UNSET_DOUBLE:
-                        self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                                    "  It does not support per-leg prices for order combo legs.")
-                        return
 
-        if self.server_version() < MIN_SERVER_VER_TRAILING_PERCENT:
-            if order.trailing_percent != UNSET_DOUBLE:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support trailing percent parameter")
-                return
 
-        if self.server_version() < MIN_SERVER_VER_TRADING_CLASS:
-            if contract.trading_class:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support trading_class parameter in placeOrder.")
-                return
 
-        if self.server_version() < MIN_SERVER_VER_SCALE_TABLE:
-            if order.scaleTable or order.active_start_time or order.active_stop_time:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support scaleTable, active_start_time and active_stop_time parameters")
-                return
 
-        if self.server_version() < MIN_SERVER_VER_ALGO_ID:
-            if order.algoId:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support algoId parameter")
-                return
-
-        if self.server_version() < MIN_SERVER_VER_ORDER_SOLICITED:
-            if order.solicited:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support order solicited parameter.")
-                return
-
-        if self.server_version() < MIN_SERVER_VER_MODELS_SUPPORT:
-            if order.model_code:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support model code parameter.")
-                return
-
-        if self.server_version() < MIN_SERVER_VER_EXT_OPERATOR:
-            if order.extOperator:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support ext operator parameter")
-                return
-
-        if self.server_version() < MIN_SERVER_VER_SOFT_DOLLAR_TIER:
-            if order.softDollarTier.name or order.softDollarTier.val:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            " It does not support soft dollar tier")
-                return
-
-        if self.server_version() < MIN_SERVER_VER_CASH_QTY:
-            if order.cash_qty:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            " It does not support cash quantity parameter")
-                return
-
-        if self.server_version() < MIN_SERVER_VER_DECISION_MAKER and (
-                order.mifid2DecisionMaker != "" or order.mifid2DecisionAlgo != ""):
-            self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        " It does not support MIFID II decision maker parameters")
-            return
-
-        if self.server_version() < MIN_SERVER_VER_MIFID_EXECUTION and (
-                order.mifid2ExecutionTrader != "" or order.mifid2ExecutionAlgo != ""):
-            self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        " It does not support MIFID II execution parameters")
-            return
-
-        if self.server_version() < MIN_SERVER_VER_AUTO_PRICE_FOR_HEDGE and order.dontUseAutoPriceForHedge:
-            self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        " It does not support dontUseAutoPriceForHedge parameter")
-            return
-
-        if self.server_version() < MIN_SERVER_VER_ORDER_CONTAINER and order.isOmsContainer:
-            self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        " It does not support oms container parameter")
-            return
 
         # Create the list of fields to send, then send the message
         message_id = Messages.outbound['place_order']
@@ -655,47 +466,32 @@ class ApiCalls(object):
                    contract.currency,
                    contract.local_symbol]  # srv v2 and above
 
-        if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
-            fields.append(contract.trading_class)
 
-        if self.server_version() >= MIN_SERVER_VER_SEC_ID_TYPE:
-            fields += [contract.security_id_type, contract.security_id]
-
+        fields.append(contract.trading_class)
+        fields += [contract.security_id_type, contract.security_id]
         # send main order fields
         fields.append(order.action)
-
-        if self.server_version() >= MIN_SERVER_VER_FRACTIONAL_POSITIONS:
-            fields.append(order.total_quantity)
-        else:
-            fields.append(int(order.total_quantity))
+        fields.append(order.total_quantity)
 
         fields.append(order.order_type)
-        if self.server_version() < MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE:
-            fields.append(
-                order.limit_price if order.limit_price != UNSET_DOUBLE else 0)
-        else:
-            fields.append(self.conn.make_field_handle_empty(order.limit_price))
-        if self.server_version() < MIN_SERVER_VER_TRAILING_PERCENT:
-            fields.append(
-                order.aux_price if order.aux_price != UNSET_DOUBLE else 0)
-        else:
-            fields.append(self.conn.make_field_handle_empty(order.aux_price))
+        fields.append(self.conn.make_field_handle_empty(order.limit_price))
+        fields.append(self.conn.make_field_handle_empty(order.aux_price))
 
-            # send extended order fields
-            fields += [order.tif            ,
-                       order.ocaGroup       ,
-                       order.account        ,
-                       order.openClose      ,
-                       order.origin         ,
-                       order.order_ref      ,
-                       order.transmit       ,
-                       order.parent_id      ,  
-                       order.block_order    ,  
-                       order.sweep_to_fill  ,  
-                       order.display_size   ,  
-                       order.trigger_method ,  
-                       order.outside_rth    ,  
-                       order.hidden]  
+        # send extended order fields
+        fields += [order.tif            ,
+                   order.ocaGroup       ,
+                   order.account        ,
+                   order.openClose      ,
+                   order.origin         ,
+                   order.order_ref      ,
+                   order.transmit       ,
+                   order.parent_id      ,
+                   order.block_order    ,
+                   order.sweep_to_fill  ,
+                   order.display_size   ,
+                   order.trigger_method ,
+                   order.outside_rth    ,
+                   order.hidden]
 
         # Send combo legs for BAG requests (srv v8 and above)
         if contract.security_type == "BAG":
@@ -745,24 +541,22 @@ class ApiCalls(object):
         #####################################################################
         # send deprecated sharesAllocation field
         fields += ["",
-
                    order.discretionaryAmt,
-                   order.goodAfterTime,
-                   order.goodTillDate,
+                   order.good_after_time,
+                   order.good_till_date,
 
                    order.fa_group,  
                    order.fa_method,  
                    order.fa_percentage,  
-                   order.fa_profile]  
+                   order.fa_profile,
+                   order.model_code
+                   ]
 
-        if self.server_version() >= MIN_SERVER_VER_MODELS_SUPPORT:
-            fields.append(order.model_code)
 
-        # institutional short saleslot data (srv v18 and above)
-        fields += [order.shortSaleSlot,  # 0 for retail, 1 or 2 for institutions
-                   order.designatedLocation]  # populate only when shortSaleSlot = 2.
-        if self.server_version() >= MIN_SERVER_VER_SSHORTX_OLD:
-            fields.append(order.exemptCode)
+        # institutional Short Sale Slot Data
+        fields += [ order.shortSaleSlot,         # 0 for retail, 1 or 2 for institutions
+                    order.designatedLocation,    # populate only when shortSaleSlot = 2.
+                    order.exemptCode]
 
         # srv v19 and above fields
         fields.append(order.ocaType)
@@ -805,17 +599,12 @@ class ApiCalls(object):
                    self.conn.make_field_handle_empty(order.referencePriceType),
                    self.conn.make_field_handle_empty(order.trail_stop_price)]  # srv v30 and above
 
-        if self.server_version() >= MIN_SERVER_VER_TRAILING_PERCENT:
-            fields.append(self.conn.make_field_handle_empty(order.trailing_percent))
+        fields.append(self.conn.make_field_handle_empty(order.trailing_percent))
 
         # SCALE orders
-        if self.server_version() >= MIN_SERVER_VER_SCALE_ORDERS2:
-            fields += [self.conn.make_field_handle_empty(order.scaleInitLevelSize),
-                       self.conn.make_field_handle_empty(order.scaleSubsLevelSize)]
-        else:
-            # srv v35 and above)
-            fields += ["",  # for not supported scaleNumComponents
-                       self.conn.make_field_handle_empty(order.scaleInitLevelSize)]  # for scaleComponentSize
+        fields += [self.conn.make_field_handle_empty(order.scaleInitLevelSize),
+                   self.conn.make_field_handle_empty(order.scaleSubsLevelSize)]
+
 
         fields.append(self.conn.make_field_handle_empty(order.scalePriceIncrement))
 
@@ -885,10 +674,10 @@ class ApiCalls(object):
 
         fields.extend([order.randomizeSize, order.randomizePrice])
 
-        if self.server_version() >= MIN_SERVER_VER_PEGGED_TO_BENCHMARK:
-            if order.order_type == "PEG BENCH":
-                fields.extend([order.reference_contract_id, order.is_pegged_change_amount_decrease, order.pegged_change_amount,
-                               order.reference_change_amount, order.reference_exchange_id])
+
+        if order.order_type == "PEG BENCH":
+            fields.extend([order.reference_contract_id, order.is_pegged_change_amount_decrease, order.pegged_change_amount,
+                           order.reference_change_amount, order.reference_exchange_id])
 
             fields.append(len(order.conditions))
 
@@ -1160,11 +949,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_HEAD_TIMESTAMP:
-            self.response_handler.error(request_id, UPDATE_TWS.code(),
-                                        UPDATE_TWS.msg() + "  It does not support head time stamp requests.")
-            return
-
         message_id = Messages.outbound['request_head_timestamp']
         fields = [message_id, request_id, contract.id, contract.symbol, contract.security_type,
                   contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
@@ -1180,11 +964,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_HISTORICAL_NEWS:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support historical news request.")
-            return
-
         message_id = Messages.outbound['request_historical_news']
         fields = [message_id, request_id, conId, providerCodes, startDateTime, end_date_time, totalResults]
 
@@ -1194,7 +973,7 @@ class ApiCalls(object):
             if historicalNewsOptions:
                 for tagValue in historicalNewsOptions:
                     func_options += str(tagValue)
-            fields.appned(func_options)
+            fields.appened(func_options)
 
         self.conn.send_message(fields)
 
@@ -1326,11 +1105,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_POSITIONS:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support positions request.")
-            return
-
         message_version = 1
         message_id = Messages.outbound['request_positions']
         fields = [message_id, message_version]
@@ -1345,10 +1119,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_MODELS_SUPPORT:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support positions multi request.")
-            return
 
         message_version = 1
         message_id = Messages.outbound['request_positions_multi']
@@ -1361,10 +1131,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_SMART_COMPONENTS:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support smart components request.")
-            return
 
         message_id = Messages.outbound['request_smart_components']
         fields = [message_id, request_id, bboExchange]
@@ -1676,13 +1442,6 @@ class ApiCalls(object):
             return
 
 
-        if self.server_version() < MIN_SERVER_VER_REQ_MKT_DATA_CONID:
-            if contract.id > 0:
-                self.response_handler.error(request_id, UPDATE_TWS.code(),
-                                            UPDATE_TWS.msg() + "  It does not support id parameter.")
-                return
-
-
         message_version = 11
 
         # send req mkt data msg
@@ -1789,17 +1548,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_TRADING_CLASS:
-            if contract.trading_class or contract.id > 0:
-                self.response_handler.error(request_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support id and trading_class parameters in reqMktDepth.")
-                return
-
-        if self.server_version() < MIN_SERVER_VER_SMART_DEPTH and is_smart_depth:
-            self.response_handler.error(request_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        " It does not support SMART depth request.")
-            return
-
         message_version = 5
         message_id = Messages.outbound['request_mkt_depth']
         # send req mkt depth msg
@@ -1890,11 +1638,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_CANCEL_HEADTIMESTAMP:
-            self.response_handler.error(request_id, UPDATE_TWS.code(),
-                                        UPDATE_TWS.msg() + "  It does not support head time stamp requests.")
-            return
-
         message_id = Messages.outbound['cancel_head_timestamp']
         fields = [message_id, request_id]
         self.conn.send_message(fields)
@@ -1906,10 +1649,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_HISTOGRAM:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support histogram requests..")
-            return
 
         message_id = Messages.outbound['request_histogram_data']
         fields = [message_id, ticker_id, contract.id, contract.symbol, contract.security_type,
@@ -1925,10 +1664,6 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_REQ_HISTOGRAM:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support histogram requests..")
-            return
 
         message_id = Messages.outbound['cancel_histogram_data']
         fields = [message_id, tickerId]
@@ -1964,8 +1699,8 @@ class ApiCalls(object):
         message_id = Messages.outbound['request_scanner_subscription']
         fields = [message_id]
 
-        if self.server_version() < MIN_SERVER_VER_SCANNER_GENERIC_OPTS:
-            fields.append(message_version)
+        #if self.server_version() < MIN_SERVER_VER_SCANNER_GENERIC_OPTS:
+        #    fields.append(message_version)
 
         fields += [request_id,
                    self.conn.make_field_handle_empty(subscription.numberOfRows),
@@ -2231,15 +1966,10 @@ class ApiCalls(object):
             self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        if self.server_version() < MIN_SERVER_VER_LINKING:
-            self.response_handler.error(NO_VALID_ID, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                        "  It does not support verification request.")
-            return
-
-        message_version = 1
-        message_id = Messages.outbound['verify_and_auth_message']
-        fields = [message_id, message_version, api_data, xyzResponse]
-        message = self.conn.make_message(fields)
+        message_version     = 1
+        message_id          = Messages.outbound['verify_and_auth_message']
+        fields              = [message_id, message_version, api_data, xyzResponse]
+        message             = self.conn.make_message(fields)
         self.conn.send_message(message)
 
     def request_security_definition_option_parameters(self, request_id: int, underlying_symbol: str,
