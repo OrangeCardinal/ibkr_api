@@ -14,10 +14,16 @@ class Errors(object):
         message = "Application attempted to connect, while already connected"
         return code, message
 
-    def connect_fail(self):
-        code = 501
-        message = "Application attempted to connect, while already connected"
-        return code, message
+    @staticmethod
+    def connect_fail():
+        code = 502
+        message = "Couldn't connect to TWS. Confirm that \"Enable ActiveX and Socket EClients\" is enabled"
+        message += "and connection port is the same as \"Socket Port\" on the TWS "
+        message += "\"Edit->Global Configuration...->API->Settings\" menu.\n"
+        message += "Live Trading ports: TWS: 7496; IB Gateway: 4001.\n"
+        message += "Simulated Trading ports for new installations of version 954.1 or newer:  TWS: 7497; IB Gateway: 4002\n"
+
+        return {'code':code , 'message':message }
 
 
 

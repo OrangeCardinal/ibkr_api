@@ -1,11 +1,11 @@
 import logging
 
 
-from base.bridge_connection import BridgeConnection
-from base.constants         import *
-from base.errors            import NOT_CONNECTED, UPDATE_TWS, Errors, BAD_MESSAGE
-from base.messages          import Messages
-from base.message_parser    import MessageParser
+from ibkr_api.base import BridgeConnection
+from ibkr_api.base.constants import *
+from ibkr_api.base.errors import NOT_CONNECTED, UPDATE_TWS, Errors, BAD_MESSAGE
+from ibkr_api.base import Messages
+from ibkr_api.base import MessageParser
 
 from classes.contracts.contract import Contract
 from classes.order import Order

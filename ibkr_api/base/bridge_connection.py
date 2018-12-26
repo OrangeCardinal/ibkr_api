@@ -21,10 +21,9 @@ import threading
 
 
 
-from base.constants import DISCONNECTED, UNKNOWN, CONNECTED
-from base.errors import FAIL_CREATE_SOCK, Errors
-from base.messages import Messages
-import sys
+from ibkr_api.base.constants import DISCONNECTED, UNKNOWN, CONNECTED
+from ibkr_api.base.errors import FAIL_CREATE_SOCK, Errors
+from ibkr_api.base import Messages
 
 #TODO: support SSL !!
 
@@ -59,7 +58,7 @@ class BridgeConnection:
         except socket.error as e:
             logger.error(Errors.connect_fail()['message'])
             self.status = DISCONNECTED
-            raise e
+            #raise e   #TODO: Decide if its appropriate to throw this or not
 
         self.socket.settimeout(1)   #non-blocking
 
@@ -111,7 +110,7 @@ class BridgeConnection:
         messages = []
         # Check that we are connected
         if not self.is_connected():
-            logger.error("receive_message attempted while not connected.")
+            logger.debug("receive_message attempted while not connected.")
             return b""
 
 
@@ -127,9 +126,10 @@ class BridgeConnection:
 
                 if len(buffer) < 4096:
                     cont = False
-        except Exception as e:
-            logger.error(e)
-            logger.error("Exception raised from receive_message %s", sys.exc_info())
+        except Exception:
+            pass
+            #logger.error(e)
+            #logger.error("Exception raised from receive_message %s", sys.exc_info())
 
 
         # Split the socket data into messages that can be passed back
@@ -152,14 +152,6 @@ class BridgeConnection:
         :param msg:
         :return:
         """
-        self.lock.acquire()
-
-        # Make sure we are connected before attempting to send data
-        if not self.is_connected():
-            logger.debug("Attempting to send data with a closed connection. No data sent.")
-            self.lock.release()
-            return 0
-
         # Check if we received a list of fields, if so convert it to a proper message
         if isinstance(msg, list):
             msg = self.make_message(msg)
@@ -170,10 +162,6 @@ class BridgeConnection:
             msg = self.make_msg(msg)
         nSent = self.socket.send(msg)
         logger.debug("Message Sent: {0}".format(msg))
-        #except Exception as e:
-        #    logger.error(e)
-        #finally:
-        self.lock.release()
 
         return nSent
 
