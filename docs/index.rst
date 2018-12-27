@@ -12,7 +12,7 @@ Welcome to ibkr-api's documentation!
 
    usage/installation
    usage/quickstart
-
+   usage/faq
 
 
 Indices and tables
