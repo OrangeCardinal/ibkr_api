@@ -8,15 +8,12 @@ Welcome to ibkr-api's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Overview:
+
    overview/architecture
    overview/installation
    overview/quick_start
    overview/faq
-
-   :caption: Samples:
    samples/client_application
-
 
 
 Indices and tables
