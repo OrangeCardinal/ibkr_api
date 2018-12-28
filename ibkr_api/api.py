@@ -14,13 +14,15 @@ It takes care of almost everything:
 import logging
 import time
 
-from base.api_calls import ApiCalls
-from base.messages import Messages
-from base.message_parser import MessageParser
-from classes.contracts.contract import Contract
-from classes.order import Order
-from classes.scanner import ScannerSubscription
+from ibkr_api.base.api_calls                import ApiCalls
+from ibkr_api.base.messages                 import Messages
+from ibkr_api.base.message_parser           import MessageParser
 
+from ibkr_api.classes.contracts.contract    import Contract
+from ibkr_api.classes.order                 import Order
+from ibkr_api.classes.scanner               import Scanner
+
+import datetime
 logger = logging.getLogger(__name__)
 class IBKR_API(ApiCalls):
     def __init__(self, host, port):
@@ -54,7 +56,7 @@ class IBKR_API(ApiCalls):
         data_received     = False
         all_data          = []
 
-        #TODO: add code to check if no data received after x seconds
+        request_start = datetime.datetime.now()
         while not data_received:
             messages = self.conn.receive_messages()
             for msg in messages:
@@ -75,6 +77,11 @@ class IBKR_API(ApiCalls):
                     # See if we need to consider this code end of processing
                     if info['code'] in end_on_codes:
                         data_received = True
+
+            # We may not be connected to the bridge, if no data received in 2 seconds break out
+            current_time = datetime.datetime.now()
+            if (current_time - request_start).total_seconds() > 2: #TODO: Make this configurable
+                break
 
         # If there is no data return None instead
         # If there is only one result, send it back without the unnecessary list
@@ -186,6 +193,7 @@ class IBKR_API(ApiCalls):
         request_id: int - The ID that was specified in the call to
             reqMktData(). """
         # Process the response from the bridge
+        super().cancel_market_data(request_id)
         data = self._process_response('cancel_market_data')
         return data
 
@@ -201,12 +209,14 @@ class IBKR_API(ApiCalls):
         data = self._process_response('cancel_market_depth')
         return data
 
+
     def cancel_order(self, order_id: int):
         """Call this function to cancel an order.
 
         order_id:int - The order ID that was specified previously in the call
             to placeOrder()"""
         # Process the response from the bridge
+        super().cancel_order(order_id)
         data = self._process_response('cancel_order')
         return data
 
@@ -216,6 +226,8 @@ class IBKR_API(ApiCalls):
         :param request_id:
         :return:
         """
+        super().cancel_pnl(request_id)
+
         # Process the response from the bridge
         data = self._process_response('cancel_pnl')
         return data
@@ -228,11 +240,13 @@ class IBKR_API(ApiCalls):
     def cancel_positions(self):
         """Cancels real-time position updates."""
         # Process the response from the bridge
+        super().cancel_positions()
         data = self._process_response('cancel_positions')
         return data
 
     def cancel_positions_multi(self, request_id: int):
         # Process the response from the bridge
+        super().cancel_positions_multi(request_id)
         data = self._process_response('cancel_positions_multi')
         return data
 
@@ -334,7 +348,33 @@ class IBKR_API(ApiCalls):
 
         # Process the response from the bridge
         data = self._process_response('scanner_parameters')
+        if data is None:
+            return data
+
         return data[2]
+
+    def request_scanner_subscription(self,
+                                     scanner: Scanner,
+                                     scanner_options: list):
+        """
+
+        :param scanner: Criteria to scan the market
+        :param scanner_options:
+        :return:
+        """
+
+        """request_id:int - The ticker ID. Must be a unique value.
+        scannerSubscription:ScannerSubscription - This structure contains
+            possible parameters used to filter results.
+        scanner_options:list - For internal use only. <-- Thanks IB!
+            Use default value XYZ."""
+        request_id = self.get_local_request_id()
+
+        scanner_filter_options = "" # I believe this is an attribute internal to IB, for now it is not exposed
+        super().request_scanner_subscription(request_id, scanner, scanner_options, scanner_filter_options)
+        # Process the response from the bridge
+        data = self._process_response('scanner_data')
+        return data
 
     def request_soft_dollar_tiers(self, request_id: int):
         """Requests pre-defined Soft Dollar Tiers. This is only supported for
@@ -386,11 +426,11 @@ class IBKR_API(ApiCalls):
         data = self._process_response('')
         return data
 
-    def replace_financial_advisor(self, faData: int, cxml: str):
+    def replace_financial_advisor(self, financial_advisor_data: int, cxml: str):
         """Call this function to modify FA configuration information from the
         API. Note that this can also be done manually in TWS itself.
 
-        faData:int - Specifies the type of Financial Advisor
+        financial_advisor_data:int - Specifies the type of Financial Advisor
             configuration data beingingg requested. Valid values include:
             1 = GROUPS
             2 = PROFILE
@@ -801,20 +841,20 @@ class IBKR_API(ApiCalls):
         data = self._process_response('')
         return data
 
-    def twsConnectionTime(self):
+    def tws_connection_time(self):
         """Returns the time the API application made a connection to TWS."""
         # Process the response from the bridge
         data = self._process_response('')
         return data
 
-    def request_ids(self, numIds: int):
+    def request_ids(self, num_ids: int):
         """Call this function to request from TWS the next valid ID that
         can be used when placing an order.  After calling this function, the
         nextValidId() event will be triggered, and the id returned is that next
         valid ID. That ID will reflect any autobinding that has occurred (which
         generates new IDs and increments the next valid ID therein).
 
-        numIds:int - deprecated"""
+        num_ids:int - deprecated"""
         # Process the response from the bridge
         data = self._process_response('')
         return data
@@ -871,21 +911,7 @@ class IBKR_API(ApiCalls):
         data = self._process_response('')
         return data
 
-    def cancel_histogram_data(self, tickerId: int):
-        # Process the response from the bridge
-        data = self._process_response('')
-        return data
-
-    def request_scanner_subscription(self, request_id: int,
-                                     subscription: ScannerSubscription,
-                                     scanner_subscription_options: list,
-                                     scannerSubscriptionFilterOptions: list):
-        """request_id:int - The ticker ID. Must be a unique value.
-        scannerSubscription:ScannerSubscription - This structure contains
-            possible parameters used to filter results.
-        scanner_subscription_options:list - For internal use only.
-            Use default value XYZ."""
-        super().request_scanner_subscription(request_id, subscription, scanner_subscription_options, scannerSubscriptionFilterOptions)
+    def cancel_histogram_data(self, request_id: int):
         # Process the response from the bridge
         data = self._process_response('')
         return data
@@ -961,7 +987,7 @@ class IBKR_API(ApiCalls):
         return data
 
 
-    def request_news_article(self, request_id: int, provider_code: str, article_id: str, newsArticleOptions: list):
+    def request_news_article(self, request_id: int, provider_code: str, article_id: str, news_article_options: list):
         # Process the response from the bridge
         data = self._process_response('news_article')
         return data
