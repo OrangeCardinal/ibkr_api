@@ -378,24 +378,42 @@ class MessageParser(object):
 
     @staticmethod
     def scanner_data(fields):
+        """
+        Parses the scanner_data message and returns properly formatted data
+        
+        :param fields: 
+        :return: 
+        """
 
 
         message_id          = int(fields[0])
         request_id          = int(fields[1])
-        number_of_elements  = int(fields[2])
-        index               = 1
-        field_index         = 0
+        #TODO: figure out what fields[2] represents
+        number_of_elements  = int(fields[3])
+        field_index         = 4
         results             = []
-        while index <= number_of_elements:
+        for i in range(number_of_elements):
             data                                        = {}
             contract                                    = Contract()
             data['rank']                                = int(fields[field_index])
+
             contract.id                                 = int(fields[field_index+1])
+            data['contract_id']                         = contract.id
+
             contract.symbol                             = bytearray(fields[field_index+2]).decode()
+            data['symbol']                     = contract.symbol
+
             contract.security_type                      = bytearray(fields[field_index+3]).decode()
+            data['security_type']                       = contract.security_type
+
             contract.last_trade_date_or_contract_month  = bytearray(fields[field_index+4]).decode()
+
             contract.strike                             = int(fields[field_index+5])
+            data['strike']                              = contract.strike
+
             contract.right                              = bytearray(fields[field_index+6]).decode()
+            data['right']                               = contract.right
+
             contract.exchange                           = bytearray(fields[field_index+7]).decode()
             contract.currency                           = bytearray(fields[field_index+8]).decode()
             contract.local_symbol                       = bytearray(fields[field_index+9]).decode()
@@ -409,7 +427,6 @@ class MessageParser(object):
             data['legs_str']     = fields[field_index+15]
             field_index         += 16
             results.append(data)
-            index += 1
         return message_id,request_id,results
 
     @staticmethod
