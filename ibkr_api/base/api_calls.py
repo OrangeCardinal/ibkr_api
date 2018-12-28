@@ -1,15 +1,15 @@
 import logging
 
 
-from ibkr_api.base import BridgeConnection
+from ibkr_api.base.bridge_connection import BridgeConnection
 from ibkr_api.base.constants import *
 from ibkr_api.base.errors import NOT_CONNECTED, UPDATE_TWS, Errors, BAD_MESSAGE
-from ibkr_api.base import Messages
-from ibkr_api.base import MessageParser
+from ibkr_api.base.messages import Messages
+from ibkr_api.base.message_parser import MessageParser
 
-from classes.contracts.contract import Contract
-from classes.order import Order
-from classes.scanner import ScannerSubscription
+from ibkr_api.classes.contracts.contract import Contract
+from ibkr_api.classes.order import Order
+from ibkr_api.classes.scanner import Scanner
 
 from functools import wraps
 import socket
@@ -24,7 +24,7 @@ def check_connection(func):
             #self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             logger.warning("Not connected to the Bridge Application (TWS/IB Gateway).")
             return None
-        func(self,*func_args, **func_kwargs)
+        func(self, *func_args, **func_kwargs)
     return new_func
 
 class ApiCalls(object):
@@ -410,11 +410,11 @@ class ApiCalls(object):
                    contract.last_trade_date_or_contract_month,
                    contract.strike,
                    contract.right,
-                   contract.multiplier,  # srv v15 and above
+                   contract.multiplier,
                    contract.exchange,
-                   contract.primary_exchange,  # srv v14 and above
+                   contract.primary_exchange,
                    contract.currency,
-                   contract.local_symbol]  # srv v2 and above
+                   contract.local_symbol]
 
 
         fields.append(contract.trading_class)
@@ -468,7 +468,7 @@ class ApiCalls(object):
             if orderComboLegsCount:
                 for orderComboLeg in order.orderComboLegs:
                     assert orderComboLeg
-                    fields.append(self.conn.make_field_handle_empty(orderComboLeg.price))
+                    fields.append(orderComboLeg.price)
 
         if self.server_version() >= MIN_SERVER_VER_SMART_COMBO_ROUTING_PARAMS and contract.security_type == "BAG":
             smartComboRoutingParamsCount = len(order.smartComboRoutingParams) if order.smartComboRoutingParams else 0
@@ -508,69 +508,68 @@ class ApiCalls(object):
                     order.designatedLocation,    # populate only when shortSaleSlot = 2.
                     order.exemptCode]
 
-        # srv v19 and above fields
+
         fields.append(order.ocaType)
 
         fields += [order.rule80A,
                    order.settlingFirm,
                    order.allOrNone,
-                   self.conn.make_field_handle_empty(order.min_qty),
-                   self.conn.make_field_handle_empty(order.percent_offset),
+                   order.min_qty,
+                   order.percent_offset,
                    order.eTradeOnly,
                    order.firmQuoteOnly,
-                   self.conn.make_field_handle_empty(order.nbboPriceCap),
+                   order.nbboPriceCap,
                    order.auctionStrategy,
                    # AUCTION_MATCH, AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT
-                   self.conn.make_field_handle_empty(order.startingPrice),
-                   self.conn.make_field_handle_empty(order.stockRefPrice),
-                   self.conn.make_field_handle_empty(order.delta),
-                   self.conn.make_field_handle_empty(order.stockRangeLower),
-                   self.conn.make_field_handle_empty(order.stockRangeUpper),
+                   order.startingPrice,
+                   order.stockRefPrice,
+                   order.delta,
+                   order.stockRangeLower,
+                   order.stockRangeUpper,
 
-                   order.override_percentage_constraints,  # srv v22 and above
+                   order.override_percentage_constraints,
 
-                   # Volatility orders (srv v26 and above)
-                   self.conn.make_field_handle_empty(order.volatility),
-                   self.conn.make_field_handle_empty(order.volatility_type),
-                   order.delta_neutral_order_type,  # srv v28 and above
-                   self.conn.make_field_handle_empty(order.delta_neutral_aux_price)]  # srv v28 and above
+                   # Volatility orders
+                   order.volatility,
+                   order.volatility_type,
+                   order.delta_neutral_order_type,
+                   order.delta_neutral_aux_price]
 
-        if self.server_version() >= MIN_SERVER_VER_DELTA_NEUTRAL_CONID and order.delta_neutral_order_type:
+        if order.delta_neutral_order_type:
             fields += [order.delta_neutral_con_id, order.delta_neutral_settling_firm, order.delta_neutral_clearing_account,
                        order.deltaNeutralClearingIntent]
 
-        if self.server_version() >= MIN_SERVER_VER_DELTA_NEUTRAL_OPEN_CLOSE and order.delta_neutral_order_type:
+        if order.delta_neutral_order_type:
             fields += [order.deltaNeutralOpenClose,
                        order.deltaNeutralShortSale,
                        order.deltaNeutralShortSaleSlot,
                        order.deltaNeutralDesignatedLocation]
 
         fields += [order.continuousUpdate,
-                   self.conn.make_field_handle_empty(order.referencePriceType),
-                   self.conn.make_field_handle_empty(order.trail_stop_price)]  # srv v30 and above
+                   order.referencePriceType,
+                   order.trail_stop_price]
 
-        fields.append(self.conn.make_field_handle_empty(order.trailing_percent))
+        fields.append(order.trailing_percent)
 
         # SCALE orders
-        fields += [self.conn.make_field_handle_empty(order.scaleInitLevelSize),
-                   self.conn.make_field_handle_empty(order.scaleSubsLevelSize)]
+        fields += [order.scaleInitLevelSize, order.scaleSubsLevelSize]
 
 
-        fields.append(self.conn.make_field_handle_empty(order.scalePriceIncrement))
+        fields.append(order.scalePriceIncrement)
 
         if self.server_version() >= MIN_SERVER_VER_SCALE_ORDERS3 \
                 and order.scalePriceIncrement != UNSET_DOUBLE \
                 and order.scalePriceIncrement > 0.0:
-            fields += [self.conn.make_field_handle_empty(order.scalePriceAdjustValue),
-                       self.conn.make_field_handle_empty(order.scalePriceAdjustInterval),
-                       self.conn.make_field_handle_empty(order.scaleProfitOffset),
+            fields += [order.scalePriceAdjustValue,
+                       order.scalePriceAdjustInterval,
+                       order.scaleProfitOffset,
                        order.scaleAutoReset,
-                       self.conn.make_field_handle_empty(order.scaleInitPosition),
-                       self.conn.make_field_handle_empty(order.scaleInitFillQty),
+                       order.scaleInitPosition,
+                       order.scaleInitFillQty,
                        order.scaleRandomPercent]
 
-        if self.server_version() >= MIN_SERVER_VER_SCALE_TABLE:
-            fields += [order.scaleTable, order.active_start_time, order.active_stop_time]
+
+        fields += [order.scaleTable, order.active_start_time, order.active_stop_time]
 
         # HEDGE orders
         if self.server_version() >= MIN_SERVER_VER_HEDGE_ORDERS:
@@ -1367,8 +1366,14 @@ class ApiCalls(object):
         fields = [message_id, message_version, num_ids]
         self.conn.send_message(fields)
 
-    def request_MktDepth(self, request_id: int, contract: Contract,
-                         num_rows: int, is_smart_depth: bool, market_depth_options: list):
+    @check_connection
+    def request_market_depth(self,
+                             request_id             : int       ,
+                             contract               : Contract  ,
+                             num_rows               : int       ,
+                             is_smart_depth         : bool      ,
+                             market_depth_options   : list
+                             ):
         """Call this function to request market depth for a specific
         contract. The market depth will be returned by the updateMktDepth() and
         updateMktDepthL2() events.
@@ -1388,35 +1393,18 @@ class ApiCalls(object):
         market_depth_options:list - For internal use only. Use default value
             XYZ."""
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
         message_version = 5
         message_id = Messages.outbound['request_market_depth']
         # send req market depth msg
-        fields = [message_id, message_version, request_id]
-
-        # send contract fields
-        if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
-            fields += [contract.id, ]
-        fields += [contract.symbol,
-                   contract.security_type,
-                   contract.last_trade_date_or_contract_month,
-                   contract.strike,
-                   contract.right,
-                   contract.multiplier,  # srv v15 and above
-                   contract.exchange,
-                   contract.currency,
-                   contract.local_symbol]
-
-        if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
-            fields += [contract.trading_class, ]
-
-        fields += [num_rows, ]  # srv v19 and above
-
-        if self.server_version() >= MIN_SERVER_VER_SMART_DEPTH:
-            fields += [is_smart_depth, ]
+        fields = [  message_id                                  ,   message_version         ,
+                    request_id                                  ,   contract.id             ,
+                    contract.symbol                             ,   contract.security_type  ,
+                    contract.last_trade_date_or_contract_month  ,   contract.strike         ,
+                    contract.right                              ,   contract.multiplier     ,
+                    contract.exchange                           ,   contract.currency       ,
+                    contract.local_symbol                       ,   contract.trading_class  ,
+                    num_rows                                    ,   is_smart_depth          ,
+                ]
 
         # send market_depth_options parameter
         if self.server_version() >= MIN_SERVER_VER_LINKING:
@@ -1428,36 +1416,32 @@ class ApiCalls(object):
 
         self.conn.send_message(fields)
 
+    @check_connection
     def cancel_news_bulletins(self):
         """Call this function to stop receiving news bulletins."""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
 
         message_version = 1
         message_id = Messages.outbound['cancel_news_bulletins']
         fields = [message_id, message_version]
         self.conn.send_message(fields)
 
-    def request_uestFA(self, faData: int):
-        """Call this function to request FA configuration information from TWS.
+    @check_connection
+    def request_financial_advisor(self, financial_advisor_data: int):
+        """
+        Requests Financial Advisor Configuration Information.
         The data returns in an XML string via a "receiveFA" ActiveX event.
 
-        faData:int - Specifies the type of Financial Advisor
-            configuration data beingingg requested. Valid values include:
+        financial_advisor_data:int - Specifies the type of Financial Advisor
+        Valid values include:
             1 = GROUPS
             2 = PROFILE
-            3 = ACCOUNT ALIASES"""
-
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
-
+            3 = ACCOUNT ALIASES
+        """
+        #Create the Message
         message_version = 1
+        message_id      = Messages.outbound['request_fa']
+        fields          = [message_id, message_version, int(financial_advisor_data)]
 
-        message_id = Messages.outbound['request_fa']
-        fields = [message_id, message_version, int(faData)]
         self.conn.send_message(fields)
 
     @check_connection
@@ -1516,12 +1500,14 @@ class ApiCalls(object):
 
 
     @check_connection
-    def request_scanner_subscription(self, request_id: int,
-                                     subscription: ScannerSubscription,
-                                     scanner_subscription_options: list,
-                                     scannerSubscriptionFilterOptions: list):
-        """request_id:int - The ticker ID. Must be a unique value.
-        scannerSubscription:ScannerSubscription - This structure contains
+    def request_scanner_subscription(self,
+                                     request_id       : int           ,
+                                     scanner          : Scanner       ,
+                                     scanner_options  : list          ,
+                                     filter_options   : list
+                                     ):
+        """request_id:int - Identifier for the given request
+        scannerSubscription:Scanner - This structure contains
             possible parameters used to filter results.
         scanner_subscription_options:list - For internal use only.
             Use default value XYZ."""
@@ -1530,45 +1516,42 @@ class ApiCalls(object):
         message_id = Messages.outbound['request_scanner_subscription']
         fields = [message_id]
 
-        #if self.server_version() < MIN_SERVER_VER_SCANNER_GENERIC_OPTS:
-        #    fields.append(message_version)
-
         fields += [request_id,
-                   self.conn.make_field_handle_empty(subscription.numberOfRows),
-                   subscription.instrument,
-                   subscription.locationCode,
-                   subscription.scanCode,
-                   self.conn.make_field_handle_empty(subscription.above_price),
-                   self.conn.make_field_handle_empty(subscription.below_price),
-                   self.conn.make_field_handle_empty(subscription.above_volume),
-                   self.conn.make_field_handle_empty(subscription.market_cap_above),
-                   self.conn.make_field_handle_empty(subscription.market_cap_below),
-                   subscription.moodyRatingAbove,
-                   subscription.moodyRatingBelow,
-                   subscription.spRatingAbove,
-                   subscription.spRatingBelow,
-                   subscription.maturityDateAbove,
-                   subscription.maturityDateBelow,
-                   self.conn.make_field_handle_empty(subscription.couponRateAbove),
-                   self.conn.make_field_handle_empty(subscription.couponRateBelow),
-                   subscription.excludeConvertible,
-                   self.conn.make_field_handle_empty(subscription.averageOptionVolumeAbove),  # srv v25 and above
-                   subscription.scannerSettingPairs,  # srv v25 and above
-                   subscription.stockTypeFilter]  # srv v27 and above
+                   scanner.numberOfRows                 ,
+                   scanner.instrument                   ,
+                   scanner.location_code                ,
+                   scanner.scan_code                    ,
+                   scanner.above_price                  ,
+                   scanner.below_price                  ,
+                   scanner.above_volume                 ,
+                   scanner.market_cap_above             ,
+                   scanner.market_cap_below             ,
+                   scanner.moody_rating_above           ,
+                   scanner.moody_rating_below           ,
+                   scanner.sp_rating_above              ,
+                   scanner.sp_rating_below              ,
+                   scanner.maturity_date_above          ,
+                   scanner.maturity_date_below          ,
+                   scanner.coupon_rate_above            ,
+                   scanner.coupon_rate_below            ,
+                   scanner.exclude_convertible          ,
+                   scanner.average_option_volume_above  ,
+                   scanner.scanner_setting_pairs,
+                   scanner.stock_type_filter]
 
         # send scannerSubscriptionFilterOptions parameter
-        scannerSubscriptionFilterOptionsStr = ""
-        if scannerSubscriptionFilterOptions:
-            for tagValueOpt in scannerSubscriptionFilterOptions:
-                scannerSubscriptionFilterOptionsStr += str(tagValueOpt)
-        fields += [scannerSubscriptionFilterOptionsStr]
+        filter_options_str = ""
+        if filter_options:
+            for tagValueOpt in filter_options:
+                filter_options_str += str(tagValueOpt)
+        fields += [filter_options_str]
 
-        # send scanner_subscription_options parameter
-        scannerSubscriptionOptionsStr = ""
-        if scanner_subscription_options:
-            for tagValueOpt in scanner_subscription_options:
-                scannerSubscriptionOptionsStr += str(tagValueOpt)
-        fields += [scannerSubscriptionOptionsStr, ]
+        # send scanner_scanner_options parameter
+        scanner_options_str = ""
+        if scanner_options:
+            for tagValueOpt in scanner_options:
+                scanner_options_str += str(tagValueOpt)
+        fields += [scanner_options_str, ]
 
         self.conn.send_message(fields)
 
