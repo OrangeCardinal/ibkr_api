@@ -15,6 +15,8 @@ class ClientApplication(ApiCalls):
         :param response_handler: User Supplied Response Handler
         :param request_handler:
         """
+        # TODO: Handle keyboard input in a non blocking manner
+        super().__init__()
         self.still_running      = True  # Controls when the event loop
         self.messages_received  = []    # List of all messages received (not sure if needed)
         self.keyboard_input     = []    # Keyboard Input
@@ -22,16 +24,7 @@ class ClientApplication(ApiCalls):
         self.client_id          = 0
         self.debug_mode         = True
 
-        super().__init__()
         super().connect(host, port, self.client_id)
-
-    def act(self):
-        """
-        Action if any your application should do at the end of each event loop
-        :return:
-        """
-        raise NotImplementedError
-
 
     def info_message(self, message_id, request_id, info):
         print(info)
@@ -48,6 +41,22 @@ class ClientApplication(ApiCalls):
         print(account)
 
     # TODO: Handle keyboard input in a non blocking manner
+
+
+    def scanner_data(self, message_id, request_id, scanner_data):
+        print(request_id)
+        print(scanner_data)
+
+    ##################################################
+    # Functions Related to the Event Processing Loop #
+    ##################################################
+    def act(self):
+        """
+        Action if any your application should do at the end of each event loop
+        :return:
+        """
+        raise NotImplementedError
+
     def run(self):
         """
         Primary event loop of the application
