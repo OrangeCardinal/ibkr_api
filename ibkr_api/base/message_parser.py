@@ -5,19 +5,18 @@ and returns it the format message_id, request_id, data
 data is usually a dictionary on a given object
 """
 from ibkr_api.base.constants import UNSET_DOUBLE
-from classes.contracts.contract         import Contract
-from classes.contracts.contract_details import ContractDetails
-from classes.execution                  import Execution
-from classes.option_chain               import OptionChain
-from classes.order                      import Order
-from classes.order_state                import OrderState
+from ibkr_api.classes.contracts.contract         import Contract
+from ibkr_api.classes.contracts.contract_details import ContractDetails
+from ibkr_api.classes.execution                  import Execution
+from ibkr_api.classes.option_chain               import OptionChain
+from ibkr_api.classes.order                      import Order
+from ibkr_api.classes.order_state                import OrderState
 
-from classes.bar                        import Bar
-from classes.enum.tick_type             import TickType
+from ibkr_api.classes.bar                        import Bar
+from ibkr_api.classes.enum.tick_type             import TickType
 
-
-from dateutil import parser as date_parser
-from datetime import date
+from dateutil   import parser as date_parser
+from datetime   import date
 import logging
 import xmltodict
 import time
