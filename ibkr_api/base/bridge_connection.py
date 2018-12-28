@@ -23,7 +23,7 @@ import threading
 
 from ibkr_api.base.constants import DISCONNECTED, UNKNOWN, CONNECTED
 from ibkr_api.base.errors import FAIL_CREATE_SOCK, Errors
-from ibkr_api.base import Messages
+from ibkr_api.base.messages import Messages
 
 #TODO: support SSL !!
 
@@ -89,7 +89,8 @@ class BridgeConnection:
     ###########################
     # Message Level Functions #
     ###########################
-    def make_msg(self, text) -> bytes:
+    @staticmethod
+    def make_msg(text) -> bytes:
         """ adds the length prefix """
         msg = struct.pack("!I%ds" % len(text), len(text), str.encode(text))
         return msg
@@ -195,15 +196,6 @@ class BridgeConnection:
         field = str(val) + '\0'
         return field
 
-    def make_field_handle_empty(self, val) -> str:
-
-        if val is None:
-            raise ValueError("Cannot send None to TWS")
-
-        if UNSET_INTEGER == val or UNSET_DOUBLE == val:
-            val = ""
-
-        return self.make_field(val)
 
     def read_message(self, buf: bytes) -> tuple:
         """ first the size prefix and then the corresponding msg payload """
