@@ -1,34 +1,40 @@
-from ibkr_api.base.constants import UNSET_INTEGER, UNSET_DOUBLE
+class Scanner(object):
+    NO_ROW_NUMBER_SPECIFIED = -1
 
-NO_ROW_NUMBER_SPECIFIED = -1
+    def __init__(self, **kwargs):
+        self.numberOfRows                   = Scanner.NO_ROW_NUMBER_SPECIFIED
+        self.instrument                     = ""
+        self.location_code                  = ""
+        self.scan_code                      = ""
+        self.above_price                    = ""
+        self.below_price                    = ""
+        self.above_volume                   = ""
+        self.market_cap_above               = ""
+        self.market_cap_below               = ""
+        self.moody_rating_above             = ""
+        self.moody_rating_below             = ""
+        self.sp_rating_above                = ""
+        self.sp_rating_below                = ""
+        self.maturity_date_above            = ""
+        self.maturity_date_below            = ""
+        self.coupon_rate_above              = ""
+        self.coupon_rate_below              = ""
+        self.exclude_convertible            = False
+        self.average_option_volume_above    = ""
+        self.scanner_setting_pairs          = ""
+        self.stock_type_filter              = ""
 
-class ScannerSubscription(object):
+        # Assign any attributes from keyword arguments as needed
+        for arg, val in kwargs.items():
+            if hasattr(self,arg):
+                setattr(self,arg,val)
 
-    def __init__(self):
-        self.numberOfRows = NO_ROW_NUMBER_SPECIFIED
-        self.instrument = ""
-        self.locationCode = ""
-        self.scanCode = ""
-        self.above_price = UNSET_DOUBLE
-        self.below_price = UNSET_DOUBLE
-        self.above_volume = UNSET_INTEGER
-        self.market_cap_above = UNSET_DOUBLE
-        self.market_cap_below = UNSET_DOUBLE
-        self.moodyRatingAbove = ""
-        self.moodyRatingBelow = ""
-        self.spRatingAbove = ""
-        self.spRatingBelow = ""
-        self.maturityDateAbove = ""
-        self.maturityDateBelow = ""
-        self.couponRateAbove = UNSET_DOUBLE
-        self.couponRateBelow = UNSET_DOUBLE
-        self.excludeConvertible = False
-        self.averageOptionVolumeAbove = UNSET_INTEGER
-        self.scannerSettingPairs = ""
-        self.stockTypeFilter = ""
 
     def __str__(self):
-        s = "Instrument: %s, LocationCode: %s, ScanCode: %s" % (self.instrument, self.locationCode, self.scanCode)
+        s  = "Market Scanner\n"
+        s += "Instrument: {0}\n".format(self.instrument)
+        s += "Location Code: {0}\n".format(self.location_code)
+        s += "Scan Code: {0}\n".format(self.scan_code)
 
         return s
 
