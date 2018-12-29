@@ -1,5 +1,5 @@
 from ibkr_api.base.constants import UNSET_INTEGER, UNSET_DOUBLE
-from classes.soft_dollar_tier import SoftDollarTier
+from ibkr_api.classes.soft_dollar_tier import SoftDollarTier
 
 # enum Origin
 (CUSTOMER, FIRM, UNKNOWN) = range(3)
