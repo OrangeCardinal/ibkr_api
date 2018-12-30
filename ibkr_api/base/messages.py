@@ -117,7 +117,7 @@ class Messages(object):
             'cancel_fundamental_data'                           : 53 ,
             'request_calc_implied_volatility'                   : 54 ,
             'request_calc_option_price'                         : 55 ,
-            'cancel_calc_implied_volat'                         : 56 ,
+            'cancel_calculate_implied_volatility'               : 56 ,
             'cancel_calc_option_price'                          : 57 ,
             'request_global_cancel'                             : 58 ,
             'request_market_data_type'                          : 59 ,
