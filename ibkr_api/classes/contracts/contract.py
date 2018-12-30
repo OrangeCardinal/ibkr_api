@@ -16,11 +16,11 @@ class Contract(object):
 
 
         # Common Attributes
-        self.currency = currency
-        self.exchange = exchange
-        self.security_type = security_type
-        self.symbol = symbol
-        self.id = contract_id
+        self.currency                           = currency
+        self.exchange                           = exchange
+        self.security_type                      = security_type
+        self.symbol                             = symbol
+        self.id                                 = contract_id
         self.last_trade_date_or_contract_month  = last_trade_date_or_contract_month
         self.strike                             = strike # A float is expected
         self.right                              = right
@@ -37,9 +37,9 @@ class Contract(object):
 
         self.derivative_security_types = []
         #combos
-        self.comboLegsDescrip = ""  # type: str; received in open order 14 and up for all combos
-        self.comboLegs = None     # type: list<ComboLeg>
-        self.deltaNeutralContract = None
+        self.combo_legs_description       = ""        # type: str; received in open order 14 and up for all combos
+        self.combo_legs              = None      # type: list<ComboLeg>
+        self.delta_neutral_contract = None
 
         for attribute in vars(self):
             if attribute in kwargs:
@@ -49,13 +49,18 @@ class Contract(object):
 
     def __str__(self):
         """
-        Produces a human readable representation of this object
+        Produces a human readable representation of a Contract
         :return:
         """
         desc =  "\nContract\n"
         desc +=  "--------\n"
-        desc += "ID: {0}\nSymbol: {1}\nSecurity Type: {2}\n".format(self.id, self.symbol, self.security_type)
+        desc += "ID: {0}\n".format(self.id)
+        desc += "Symbol: {0}\n".format(self.symbol)
+        desc += "Security Type: {0}\n".format(self.security_type)
+        desc += "Strike: {0}\n".format(self.strike)
+        desc += "Right: {0}\n".format(self.right)
         desc += "Exchange: {0}\n".format(self.exchange)
+        desc += "Local Symbol: {0}\n".format(self.local_symbol)
 
 
         if len(self.regular_trading_hours) > 0:
@@ -69,11 +74,11 @@ class Contract(object):
                     hours = hours[0]
                 desc += "{0}: {1}\n".format(day, hours)
         """
-        if self.comboLegs:
-            for leg in self.comboLegs:
+        if self.combo_legs:
+            for leg in self.combo_legs:
                 s += ";" + str(leg)
 
-        if self.deltaNeutralContract:
-            s += ";" + str(self.deltaNeutralContract)
+        if self.delta_neutral_contract:
+            s += ";" + str(self.delta_neutral_contract)
         """
         return desc
