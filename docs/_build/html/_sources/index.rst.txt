@@ -10,14 +10,12 @@ IBKR_API - Supporting Greed Monsters since 2019
    :maxdepth: 2
    :caption: Overview
 
-   README
    overview/architecture
    overview/installation
    overview/quick_start
    overview/faq
    samples/client_application
    source/modules
-
 
 
 

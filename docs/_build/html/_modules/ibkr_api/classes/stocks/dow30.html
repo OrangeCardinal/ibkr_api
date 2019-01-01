@@ -1,0 +1,541 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>ibkr_api.classes.stocks.dow30 &#8212; ibkr-api  documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for ibkr_api.classes.stocks.dow30</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">ibkr_api.classes.contracts.contract</span> <span class="k">import</span> <span class="n">Contract</span>
+
+
+<div class="viewcode-block" id="Dow30"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30">[docs]</a><span class="k">class</span> <span class="nc">Dow30</span><span class="p">():</span>
+<div class="viewcode-block" id="Dow30.AAPL"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.AAPL">[docs]</a>    <span class="k">def</span> <span class="nf">AAPL</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;AAPL&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.AXP"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.AXP">[docs]</a>    <span class="k">def</span> <span class="nf">AXP</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;AXP&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.BA"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.BA">[docs]</a>    <span class="k">def</span> <span class="nf">BA</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;BA&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.CAT"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.CAT">[docs]</a>    <span class="k">def</span> <span class="nf">CAT</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;CAT&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.CSCO"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.CSCO">[docs]</a>    <span class="k">def</span> <span class="nf">CSCO</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;CSCO&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.CVX"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.CVX">[docs]</a>    <span class="k">def</span> <span class="nf">CVX</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;CVX&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.DIS"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.DIS">[docs]</a>    <span class="k">def</span> <span class="nf">DIS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;DIS&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.DWDP"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.DWDP">[docs]</a>    <span class="k">def</span> <span class="nf">DWDP</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;DWDP&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.GS"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.GS">[docs]</a>    <span class="k">def</span> <span class="nf">GS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;GS&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.HD"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.HD">[docs]</a>    <span class="k">def</span> <span class="nf">HD</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;HD&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.IBM"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.IBM">[docs]</a>    <span class="k">def</span> <span class="nf">IBM</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;IBM&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.INTC"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.INTC">[docs]</a>    <span class="k">def</span> <span class="nf">INTC</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;INTC&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.JNJ"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.JNJ">[docs]</a>    <span class="k">def</span> <span class="nf">JNJ</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;JNJ&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.JPM"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.JPM">[docs]</a>    <span class="k">def</span> <span class="nf">JPM</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;JPM&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.KO"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.KO">[docs]</a>    <span class="k">def</span> <span class="nf">KO</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;KO&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.MCD"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.MCD">[docs]</a>    <span class="k">def</span> <span class="nf">MCD</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;MCD&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.MMM"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.MMM">[docs]</a>    <span class="k">def</span> <span class="nf">MMM</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;MMM&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.MRK"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.MRK">[docs]</a>    <span class="k">def</span> <span class="nf">MRK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;MRK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.MSFT"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.MSFT">[docs]</a>    <span class="k">def</span> <span class="nf">MSFT</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;MSFT&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.NKE"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.NKE">[docs]</a>    <span class="k">def</span> <span class="nf">NKE</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;NKE&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.PFE"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.PFE">[docs]</a>    <span class="k">def</span> <span class="nf">PFE</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;PFE&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.PG"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.PG">[docs]</a>    <span class="k">def</span> <span class="nf">PG</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;PG&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.TRV"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.TRV">[docs]</a>    <span class="k">def</span> <span class="nf">TRV</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;TRV&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.UNH"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.UNH">[docs]</a>    <span class="k">def</span> <span class="nf">UNH</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;UNH&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.UTX"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.UTX">[docs]</a>    <span class="k">def</span> <span class="nf">UTX</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;UTX&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.V"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.V">[docs]</a>    <span class="k">def</span> <span class="nf">V</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        V Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;V&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.VZ"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.VZ">[docs]</a>    <span class="k">def</span> <span class="nf">VZ</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        VZ Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;VZ&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.WBA"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.WBA">[docs]</a>    <span class="k">def</span> <span class="nf">WBA</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;WBA&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.WMT"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.WMT">[docs]</a>    <span class="k">def</span> <span class="nf">WMT</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;WMT&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+<div class="viewcode-block" id="Dow30.XOM"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.XOM">[docs]</a>    <span class="k">def</span> <span class="nf">XOM</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AAPL Stock (Contract)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contract</span> <span class="o">=</span> <span class="n">Contract</span><span class="p">()</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="s2">&quot;XOM&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">currency</span> <span class="o">=</span> <span class="s2">&quot;USD&quot;</span>
+        <span class="c1">#In the API side, NASDAQ is always defined as ISLAND in the exchange field</span>
+        <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="s2">&quot;ISLAND&quot;</span>
+        <span class="c1">#! [stkcontract]</span>
+        <span class="k">return</span> <span class="n">contract</span></div>
+
+
+<div class="viewcode-block" id="Dow30.stocks"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.stocks">[docs]</a>    <span class="k">def</span> <span class="nf">stocks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">stocks</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">AAPL</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">AXP</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">BA</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">CAT</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">CSCO</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">CVX</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">DIS</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">DWDP</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">GS</span><span class="p">(),</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">HD</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">IBM</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">INTC</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">JNJ</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">JPM</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">KO</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">MCD</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">MMM</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">MRK</span><span class="p">(),</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">MSFT</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">NKE</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">PFE</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">PG</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRV</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">UNH</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">UTX</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">VZ</span><span class="p">(),</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">WBA</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">WMT</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">XOM</span><span class="p">()]</span>
+        <span class="k">yield from</span> <span class="n">stocks</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">ibkr-api</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Overview</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../overview/architecture.html">IBKR_API Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../overview/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../overview/quick_start.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../overview/quick_start.html#request-handlers">Request Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../overview/faq.html">F.A.Q</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../samples/client_application.html">Client Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../source/modules.html">ibkr_api</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, David Orkin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

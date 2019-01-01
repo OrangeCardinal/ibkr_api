@@ -1,0 +1,287 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>ibkr_api.base.messages &#8212; ibkr-api  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for ibkr_api.base.messages</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">Enum</span>
+<div class="viewcode-block" id="Messages"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.messages.Messages">[docs]</a><span class="k">class</span> <span class="nc">Messages</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Messages.FieldType"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.messages.Messages.FieldType">[docs]</a>        <span class="k">class</span> <span class="nc">FieldType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+            <span class="n">INTEGER</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">STRING</span>  <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">FLOAT</span>   <span class="o">=</span> <span class="mi">3</span></div>
+
+        <span class="n">field_types</span> <span class="o">=</span> <span class="n">FieldType</span>
+
+        <span class="n">inbound</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;tick_price&#39;</span>                                    <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s1">&#39;tick_size&#39;</span>                                     <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;order_status&#39;</span>                                  <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s1">&#39;info_message&#39;</span>                                  <span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="s1">&#39;open_order&#39;</span>                                    <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="s1">&#39;account_value&#39;</span>                                 <span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+            <span class="s1">&#39;portfolio_value&#39;</span>                               <span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+            <span class="s1">&#39;account_update_time&#39;</span>                           <span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="s1">&#39;next_valid_id&#39;</span>                                 <span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+            <span class="s1">&#39;contract_data&#39;</span>                                 <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s1">&#39;execution_data&#39;</span>                                <span class="p">:</span> <span class="mi">11</span><span class="p">,</span>
+            <span class="s1">&#39;market_depth&#39;</span>                                  <span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+            <span class="s1">&#39;market_depth_l2&#39;</span>                               <span class="p">:</span> <span class="mi">13</span><span class="p">,</span>
+            <span class="s1">&#39;news_bulletins&#39;</span>                                <span class="p">:</span> <span class="mi">14</span><span class="p">,</span>
+            <span class="s1">&#39;managed_accounts&#39;</span>                              <span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+            <span class="s1">&#39;receive_fa&#39;</span>                                    <span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+            <span class="s1">&#39;historical_data&#39;</span>                               <span class="p">:</span> <span class="mi">17</span><span class="p">,</span>
+            <span class="s1">&#39;bond_contract_data&#39;</span>                            <span class="p">:</span> <span class="mi">18</span><span class="p">,</span>
+            <span class="s1">&#39;scanner_parameters&#39;</span>                            <span class="p">:</span> <span class="mi">19</span><span class="p">,</span>
+            <span class="s1">&#39;scanner_data&#39;</span>                                  <span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+            <span class="s1">&#39;tick_option_computation&#39;</span>                       <span class="p">:</span> <span class="mi">21</span><span class="p">,</span>
+            <span class="s1">&#39;tick_generic&#39;</span>                                  <span class="p">:</span> <span class="mi">45</span><span class="p">,</span>
+            <span class="s1">&#39;tick_string&#39;</span>                                   <span class="p">:</span> <span class="mi">46</span><span class="p">,</span>
+            <span class="s1">&#39;tick_efp&#39;</span>                                      <span class="p">:</span> <span class="mi">47</span><span class="p">,</span>
+            <span class="s1">&#39;current_time&#39;</span>                                  <span class="p">:</span> <span class="mi">49</span><span class="p">,</span>
+            <span class="s1">&#39;real_time_bars&#39;</span>                                <span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+            <span class="s1">&#39;fundamental_data&#39;</span>                              <span class="p">:</span> <span class="mi">51</span><span class="p">,</span>
+            <span class="s1">&#39;contract_data_end&#39;</span>                             <span class="p">:</span> <span class="mi">52</span><span class="p">,</span>
+            <span class="s1">&#39;open_order_end&#39;</span>                                <span class="p">:</span> <span class="mi">53</span><span class="p">,</span>
+            <span class="s1">&#39;account_download_end&#39;</span>                          <span class="p">:</span> <span class="mi">54</span><span class="p">,</span>
+            <span class="s1">&#39;execution_data_end&#39;</span>                            <span class="p">:</span> <span class="mi">55</span><span class="p">,</span>
+            <span class="s1">&#39;delta_neutral_validation&#39;</span>                      <span class="p">:</span> <span class="mi">56</span><span class="p">,</span>
+            <span class="s1">&#39;tick_snapshot_end&#39;</span>                             <span class="p">:</span> <span class="mi">57</span><span class="p">,</span>
+            <span class="s1">&#39;market_data_type&#39;</span>                              <span class="p">:</span> <span class="mi">58</span><span class="p">,</span>
+            <span class="s1">&#39;commission_report&#39;</span>                             <span class="p">:</span> <span class="mi">59</span><span class="p">,</span>
+            <span class="s1">&#39;position_data&#39;</span>                                 <span class="p">:</span> <span class="mi">61</span><span class="p">,</span>
+            <span class="s1">&#39;position_end&#39;</span>                                  <span class="p">:</span> <span class="mi">62</span><span class="p">,</span>
+            <span class="s1">&#39;account_summary&#39;</span>                               <span class="p">:</span> <span class="mi">63</span><span class="p">,</span>
+            <span class="s1">&#39;account_summary_end&#39;</span>                           <span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+            <span class="s1">&#39;verify_message_api&#39;</span>                            <span class="p">:</span> <span class="mi">65</span><span class="p">,</span>
+            <span class="s1">&#39;verify_completed&#39;</span>                              <span class="p">:</span> <span class="mi">66</span><span class="p">,</span>
+            <span class="s1">&#39;display_group_list&#39;</span>                            <span class="p">:</span> <span class="mi">67</span><span class="p">,</span>
+            <span class="s1">&#39;display_group_updated&#39;</span>                         <span class="p">:</span> <span class="mi">68</span><span class="p">,</span>
+            <span class="s1">&#39;verify_and_auth_message_api&#39;</span>                   <span class="p">:</span> <span class="mi">69</span><span class="p">,</span>
+            <span class="s1">&#39;verify_and_auth_completed&#39;</span>                     <span class="p">:</span> <span class="mi">70</span><span class="p">,</span>
+            <span class="s1">&#39;position_multi&#39;</span>                                <span class="p">:</span> <span class="mi">71</span><span class="p">,</span>
+            <span class="s1">&#39;position_multi_end&#39;</span>                            <span class="p">:</span> <span class="mi">72</span><span class="p">,</span>
+            <span class="s1">&#39;account_update_multi&#39;</span>                          <span class="p">:</span> <span class="mi">73</span><span class="p">,</span>
+            <span class="s1">&#39;account_update_multi_end&#39;</span>                      <span class="p">:</span> <span class="mi">74</span><span class="p">,</span>
+            <span class="s1">&#39;security_definition_option_parameter&#39;</span>          <span class="p">:</span> <span class="mi">75</span><span class="p">,</span>
+            <span class="s1">&#39;security_definition_option_parameter_end&#39;</span>      <span class="p">:</span> <span class="mi">76</span><span class="p">,</span>
+            <span class="s1">&#39;soft_dollar_tiers&#39;</span>                             <span class="p">:</span> <span class="mi">77</span><span class="p">,</span>
+            <span class="s1">&#39;family_codes&#39;</span>                                  <span class="p">:</span> <span class="mi">78</span><span class="p">,</span>
+            <span class="s1">&#39;symbol_samples&#39;</span>                                <span class="p">:</span> <span class="mi">79</span><span class="p">,</span>
+            <span class="s1">&#39;mkt_depth_exchanges&#39;</span>                           <span class="p">:</span> <span class="mi">80</span><span class="p">,</span>
+            <span class="s1">&#39;tick_request_params&#39;</span>                           <span class="p">:</span> <span class="mi">81</span><span class="p">,</span>
+            <span class="s1">&#39;smart_components&#39;</span>                              <span class="p">:</span> <span class="mi">82</span><span class="p">,</span>
+            <span class="s1">&#39;news_article&#39;</span>                                  <span class="p">:</span> <span class="mi">83</span><span class="p">,</span>
+            <span class="s1">&#39;tick_news&#39;</span>                                     <span class="p">:</span> <span class="mi">84</span><span class="p">,</span>
+            <span class="s1">&#39;news_providers&#39;</span>                                <span class="p">:</span> <span class="mi">85</span><span class="p">,</span>
+            <span class="s1">&#39;historical_news&#39;</span>                               <span class="p">:</span> <span class="mi">86</span><span class="p">,</span>
+            <span class="s1">&#39;historical_news_end&#39;</span>                           <span class="p">:</span> <span class="mi">87</span><span class="p">,</span>
+            <span class="s1">&#39;head_timestamp&#39;</span>                                <span class="p">:</span> <span class="mi">88</span><span class="p">,</span>
+            <span class="s1">&#39;histogram_data&#39;</span>                                <span class="p">:</span> <span class="mi">89</span><span class="p">,</span>
+            <span class="s1">&#39;historical_data_update&#39;</span>                        <span class="p">:</span> <span class="mi">90</span><span class="p">,</span>
+            <span class="s1">&#39;reroute_market_data_req&#39;</span>                       <span class="p">:</span> <span class="mi">91</span><span class="p">,</span>
+            <span class="s1">&#39;reroute_market_depth_req&#39;</span>                      <span class="p">:</span> <span class="mi">92</span><span class="p">,</span>
+            <span class="s1">&#39;market_rule&#39;</span>                                   <span class="p">:</span> <span class="mi">93</span><span class="p">,</span>
+            <span class="s1">&#39;pnl&#39;</span>                                           <span class="p">:</span> <span class="mi">94</span><span class="p">,</span>
+            <span class="s1">&#39;pnl_single&#39;</span>                                    <span class="p">:</span> <span class="mi">95</span><span class="p">,</span>
+            <span class="s1">&#39;historical_ticks&#39;</span>                              <span class="p">:</span> <span class="mi">96</span><span class="p">,</span>
+            <span class="s1">&#39;historical_ticks_bid_ask&#39;</span>                      <span class="p">:</span> <span class="mi">97</span><span class="p">,</span>
+            <span class="s1">&#39;historical_ticks_last&#39;</span>                         <span class="p">:</span> <span class="mi">98</span><span class="p">,</span>
+            <span class="s1">&#39;tick_by_tick&#39;</span>                                  <span class="p">:</span> <span class="mi">99</span><span class="p">,</span>
+            <span class="s1">&#39;order_bound&#39;</span>                                   <span class="p">:</span> <span class="mi">100</span><span class="p">}</span>
+
+        <span class="n">outbound</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;request_market_data&#39;</span>                               <span class="p">:</span> <span class="mi">1</span>  <span class="p">,</span>
+            <span class="s1">&#39;cancel_market_data&#39;</span>                                <span class="p">:</span> <span class="mi">2</span>  <span class="p">,</span>
+            <span class="s1">&#39;place_order&#39;</span>                                       <span class="p">:</span> <span class="mi">3</span>  <span class="p">,</span>
+            <span class="s1">&#39;cancel_order&#39;</span>                                      <span class="p">:</span> <span class="mi">4</span>  <span class="p">,</span>
+            <span class="s1">&#39;request_open_orders&#39;</span>                               <span class="p">:</span> <span class="mi">5</span>  <span class="p">,</span>
+            <span class="s1">&#39;request_account_data&#39;</span>                              <span class="p">:</span> <span class="mi">6</span>  <span class="p">,</span>
+            <span class="s1">&#39;request_executions&#39;</span>                                <span class="p">:</span> <span class="mi">7</span>  <span class="p">,</span>
+            <span class="s1">&#39;request_ids&#39;</span>                                       <span class="p">:</span> <span class="mi">8</span>  <span class="p">,</span>
+            <span class="s1">&#39;request_contract_data&#39;</span>                             <span class="p">:</span> <span class="mi">9</span>  <span class="p">,</span>
+            <span class="s1">&#39;request_market_depth&#39;</span>                              <span class="p">:</span> <span class="mi">10</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_market_depth&#39;</span>                               <span class="p">:</span> <span class="mi">11</span> <span class="p">,</span>
+            <span class="s1">&#39;request_news_bulletins&#39;</span>                            <span class="p">:</span> <span class="mi">12</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_news_bulletins&#39;</span>                             <span class="p">:</span> <span class="mi">13</span> <span class="p">,</span>
+            <span class="s1">&#39;set_server_loglevel&#39;</span>                               <span class="p">:</span> <span class="mi">14</span> <span class="p">,</span>
+            <span class="s1">&#39;request_auto_open_orders&#39;</span>                          <span class="p">:</span> <span class="mi">15</span> <span class="p">,</span>
+            <span class="s1">&#39;request_all_open_orders&#39;</span>                           <span class="p">:</span> <span class="mi">16</span> <span class="p">,</span>
+            <span class="s1">&#39;request_managed_accounts&#39;</span>                          <span class="p">:</span> <span class="mi">17</span> <span class="p">,</span>
+            <span class="s1">&#39;request_fa&#39;</span>                                        <span class="p">:</span> <span class="mi">18</span> <span class="p">,</span>
+            <span class="s1">&#39;replace_fa&#39;</span>                                        <span class="p">:</span> <span class="mi">19</span> <span class="p">,</span>
+            <span class="s1">&#39;request_historical_data&#39;</span>                           <span class="p">:</span> <span class="mi">20</span> <span class="p">,</span>
+            <span class="s1">&#39;exercise_options&#39;</span>                                  <span class="p">:</span> <span class="mi">21</span> <span class="p">,</span>
+            <span class="s1">&#39;request_scanner_subscription&#39;</span>                      <span class="p">:</span> <span class="mi">22</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_scanner_subscription&#39;</span>                       <span class="p">:</span> <span class="mi">23</span> <span class="p">,</span>
+            <span class="s1">&#39;request_scanner_parameters&#39;</span>                        <span class="p">:</span> <span class="mi">24</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_historical_data&#39;</span>                            <span class="p">:</span> <span class="mi">25</span> <span class="p">,</span>
+            <span class="s1">&#39;request_current_time&#39;</span>                              <span class="p">:</span> <span class="mi">49</span> <span class="p">,</span>
+            <span class="s1">&#39;request_real_time_bars&#39;</span>                            <span class="p">:</span> <span class="mi">50</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_real_time_bars&#39;</span>                             <span class="p">:</span> <span class="mi">51</span> <span class="p">,</span>
+            <span class="s1">&#39;request_fundamental_data&#39;</span>                          <span class="p">:</span> <span class="mi">52</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_fundamental_data&#39;</span>                           <span class="p">:</span> <span class="mi">53</span> <span class="p">,</span>
+            <span class="s1">&#39;request_calc_implied_volatility&#39;</span>                   <span class="p">:</span> <span class="mi">54</span> <span class="p">,</span>
+            <span class="s1">&#39;request_calc_option_price&#39;</span>                         <span class="p">:</span> <span class="mi">55</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_calculate_implied_volatility&#39;</span>               <span class="p">:</span> <span class="mi">56</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_calc_option_price&#39;</span>                          <span class="p">:</span> <span class="mi">57</span> <span class="p">,</span>
+            <span class="s1">&#39;request_global_cancel&#39;</span>                             <span class="p">:</span> <span class="mi">58</span> <span class="p">,</span>
+            <span class="s1">&#39;request_market_data_type&#39;</span>                          <span class="p">:</span> <span class="mi">59</span> <span class="p">,</span>
+            <span class="s1">&#39;request_positions&#39;</span>                                 <span class="p">:</span> <span class="mi">61</span> <span class="p">,</span>
+            <span class="s1">&#39;request_account_summary&#39;</span>                           <span class="p">:</span> <span class="mi">62</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_account_summary&#39;</span>                            <span class="p">:</span> <span class="mi">63</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_positions&#39;</span>                                  <span class="p">:</span> <span class="mi">64</span> <span class="p">,</span>
+            <span class="s1">&#39;verify_request&#39;</span>                                    <span class="p">:</span> <span class="mi">65</span> <span class="p">,</span>
+            <span class="s1">&#39;verify_message&#39;</span>                                    <span class="p">:</span> <span class="mi">66</span> <span class="p">,</span>
+            <span class="s1">&#39;query_display_groups&#39;</span>                              <span class="p">:</span> <span class="mi">67</span> <span class="p">,</span>
+            <span class="s1">&#39;subscribe_to_group_events&#39;</span>                         <span class="p">:</span> <span class="mi">68</span> <span class="p">,</span>
+            <span class="s1">&#39;update_display_group&#39;</span>                              <span class="p">:</span> <span class="mi">69</span> <span class="p">,</span>
+            <span class="s1">&#39;unsubscribe_from_group_events&#39;</span>                     <span class="p">:</span> <span class="mi">70</span> <span class="p">,</span>
+            <span class="s1">&#39;start_api&#39;</span>                                         <span class="p">:</span> <span class="mi">71</span> <span class="p">,</span>
+            <span class="s1">&#39;verify_and_auth_request&#39;</span>                           <span class="p">:</span> <span class="mi">72</span> <span class="p">,</span>
+            <span class="s1">&#39;verify_and_auth_message&#39;</span>                           <span class="p">:</span> <span class="mi">73</span> <span class="p">,</span>
+            <span class="s1">&#39;request_positions_multi&#39;</span>                           <span class="p">:</span> <span class="mi">74</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_positions_multi&#39;</span>                            <span class="p">:</span> <span class="mi">75</span> <span class="p">,</span>
+            <span class="s1">&#39;request_account_updates_multi&#39;</span>                     <span class="p">:</span> <span class="mi">76</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_account_updates_multi&#39;</span>                      <span class="p">:</span> <span class="mi">77</span> <span class="p">,</span>
+            <span class="s1">&#39;request_security_definition_option_parameters&#39;</span>     <span class="p">:</span> <span class="mi">78</span> <span class="p">,</span>
+            <span class="s1">&#39;request_soft_dollar_tiers&#39;</span>                         <span class="p">:</span> <span class="mi">79</span> <span class="p">,</span>
+            <span class="s1">&#39;request_family_codes&#39;</span>                              <span class="p">:</span> <span class="mi">80</span> <span class="p">,</span>
+            <span class="s1">&#39;request_matching_symbols&#39;</span>                          <span class="p">:</span> <span class="mi">81</span> <span class="p">,</span>
+            <span class="s1">&#39;request_market_depth_exchanges&#39;</span>                    <span class="p">:</span> <span class="mi">82</span> <span class="p">,</span>
+            <span class="s1">&#39;request_smart_components&#39;</span>                          <span class="p">:</span> <span class="mi">83</span> <span class="p">,</span>
+            <span class="s1">&#39;request_news_article&#39;</span>                              <span class="p">:</span> <span class="mi">84</span> <span class="p">,</span>
+            <span class="s1">&#39;request_news_providers&#39;</span>                            <span class="p">:</span> <span class="mi">85</span> <span class="p">,</span>
+            <span class="s1">&#39;request_historical_news&#39;</span>                           <span class="p">:</span> <span class="mi">86</span> <span class="p">,</span>
+            <span class="s1">&#39;request_head_timestamp&#39;</span>                            <span class="p">:</span> <span class="mi">87</span> <span class="p">,</span>
+            <span class="s1">&#39;request_histogram_data&#39;</span>                            <span class="p">:</span> <span class="mi">88</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_histogram_data&#39;</span>                             <span class="p">:</span> <span class="mi">89</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_head_timestamp&#39;</span>                             <span class="p">:</span> <span class="mi">90</span> <span class="p">,</span>
+            <span class="s1">&#39;request_market_rule&#39;</span>                               <span class="p">:</span> <span class="mi">91</span> <span class="p">,</span>
+            <span class="s1">&#39;request_pnl&#39;</span>                                       <span class="p">:</span> <span class="mi">92</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_pnl&#39;</span>                                        <span class="p">:</span> <span class="mi">93</span> <span class="p">,</span>
+            <span class="s1">&#39;request_pnl_single&#39;</span>                                <span class="p">:</span> <span class="mi">94</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_pnl_single&#39;</span>                                 <span class="p">:</span> <span class="mi">95</span> <span class="p">,</span>
+            <span class="s1">&#39;request_historical_ticks&#39;</span>                          <span class="p">:</span> <span class="mi">96</span> <span class="p">,</span>
+            <span class="s1">&#39;request_tick_by_tick_data&#39;</span>                         <span class="p">:</span> <span class="mi">97</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_tick_by_tick_data&#39;</span>                          <span class="p">:</span> <span class="mi">98</span>
+        <span class="p">}</span>
+
+
+<div class="viewcode-block" id="Messages.parse_message"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.messages.Messages.parse_message">[docs]</a>        <span class="nd">@staticmethod</span>
+        <span class="k">def</span> <span class="nf">parse_message</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Parse message into a list of fields.</span>
+<span class="sd">            The message is made of fields separated by NULL character&quot;&quot;&quot;</span>
+            <span class="n">fields</span>      <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\0</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>   <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Messages.get_inbound_action"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.messages.Messages.get_inbound_action">[docs]</a>        <span class="nd">@staticmethod</span>
+        <span class="k">def</span> <span class="nf">get_inbound_action</span><span class="p">(</span><span class="n">message_id</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">action</span><span class="p">,</span> <span class="n">action_id</span> <span class="ow">in</span> <span class="n">Messages</span><span class="o">.</span><span class="n">inbound</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">action_id</span> <span class="o">==</span> <span class="n">message_id</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">action</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">ibkr-api</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Overview</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview/architecture.html">IBKR_API Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview/quick_start.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview/quick_start.html#request-handlers">Request Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview/faq.html">F.A.Q</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../samples/client_application.html">Client Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/modules.html">ibkr_api</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, David Orkin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

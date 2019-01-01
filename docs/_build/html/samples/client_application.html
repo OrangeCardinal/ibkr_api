@@ -1,0 +1,139 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Client Application &#8212; ibkr-api  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ibkr_api" href="../source/modules.html" />
+    <link rel="prev" title="F.A.Q" href="../overview/faq.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="client-application">
+<h1>Client Application<a class="headerlink" href="#client-application" title="Permalink to this headline">¶</a></h1>
+<p>To help get you started browse some representative usages of the API</p>
+<div class="section" id="how-to-create-a-market-scanner-subscription">
+<h2>How to Create a Market Scanner Subscription<a class="headerlink" href="#how-to-create-a-market-scanner-subscription" title="Permalink to this headline">¶</a></h2>
+<p>First create a Scanner object. This will contain the primary criteria to scan the market by.
+Once we configure the scanner object, all we need to do is call request_scanner_subscription to start receiving data</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">()</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">instrument</span>      <span class="o">=</span> <span class="s2">&quot;STK&quot;</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">location_code</span>   <span class="o">=</span> <span class="s2">&quot;STK.US.MAJOR&quot;</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">scan_code</span>       <span class="o">=</span> <span class="s2">&quot;HOT_BY_VOLUME&quot;</span>
+<span class="n">request_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_local_request_id</span><span class="p">()</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">request_scanner_subscription</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span> <span class="n">scanner</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The Bridge will periodically continue to refresh this information, so if the data is no longer required. It can be
+stopped by calling cancel_scanner_subscription with the same request id that was supplied to the initial request.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">cancel_scanner_subscription</span><span class="p">(</span><span class="n">request_id</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">ibkr-api</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Overview</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview/architecture.html">IBKR_API Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/quick_start.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/quick_start.html#request-handlers">Request Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/faq.html">F.A.Q</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Client Application</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-create-a-market-scanner-subscription">How to Create a Market Scanner Subscription</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../source/modules.html">ibkr_api</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../overview/faq.html" title="previous chapter">F.A.Q</a></li>
+      <li>Next: <a href="../source/modules.html" title="next chapter">ibkr_api</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, David Orkin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/samples/client_application.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
