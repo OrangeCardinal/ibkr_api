@@ -1,5 +1,6 @@
 from ibkr_api.base.api_calls import ApiCalls
-from ibkr_api.base import MessageParser
+from ibkr_api.base.message_parser import MessageParser
+
 import logging
 import time
 
