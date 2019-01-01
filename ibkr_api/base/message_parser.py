@@ -137,18 +137,16 @@ class MessageParser(object):
                 tagValue.value :bytearray(fields[]).decode()
                 contract.secIdList.append(tagValue)
 
-        if self.server_version >= MIN_SERVER_VER_AGG_GROUP:
-            contract.aggGroup = int(fields[])
 
-        if self.server_version >= MIN_SERVER_VER_UNDERLYING_INFO:
-            contract.underSymbol :bytearray(fields[]).decode()
-            contract.underSecType :bytearray(fields[]).decode()
+        contract.aggGroup = int(fields[])
 
-        if self.server_version >= MIN_SERVER_VER_MARKET_RULES:
-            contract.marketRuleIds :bytearray(fields[]).decode()
 
-        if self.server_version >= MIN_SERVER_VER_REAL_EXPIRATION_DATE:
-            contract.realExpirationDate :bytearray(fields[]).decode()
+        contract.underSymbol = bytearray(fields[]).decode()
+        contract.underSecType = bytearray(fields[]).decode()
+
+
+        contract.marketRuleIds = bytearray(fields[]).decode()
+        contract.realExpirationDate = bytearray(fields[]).decode()
         """
         return request_id, message_id, contract
 
@@ -634,12 +632,12 @@ class MessageParser(object):
 
         order.basisPoints         = float(fields[73])
         order.basisPointsType     = int(fields[74])
-        contract.comboLegsDescrip = bytearray(fields[75]).decode()  # ver 14 field
+        contract.combo_legs_description = bytearray(fields[75]).decode()  # ver 14 field
 
 
         # Process the contract's combo legs
         combo_legs_count = int(fields[77])
-        contract.comboLegs = []
+        contract.combo_legs = []
         field_index = 78
         for _ in range(combo_legs_count):
             combo_leg = {
@@ -653,7 +651,7 @@ class MessageParser(object):
                 'exemptCode'         : int(fields[field_index+7])
             }
             field_index += 8
-            contract.comboLegs.append(combo_leg)
+            contract.combo_legs.append(combo_leg)
 
         # Process the order's combo legs
         order_combo_legs_count = int(fields[field_index])
@@ -712,10 +710,10 @@ class MessageParser(object):
         # Process the delta neutral contract
         deltaNeutralContractPresent = int(fields[field_index]) == 1
         if deltaNeutralContractPresent:
-            contract.deltaNeutralContract = Contract()
-            contract.deltaNeutralContract.contract_id = int(fields[field_index+1])
-            contract.deltaNeutralContract.delta = float(fields[field_index+2])
-            contract.deltaNeutralContract.price = float(fields[field_index+3])
+            contract.delta_neutral_contract = Contract()
+            contract.delta_neutral_contract.contract_id = int(fields[field_index + 1])
+            contract.delta_neutral_contract.delta = float(fields[field_index + 2])
+            contract.delta_neutral_contract.price = float(fields[field_index + 3])
             field_index += 4
         else:
             field_index += 1
@@ -858,7 +856,7 @@ class MessageParser(object):
         execution                                   = Execution()
         execution.order_id                          = order_id
         execution.id                                = bytearray(fields[14]).decode()
-        execution.time                              = bytearray(fields[15]).decode()
+        execution.datetime                          = MessageParser._parse_ib_date(bytearray(fields[15]).decode())
         execution.account_number                    = bytearray(fields[16]).decode()
         execution.exchange                          = bytearray(fields[17]).decode()
         execution.side                              = bytearray(fields[18]).decode()
@@ -867,13 +865,14 @@ class MessageParser(object):
         execution.permId                            = int(fields[21])
         execution.client_id                         = int(fields[22])
         execution.liquidation                       = int(fields[23])
-        execution.cumQty                            = float(fields[24])
-        execution.avgPrice                          = float(fields[25])
-        execution.orderRef                          = bytearray(fields[26]).decode()
+        execution.quantity                          = float(fields[24])
+        execution.average_price                     = float(fields[25])
+        execution.order_reference                   = bytearray(fields[26]).decode()
         execution.ev_rule                           = bytearray(fields[27]).decode()
         execution.ev_multiplier                     = bytearray(fields[28]).decode()
         execution.model_code                        = bytearray(fields[29]).decode()
         execution.last_liquidity                    = int(fields[30])
+        execution.contract                          = contract
 
         data = {'execution':execution , 'contract':contract}
         return message_id, request_id, data
@@ -974,7 +973,7 @@ class MessageParser(object):
         message_id = int(fields[0])
         request_id = int(fields[1])
 
-        #deltaNeutralContract = DeltaNeutralContract() #TODO: decide if we should have a DeltaNeutralContract
+        #delta_neutral_contract = DeltaNeutralContract() #TODO: decide if we should have a DeltaNeutralContract
         delta_neutral_contract = Contract()
 
         delta_neutral_contract.contract_id = int(fields[2])
@@ -1088,7 +1087,7 @@ class MessageParser(object):
     def security_definition_option_parameter_end(fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        return
+        return None
 
 
     @staticmethod
@@ -1124,14 +1123,15 @@ class MessageParser(object):
         field_index = 2
         for _ in range(num_exchanges):
             desc = {
-                'exchange'        : bytearray(fields[field_index]).decode(),
-                'security_type'   : bytearray(fields[field_index+1]).decode(),
-                'listing_exhange' : bytearray(fields[field_index+2]).decode(),
-                'serviceDataType' : bytearray(fields[field_index+3]).decode(),
-                'aggGroup'        : int(fields[field_index+4])
+                'exchange'          : bytearray(fields[field_index]).decode(),
+                'security_type'     : bytearray(fields[field_index+1]).decode(),
+                'listing_exchange'  : bytearray(fields[field_index+2]).decode(),
+                'service_data_type' : bytearray(fields[field_index+3]).decode(),
+                'agg_group'         : int(fields[field_index+4])
             }
             field_index += 5
             depth_mkt_data_descriptions.append(desc)
+        return message_id, depth_mkt_data_descriptions
 
     @staticmethod
     def tick_news(fields):
@@ -1173,10 +1173,16 @@ class MessageParser(object):
     def historical_news(fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        time = bytearray(fields[2]).decode()
-        providerCode = bytearray(fields[3]).decode()
-        articleId = bytearray(fields[4]).decode()
-        headline = bytearray(fields[5]).decode()
+
+        news = {
+            'time'          : bytearray(fields[2]).decode(),
+            'provider_code' : bytearray(fields[3]).decode(),
+            'article_id'    : bytearray(fields[4]).decode(),
+            'headline'      : bytearray(fields[5]).decode()
+        }
+        return message_id, request_id, news
+
+
 
     @staticmethod
     def historical_news_end(fields):
@@ -1374,3 +1380,4 @@ class MessageParser(object):
             midPoint = float(fields[4])
 
 
+        return message_id, request_id

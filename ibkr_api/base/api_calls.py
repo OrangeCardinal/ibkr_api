@@ -99,13 +99,7 @@ class ApiCalls(object):
         fields = [message_id, message_version, request_id, contract.id, contract.symbol,
                   contract.security_type, contract.last_trade_date_or_contract_month, contract.strike,
                   contract.right, contract.multiplier, contract.exchange, contract.primary_exchange,
-                  contract.currency, contract.local_symbol]
-
-        if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
-            fields.append(contract.trading_class)
-
-        fields.extend([option_price, underlying_price])
-
+                  contract.currency, contract.local_symbol, contract.trading_class, option_price, underlying_price]
 
         implVolOptStr = ""
         tag_values_count = len(implVolOptions) if implVolOptions else 0
@@ -175,7 +169,7 @@ class ApiCalls(object):
 
         request_id:int - The request ID.  """
         message_version = 1
-        message_id = Messages.outbound['cancel_calc_implied_volat']
+        message_id = Messages.outbound['cancel_calculate_implied_volatility']
         fields = [message_id, message_version, request_id]
         self.conn.send_message(fields)
 
@@ -445,10 +439,10 @@ class ApiCalls(object):
 
         # Send combo legs for BAG requests (srv v8 and above)
         if contract.security_type == "BAG":
-            comboLegsCount = len(contract.comboLegs) if contract.comboLegs else 0
+            comboLegsCount = len(contract.combo_legs) if contract.combo_legs else 0
             fields.append(comboLegsCount)
             if comboLegsCount > 0:
-                for comboLeg in contract.comboLegs:
+                for comboLeg in contract.combo_legs:
                     assert comboLeg
                     fields += [comboLeg.conId,
                                comboLeg.ratio,
@@ -495,11 +489,11 @@ class ApiCalls(object):
                    order.good_after_time,
                    order.good_till_date,
 
-                   order.fa_group,  
-                   order.fa_method,  
-                   order.fa_percentage,  
-                   order.fa_profile,
-                   order.model_code
+                   order.financial_advisers_group,
+                   order.financial_advisers_method,
+                   order.financial_advisers_percentage,
+                   order.financial_advisers_profile,
+                   order.modelCode
                    ]
 
 
@@ -509,7 +503,7 @@ class ApiCalls(object):
                     order.exemptCode]
 
 
-        fields.append(order.ocaType)
+        fields.append(order.oca_type)
 
         fields += [order.rule80A,
                    order.settlingFirm,
@@ -587,11 +581,11 @@ class ApiCalls(object):
             fields.append(order.notHeld)
 
         if self.server_version() >= MIN_SERVER_VER_DELTA_NEUTRAL:
-            if contract.deltaNeutralContract:
+            if contract.delta_neutral_contract:
                 fields += [True,
-                           contract.deltaNeutralContract.conId,
-                           contract.deltaNeutralContract.delta,
-                           contract.deltaNeutralContract.price]
+                           contract.delta_neutral_contract.conId,
+                           contract.delta_neutral_contract.delta,
+                           contract.delta_neutral_contract.price]
             else:
                 fields.append(False)
 
@@ -1176,8 +1170,8 @@ class ApiCalls(object):
 
        # Send combo legs for BAG requests
         if contract.security_type == "BAG":
-            fields.append(len(contract.comboLegs))
-            for comboLeg in contract.comboLegs:
+            fields.append(len(contract.combo_legs))
+            for comboLeg in contract.combo_legs:
                 fields.append(comboLeg.contract_id)
                 fields.append(comboLeg.ratio)
                 fields.append(comboLeg.action)
@@ -1197,17 +1191,17 @@ class ApiCalls(object):
 
 
     @check_connection
-    def request_news_bulletins(self, allMsgs: bool):
-        """Call this function to start receiving news bulletins. Each bulletin
-        will be returned by the updateNewsBulletin() event.
+    def request_news_bulletins(self, all_messages: bool):
+        """
+        Request to receive news bulletins.
 
-        allMsgs:bool - If set to TRUE, returns all the existing bulletins for
-        the currencyent day and any new ones. If set to FALSE, will only
-        return new bulletins. """
-
+        :param all_messages: If set to TRUE, returns all the existing bulletins for the current day
+                             If set to FALSE, will only return new bulletins.
+        :return:
+        """
         message_version = 1
-        message_id = Messages.outbound['request_news_bulletins']
-        fields = [message_id, message_version, allMsgs]
+        message_id      = Messages.outbound['request_news_bulletins']
+        fields          = [message_id, message_version, all_messages]
         self.conn.send_message(fields)
 
     @check_connection
@@ -1307,9 +1301,9 @@ class ApiCalls(object):
 
         # Send combo legs for BAG requests (srv v8 and above)
         if contract.security_type == "BAG":
-            combo_leg_count = len(contract.comboLegs) if contract.comboLegs else 0
+            combo_leg_count = len(contract.combo_legs) if contract.combo_legs else 0
             fields.append(combo_leg_count)
-            for comboLeg in contract.comboLegs:
+            for comboLeg in contract.combo_legs:
                 fields.append(comboLeg.conId)
                 fields.append(comboLeg.ratio)
                 fields.append(comboLeg.action)
@@ -1317,11 +1311,11 @@ class ApiCalls(object):
 
         # Send Delta Neutral Contract Fields
         if self.server_version() >= MIN_SERVER_VER_DELTA_NEUTRAL:
-            if contract.deltaNeutralContract:
+            if contract.delta_neutral_contract:
                 fields.append(True)
-                fields.append(contract.deltaNeutralContract.conId)
-                fields.append(contract.deltaNeutralContract.delta)
-                fields.append(contract.deltaNeutralContract.price)
+                fields.append(contract.delta_neutral_contract.conId)
+                fields.append(contract.delta_neutral_contract.delta)
+                fields.append(contract.delta_neutral_contract.price)
             else:
                 fields.append(False)
 

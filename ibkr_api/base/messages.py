@@ -103,7 +103,7 @@ class Messages(object):
             'request_all_open_orders'                           : 16 ,
             'request_managed_accounts'                          : 17 ,
             'request_fa'                                        : 18 ,
-            'replace_fa'                                        : 19 ,
+            'replace_financial_advisor'                         : 19 ,
             'request_historical_data'                           : 20 ,
             'exercise_options'                                  : 21 ,
             'request_scanner_subscription'                      : 22 ,
