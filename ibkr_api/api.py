@@ -175,6 +175,17 @@ class IBKR_API(ApiCalls):
         data = self._process_response('cancel_head_time_stamp')
         return data
 
+    def cancel_histogram_data(self, request_id: int):
+        """
+        Cancels a prior request to stream histogram data.
+
+        :param request_id: The request identifier from the call to request_histogram_data to be cancelled
+        :return:
+        """
+        super().cancel_histogram_data(request_id)
+        # Process the response from the bridge
+        data = self._process_response('')
+        return data
 
     def cancel_historical_data(self, request_id: int):
         """Used if an internet disconnect has occurred or the results of a query
@@ -199,12 +210,14 @@ class IBKR_API(ApiCalls):
         return data
 
     def cancel_market_depth(self, request_id: int, is_smart_depth: bool):
-        """After calling this function, market depth data for the specified id
-        will stop flowing.
+        """
+        Cancels previous calls to request_market_depth (so that data will stop being received)
 
-        request_id:int - The ID that was specified in the call to
-            reqMktDepth().
-        isSmartDepth:bool - specifies SMART depth request"""
+        :param request_id: Request ID of the initial call to request_market_depth
+        :param is_smart_depth:
+        :return:
+        """
+
         # Process the response from the bridge
         super().cancel_market_depth(request_id, is_smart_depth)
         data = self._process_response('cancel_market_depth')
@@ -282,6 +295,49 @@ class IBKR_API(ApiCalls):
 
         # Process the response from the bridge
         data = self._process_response('cancel_tick_by_tick_data')
+        return data
+
+    def exercise_options(self, request_id: int, contract: Contract,
+                         exercise_action: int, exercise_quantity: int,
+                         account: str, override: int):
+        """
+        Exercise an existing option position
+        
+        :param request_id: Unique Identifier for the this request 
+        :param contract: Option to be exercised (TODO: Switch to Option model later)
+        :param exercise_action: Specifies if you want the option to lapse or be exercised (1 - exercise, 2 - lapse)
+        :param exercise_quantity: The quanity to be exercised 
+        :param account: 
+        :param override: Specifies whether your setting will override the system's natural action. 
+                         For example, if your action is "exercise" and the option is not in-the-money, 
+                         by natural action the option would not exercise. If you have override set to "yes" the 
+                         natural action would be overridden and the out-of-the money option would be exercised.
+                         (0 - don't override, 1 - override) 
+        :return: 
+        """
+        # Make the underlying API call
+        request_id = self.get_local_request_id()
+        super().exercise_options(request_id, contract, exercise_action, exercise_quantity, account, override)
+
+        # Process the response from the bridge
+        data = self._process_response('')
+        return data
+
+    def replace_financial_advisor(self, financial_advisor_data: int, xml_data: str):
+        """
+        Replaces the Financial Advisor Configuration Information from the API.
+        (This can also be done manually in TWS itself)
+
+        :param financial_advisor_data: The type of Financial Advisor configuration data being requested.
+                                       (1 = GROUPS , 2 = PROFILE , 3 = ACCOUNT ALIASES)
+        :param xml_data: The XML string containing the new FA configuration information.
+        :return:
+        """
+
+        super().replace_financial_advisor(financial_advisor_data, xml_data)
+
+        # Process the response from the bridge
+        data = self._process_response('replace_financial_advisor')
         return data
 
     def request_account_updates(self, subscribe: bool, account_code: str):
@@ -409,27 +465,6 @@ class IBKR_API(ApiCalls):
         return data
 
     # Not alphabetic
-    def exercise_options(self, request_id: int, contract: Contract,
-                         exercize_action: int, exercize_quantity: int,
-                         account: str, override: int):
-        """request_id:int - The ticker id. multipleust be a unique value.
-        contract:Contract - This structure contains a description of the
-            contract to be exercised
-        exercize_action:int - Specifies whether you want the option to lapse
-            or be exercised.
-            Values are 1 = exercise, 2 = lapse.
-        exercize_quantity:int - The quantity you want to exercise.
-        account:str - destination account
-        override:int - Specifies whether your setting will override the system's
-            natural action. For example, if your action is "exercise" and the
-            option is not in-the-money, by natural action the option would not
-            exercise. If you have override set to "yes" the natural action would
-             be overridden and the out-of-the money option would be exercised.
-            Values are: 0 = no, 1 = yes."""
-        # Process the response from the bridge
-        data = self._process_response('')
-        return data
-
     def place_order(self, order_id: int, contract: Contract, order: Order):
         """Call this function to place an order. The order status will
         be returned by the orderStatus event.
@@ -444,24 +479,6 @@ class IBKR_API(ApiCalls):
         # Process the response from the bridge
         data = self._process_response('')
         return data
-
-    def replace_financial_advisor(self, financial_advisor_data: int, cxml: str):
-        """Call this function to modify FA configuration information from the
-        API. Note that this can also be done manually in TWS itself.
-
-        financial_advisor_data:int - Specifies the type of Financial Advisor configuration data being requested.
-        Valid values include:
-            1 = GROUPS
-            2 = PROFILE
-            3 = ACCOUNT ALIASES
-        cxml: str - The XML string containing the new FA configuration
-            information.  """
-
-        super().replace_financial_advisor(financial_advisor_data, cxml)
-        # Process the response from the bridge
-        data = self._process_response('replace_fa')
-        return data
-
 
     def request_account_updates_multi(self,
                                       account: str,
@@ -484,12 +501,22 @@ class IBKR_API(ApiCalls):
         return data
 
     def request_account_summary(self, request_id: int, group_name: str, tags: str):
+        """
+        Request the bridge to return the same data that appears in the TWS Account Window Summary Tab.
+        Note:   This request is designed for an FA managed account but can be used for any multi-account structure.
+
+        :param request_id: Integer to uniquely identify this request to the Bridge
+        :param group_name:
+        :param tags:
+        :return:
+        """
+
+
+
+
         """Call this method to request and keep up to date the data that appears
         on the TWS Account Window Summary tab. The data is returned by
         accountSummary().
-
-        Note:   This request is designed for an FA managed account but can be
-        used for any multi-account structure.
 
         request_id:int - The ID of the data request. Ensures that responses are matched
             to requests If several requests are in process.
@@ -536,7 +563,8 @@ class IBKR_API(ApiCalls):
             $LEDGER:CURRENCY - Single flag to relay all cash balance tags*, only in
                 the specified currency.
             $LEDGER:ALL - Single flag to relay all cash balance tags* in all
-            currencies."""
+            currencies.
+            """
 
         # Process the response from the bridge
         super().request_account_summary(request_id, group_name, tags)
@@ -784,9 +812,14 @@ class IBKR_API(ApiCalls):
         return data
 
     def subscribe_to_group_events(self, request_id: int, group_id: int):
-        """request_id:int - The unique number associated with the notification.
-        group_id:int - The ID of the group, currently it is a number from 1 to 7.
-            This is the display group subscription request sent by the API to TWS."""
+        """
+        This is the display group subscription request sent by the API to TWS.
+
+        :param request_id:
+        :param group_id: int - The ID of the group, currently it is a number from 1 to 7.
+        :return:
+        """
+
         # Process the response from the bridge
         super().subscribe_to_group_events(request_id,group_id)
         data = self._process_response('subscribe_to_group_events')
@@ -818,6 +851,22 @@ class IBKR_API(ApiCalls):
     def request_historical_data(self, contract: Contract, end_date_time: str,
                                 duration: str, bar_size_setting: str, what_to_show: str,
                                 use_rth: int, format_date: int, keep_up_to_date: bool, chart_options: list):
+        """
+        Request Historical Data
+
+        :param contract:
+        :param end_date_time:
+        :param duration:
+        :param bar_size_setting:
+        :param what_to_show:
+        :param use_rth:
+        :param format_date:
+        :param keep_up_to_date:
+        :param chart_options:
+        :return:
+        """
+
+
         """Requests contracts' historical data. When requesting historical data, a
         finishing time and date is required along with a duration string. The
         resulting bars will be returned in EWrapper.historicalData()
@@ -876,13 +925,14 @@ class IBKR_API(ApiCalls):
         data = self._process_response('historical_data')
         return data
 
-    def request_news_bulletins(self, allMsgs: bool):
-        """Call this function to start receiving news bulletins. Each bulletin
-        will be returned by the updateNewsBulletin() event.
-
-        allMsgs:bool - If set to TRUE, returns all the existing bulletins for
-        the currencyent day and any new ones. If set to FALSE, will only
-        return new bulletins. """
+    def request_news_bulletins(self, all_messages: bool):
+        """
+        Calls request_news_bulletins() API and then waits for the Bridge's response
+        :param all_messages: bool
+        :return: 
+        """
+        
+        super().request_news_bulletins(all_messages)
         # Process the response from the bridge
         data = self._process_response('')
         return data
@@ -987,6 +1037,20 @@ class IBKR_API(ApiCalls):
                              is_smart_depth         : bool,
                              market_depth_options   : list
                              ):
+        """
+        Request market dept data for a given contract
+
+        Related Inbound Messages
+        update_market_depth
+        update_market_depth_l2
+
+        :param contract:
+        :param num_rows:
+        :param is_smart_depth:
+        :param market_depth_options:
+        :return:
+        """
+
         """Call this function to request market depth for a specific
         contract. The market depth will be returned by the updateMktDepth() and
         updateMktDepthL2() events.
@@ -1039,17 +1103,22 @@ class IBKR_API(ApiCalls):
         data = self._process_response('')
         return data
 
-    def cancel_histogram_data(self, request_id: int):
-        # Process the response from the bridge
-        data = self._process_response('')
-        return data
-
     def request_real_time_bars(self, request_id: int, contract: Contract, barSize: int,
                                whatToShow: str, useRTH: bool,
                                realTimeBarsOptions: list):
-        """Call the reqRealTimeBars() function to start receiving real time bar
-        results through the realtimeBar() EWrapper function.
+        """
+        Request to to begin streaming real time bar data
 
+        :param request_id:
+        :param contract:
+        :param barSize:
+        :param whatToShow:
+        :param useRTH:
+        :param realTimeBarsOptions:
+        :return:
+        """
+
+        """
         request_id:int - The Id for the request. Must be a unique value. When the
             data is received, it will be identified by this Id. This is also
             used when canceling the request.
@@ -1139,14 +1208,17 @@ class IBKR_API(ApiCalls):
         return data
 
     def update_display_group(self, request_id: int, contract_info: str):
-        """request_id:int - The requestId specified in subscribeToGroupEvents().
-        contract_info:str - The encoded value that uniquely represents the
-            contract in IB. Possible values include:
+        """
 
-            none = empty selection
-            contractID@exchange - any non-combination contract.
-                Examples: 8314@SMART for IBM SMART; 8314@ARCA for IBM @ARCA.
-            combo = if any combo is selected."""
+        :param request_id: The requestId specified in subscribeToGroupEvents().
+        :param contract_info: The encoded value that uniquely represents the contract in IB.
+                              Possible values include:
+                                    none = empty selection
+                                    contractID@exchange - any non-combination contract.
+                                    Examples: 8314@SMART for IBM SMART; 8314@ARCA for IBM @ARCA.
+                                    combo = if any combo is selected.
+        :return:
+        """
         # Process the response from the bridge
         data = self._process_response('')
         return data
