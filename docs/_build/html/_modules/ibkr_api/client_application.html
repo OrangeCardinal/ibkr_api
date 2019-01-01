@@ -71,7 +71,8 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ClientApplication.managed_accounts"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.managed_accounts">[docs]</a>    <span class="k">def</span> <span class="nf">managed_accounts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">account</span><span class="p">):</span>
-        <span class="k">pass</span></div>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Message Id: </span><span class="si">{0}</span><span class="s2">, Request ID: </span><span class="si">{1}</span><span class="s2">, Account: </span><span class="si">{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">account</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ClientApplication.position_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.position_data">[docs]</a>    <span class="k">def</span> <span class="nf">position_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span><span class="n">position_data</span><span class="p">):</span>
@@ -122,6 +123,7 @@
                     <span class="c1"># Call the response handler as needed</span>
                     <span class="c1"># If we are in development also send a warning that a handler doesnt exist</span>
                     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]):</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Calling method &#39;</span><span class="si">{0}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]))</span>
                         <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">])</span>
                         <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">)</span>
                     <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_mode</span><span class="p">:</span>

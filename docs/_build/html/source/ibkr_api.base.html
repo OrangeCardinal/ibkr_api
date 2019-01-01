@@ -775,12 +775,19 @@ market_depth_options:list - For internal use only. Use default value</p>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_news_bulletins">
-<code class="descname">request_news_bulletins</code><span class="sig-paren">(</span><em>allMsgs: bool</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_news_bulletins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_news_bulletins" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call this function to start receiving news bulletins. Each bulletin
-will be returned by the updateNewsBulletin() event.</p>
-<p>allMsgs:bool - If set to TRUE, returns all the existing bulletins for
-the currencyent day and any new ones. If set to FALSE, will only
-return new bulletins.</p>
+<code class="descname">request_news_bulletins</code><span class="sig-paren">(</span><em>all_messages: bool</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_news_bulletins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_news_bulletins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request to receive news bulletins.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>all_messages</strong> – If set to TRUE, returns all the existing bulletins for the current day
+If set to FALSE, will only return new bulletins.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -1470,7 +1477,7 @@ Contains the next request id that can be used
 
 <dl class="attribute">
 <dt id="ibkr_api.base.messages.Messages.outbound">
-<code class="descname">outbound</code><em class="property"> = {'cancel_account_summary': 63, 'cancel_account_updates_multi': 77, 'cancel_calc_option_price': 57, 'cancel_calculate_implied_volatility': 56, 'cancel_fundamental_data': 53, 'cancel_head_timestamp': 90, 'cancel_histogram_data': 89, 'cancel_historical_data': 25, 'cancel_market_data': 2, 'cancel_market_depth': 11, 'cancel_news_bulletins': 13, 'cancel_order': 4, 'cancel_pnl': 93, 'cancel_pnl_single': 95, 'cancel_positions': 64, 'cancel_positions_multi': 75, 'cancel_real_time_bars': 51, 'cancel_scanner_subscription': 23, 'cancel_tick_by_tick_data': 98, 'exercise_options': 21, 'place_order': 3, 'query_display_groups': 67, 'replace_fa': 19, 'request_account_data': 6, 'request_account_summary': 62, 'request_account_updates_multi': 76, 'request_all_open_orders': 16, 'request_auto_open_orders': 15, 'request_calc_implied_volatility': 54, 'request_calc_option_price': 55, 'request_contract_data': 9, 'request_current_time': 49, 'request_executions': 7, 'request_fa': 18, 'request_family_codes': 80, 'request_fundamental_data': 52, 'request_global_cancel': 58, 'request_head_timestamp': 87, 'request_histogram_data': 88, 'request_historical_data': 20, 'request_historical_news': 86, 'request_historical_ticks': 96, 'request_ids': 8, 'request_managed_accounts': 17, 'request_market_data': 1, 'request_market_data_type': 59, 'request_market_depth': 10, 'request_market_depth_exchanges': 82, 'request_market_rule': 91, 'request_matching_symbols': 81, 'request_news_article': 84, 'request_news_bulletins': 12, 'request_news_providers': 85, 'request_open_orders': 5, 'request_pnl': 92, 'request_pnl_single': 94, 'request_positions': 61, 'request_positions_multi': 74, 'request_real_time_bars': 50, 'request_scanner_parameters': 24, 'request_scanner_subscription': 22, 'request_security_definition_option_parameters': 78, 'request_smart_components': 83, 'request_soft_dollar_tiers': 79, 'request_tick_by_tick_data': 97, 'set_server_loglevel': 14, 'start_api': 71, 'subscribe_to_group_events': 68, 'unsubscribe_from_group_events': 70, 'update_display_group': 69, 'verify_and_auth_message': 73, 'verify_and_auth_request': 72, 'verify_message': 66, 'verify_request': 65}</em><a class="headerlink" href="#ibkr_api.base.messages.Messages.outbound" title="Permalink to this definition">¶</a></dt>
+<code class="descname">outbound</code><em class="property"> = {'cancel_account_summary': 63, 'cancel_account_updates_multi': 77, 'cancel_calc_option_price': 57, 'cancel_calculate_implied_volatility': 56, 'cancel_fundamental_data': 53, 'cancel_head_timestamp': 90, 'cancel_histogram_data': 89, 'cancel_historical_data': 25, 'cancel_market_data': 2, 'cancel_market_depth': 11, 'cancel_news_bulletins': 13, 'cancel_order': 4, 'cancel_pnl': 93, 'cancel_pnl_single': 95, 'cancel_positions': 64, 'cancel_positions_multi': 75, 'cancel_real_time_bars': 51, 'cancel_scanner_subscription': 23, 'cancel_tick_by_tick_data': 98, 'exercise_options': 21, 'place_order': 3, 'query_display_groups': 67, 'replace_financial_advisor': 19, 'request_account_data': 6, 'request_account_summary': 62, 'request_account_updates_multi': 76, 'request_all_open_orders': 16, 'request_auto_open_orders': 15, 'request_calc_implied_volatility': 54, 'request_calc_option_price': 55, 'request_contract_data': 9, 'request_current_time': 49, 'request_executions': 7, 'request_fa': 18, 'request_family_codes': 80, 'request_fundamental_data': 52, 'request_global_cancel': 58, 'request_head_timestamp': 87, 'request_histogram_data': 88, 'request_historical_data': 20, 'request_historical_news': 86, 'request_historical_ticks': 96, 'request_ids': 8, 'request_managed_accounts': 17, 'request_market_data': 1, 'request_market_data_type': 59, 'request_market_depth': 10, 'request_market_depth_exchanges': 82, 'request_market_rule': 91, 'request_matching_symbols': 81, 'request_news_article': 84, 'request_news_bulletins': 12, 'request_news_providers': 85, 'request_open_orders': 5, 'request_pnl': 92, 'request_pnl_single': 94, 'request_positions': 61, 'request_positions_multi': 74, 'request_real_time_bars': 50, 'request_scanner_parameters': 24, 'request_scanner_subscription': 22, 'request_security_definition_option_parameters': 78, 'request_smart_components': 83, 'request_soft_dollar_tiers': 79, 'request_tick_by_tick_data': 97, 'set_server_loglevel': 14, 'start_api': 71, 'subscribe_to_group_events': 68, 'unsubscribe_from_group_events': 70, 'update_display_group': 69, 'verify_and_auth_message': 73, 'verify_and_auth_request': 72, 'verify_message': 66, 'verify_request': 65}</em><a class="headerlink" href="#ibkr_api.base.messages.Messages.outbound" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="staticmethod">

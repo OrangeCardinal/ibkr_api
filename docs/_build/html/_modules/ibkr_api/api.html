@@ -209,6 +209,17 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;cancel_head_time_stamp&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
+<div class="viewcode-block" id="IBKR_API.cancel_histogram_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.cancel_histogram_data">[docs]</a>    <span class="k">def</span> <span class="nf">cancel_histogram_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Cancels a prior request to stream histogram data.</span>
+
+<span class="sd">        :param request_id: The request identifier from the call to request_histogram_data to be cancelled</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">cancel_histogram_data</span><span class="p">(</span><span class="n">request_id</span><span class="p">)</span>
+        <span class="c1"># Process the response from the bridge</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.cancel_historical_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.cancel_historical_data">[docs]</a>    <span class="k">def</span> <span class="nf">cancel_historical_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Used if an internet disconnect has occurred or the results of a query</span>
@@ -233,12 +244,14 @@
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.cancel_market_depth"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.cancel_market_depth">[docs]</a>    <span class="k">def</span> <span class="nf">cancel_market_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">is_smart_depth</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;After calling this function, market depth data for the specified id</span>
-<span class="sd">        will stop flowing.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Cancels previous calls to request_market_depth (so that data will stop being received)</span>
 
-<span class="sd">        request_id:int - The ID that was specified in the call to</span>
-<span class="sd">            reqMktDepth().</span>
-<span class="sd">        isSmartDepth:bool - specifies SMART depth request&quot;&quot;&quot;</span>
+<span class="sd">        :param request_id: Request ID of the initial call to request_market_depth</span>
+<span class="sd">        :param is_smart_depth:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="c1"># Process the response from the bridge</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">cancel_market_depth</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span> <span class="n">is_smart_depth</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;cancel_market_depth&#39;</span><span class="p">)</span>
@@ -316,6 +329,49 @@
 
         <span class="c1"># Process the response from the bridge</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;cancel_tick_by_tick_data&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="IBKR_API.exercise_options"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.exercise_options">[docs]</a>    <span class="k">def</span> <span class="nf">exercise_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
+                         <span class="n">exercise_action</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">exercise_quantity</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                         <span class="n">account</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">override</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Exercise an existing option position</span>
+<span class="sd">        </span>
+<span class="sd">        :param request_id: Unique Identifier for the this request </span>
+<span class="sd">        :param contract: Option to be exercised (TODO: Switch to Option model later)</span>
+<span class="sd">        :param exercise_action: Specifies if you want the option to lapse or be exercised (1 - exercise, 2 - lapse)</span>
+<span class="sd">        :param exercise_quantity: The quanity to be exercised </span>
+<span class="sd">        :param account: </span>
+<span class="sd">        :param override: Specifies whether your setting will override the system&#39;s natural action. </span>
+<span class="sd">                         For example, if your action is &quot;exercise&quot; and the option is not in-the-money, </span>
+<span class="sd">                         by natural action the option would not exercise. If you have override set to &quot;yes&quot; the </span>
+<span class="sd">                         natural action would be overridden and the out-of-the money option would be exercised.</span>
+<span class="sd">                         (0 - don&#39;t override, 1 - override) </span>
+<span class="sd">        :return: </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Make the underlying API call</span>
+        <span class="n">request_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_local_request_id</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">exercise_options</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="p">,</span> <span class="n">exercise_action</span><span class="p">,</span> <span class="n">exercise_quantity</span><span class="p">,</span> <span class="n">account</span><span class="p">,</span> <span class="n">override</span><span class="p">)</span>
+
+        <span class="c1"># Process the response from the bridge</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="IBKR_API.replace_financial_advisor"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.replace_financial_advisor">[docs]</a>    <span class="k">def</span> <span class="nf">replace_financial_advisor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">financial_advisor_data</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">xml_data</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replaces the Financial Advisor Configuration Information from the API.</span>
+<span class="sd">        (This can also be done manually in TWS itself)</span>
+
+<span class="sd">        :param financial_advisor_data: The type of Financial Advisor configuration data being requested.</span>
+<span class="sd">                                       (1 = GROUPS , 2 = PROFILE , 3 = ACCOUNT ALIASES)</span>
+<span class="sd">        :param xml_data: The XML string containing the new FA configuration information.</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">replace_financial_advisor</span><span class="p">(</span><span class="n">financial_advisor_data</span><span class="p">,</span> <span class="n">xml_data</span><span class="p">)</span>
+
+        <span class="c1"># Process the response from the bridge</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;replace_financial_advisor&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.request_account_updates"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_account_updates">[docs]</a>    <span class="k">def</span> <span class="nf">request_account_updates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subscribe</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">account_code</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
@@ -443,27 +499,6 @@
         <span class="k">return</span> <span class="n">data</span></div>
 
     <span class="c1"># Not alphabetic</span>
-<div class="viewcode-block" id="IBKR_API.exercise_options"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.exercise_options">[docs]</a>    <span class="k">def</span> <span class="nf">exercise_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
-                         <span class="n">exercize_action</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">exercize_quantity</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-                         <span class="n">account</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">override</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;request_id:int - The ticker id. multipleust be a unique value.</span>
-<span class="sd">        contract:Contract - This structure contains a description of the</span>
-<span class="sd">            contract to be exercised</span>
-<span class="sd">        exercize_action:int - Specifies whether you want the option to lapse</span>
-<span class="sd">            or be exercised.</span>
-<span class="sd">            Values are 1 = exercise, 2 = lapse.</span>
-<span class="sd">        exercize_quantity:int - The quantity you want to exercise.</span>
-<span class="sd">        account:str - destination account</span>
-<span class="sd">        override:int - Specifies whether your setting will override the system&#39;s</span>
-<span class="sd">            natural action. For example, if your action is &quot;exercise&quot; and the</span>
-<span class="sd">            option is not in-the-money, by natural action the option would not</span>
-<span class="sd">            exercise. If you have override set to &quot;yes&quot; the natural action would</span>
-<span class="sd">             be overridden and the out-of-the money option would be exercised.</span>
-<span class="sd">            Values are: 0 = no, 1 = yes.&quot;&quot;&quot;</span>
-        <span class="c1"># Process the response from the bridge</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span></div>
-
 <div class="viewcode-block" id="IBKR_API.place_order"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.place_order">[docs]</a>    <span class="k">def</span> <span class="nf">place_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">order</span><span class="p">:</span> <span class="n">Order</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Call this function to place an order. The order status will</span>
 <span class="sd">        be returned by the orderStatus event.</span>
@@ -478,24 +513,6 @@
         <span class="c1"># Process the response from the bridge</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
-
-<div class="viewcode-block" id="IBKR_API.replace_financial_advisor"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.replace_financial_advisor">[docs]</a>    <span class="k">def</span> <span class="nf">replace_financial_advisor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">financial_advisor_data</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cxml</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call this function to modify FA configuration information from the</span>
-<span class="sd">        API. Note that this can also be done manually in TWS itself.</span>
-
-<span class="sd">        financial_advisor_data:int - Specifies the type of Financial Advisor configuration data being requested.</span>
-<span class="sd">        Valid values include:</span>
-<span class="sd">            1 = GROUPS</span>
-<span class="sd">            2 = PROFILE</span>
-<span class="sd">            3 = ACCOUNT ALIASES</span>
-<span class="sd">        cxml: str - The XML string containing the new FA configuration</span>
-<span class="sd">            information.  &quot;&quot;&quot;</span>
-
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">replace_financial_advisor</span><span class="p">(</span><span class="n">financial_advisor_data</span><span class="p">,</span> <span class="n">cxml</span><span class="p">)</span>
-        <span class="c1"># Process the response from the bridge</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;replace_fa&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span></div>
-
 
 <div class="viewcode-block" id="IBKR_API.request_account_updates_multi"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_account_updates_multi">[docs]</a>    <span class="k">def</span> <span class="nf">request_account_updates_multi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                       <span class="n">account</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -518,12 +535,22 @@
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.request_account_summary"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_account_summary">[docs]</a>    <span class="k">def</span> <span class="nf">request_account_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">group_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Request the bridge to return the same data that appears in the TWS Account Window Summary Tab.</span>
+<span class="sd">        Note:   This request is designed for an FA managed account but can be used for any multi-account structure.</span>
+
+<span class="sd">        :param request_id: Integer to uniquely identify this request to the Bridge</span>
+<span class="sd">        :param group_name:</span>
+<span class="sd">        :param tags:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+
+
         <span class="sd">&quot;&quot;&quot;Call this method to request and keep up to date the data that appears</span>
 <span class="sd">        on the TWS Account Window Summary tab. The data is returned by</span>
 <span class="sd">        accountSummary().</span>
-
-<span class="sd">        Note:   This request is designed for an FA managed account but can be</span>
-<span class="sd">        used for any multi-account structure.</span>
 
 <span class="sd">        request_id:int - The ID of the data request. Ensures that responses are matched</span>
 <span class="sd">            to requests If several requests are in process.</span>
@@ -570,7 +597,8 @@
 <span class="sd">            $LEDGER:CURRENCY - Single flag to relay all cash balance tags*, only in</span>
 <span class="sd">                the specified currency.</span>
 <span class="sd">            $LEDGER:ALL - Single flag to relay all cash balance tags* in all</span>
-<span class="sd">            currencies.&quot;&quot;&quot;</span>
+<span class="sd">            currencies.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
 
         <span class="c1"># Process the response from the bridge</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_account_summary</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span> <span class="n">group_name</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span>
@@ -818,9 +846,14 @@
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.subscribe_to_group_events"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.subscribe_to_group_events">[docs]</a>    <span class="k">def</span> <span class="nf">subscribe_to_group_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">group_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;request_id:int - The unique number associated with the notification.</span>
-<span class="sd">        group_id:int - The ID of the group, currently it is a number from 1 to 7.</span>
-<span class="sd">            This is the display group subscription request sent by the API to TWS.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This is the display group subscription request sent by the API to TWS.</span>
+
+<span class="sd">        :param request_id:</span>
+<span class="sd">        :param group_id: int - The ID of the group, currently it is a number from 1 to 7.</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="c1"># Process the response from the bridge</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">subscribe_to_group_events</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span><span class="n">group_id</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;subscribe_to_group_events&#39;</span><span class="p">)</span>
@@ -852,6 +885,22 @@
 <div class="viewcode-block" id="IBKR_API.request_historical_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_historical_data">[docs]</a>    <span class="k">def</span> <span class="nf">request_historical_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">end_date_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
                                 <span class="n">duration</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bar_size_setting</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">what_to_show</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
                                 <span class="n">use_rth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">format_date</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">keep_up_to_date</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">chart_options</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Request Historical Data</span>
+
+<span class="sd">        :param contract:</span>
+<span class="sd">        :param end_date_time:</span>
+<span class="sd">        :param duration:</span>
+<span class="sd">        :param bar_size_setting:</span>
+<span class="sd">        :param what_to_show:</span>
+<span class="sd">        :param use_rth:</span>
+<span class="sd">        :param format_date:</span>
+<span class="sd">        :param keep_up_to_date:</span>
+<span class="sd">        :param chart_options:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
         <span class="sd">&quot;&quot;&quot;Requests contracts&#39; historical data. When requesting historical data, a</span>
 <span class="sd">        finishing time and date is required along with a duration string. The</span>
 <span class="sd">        resulting bars will be returned in EWrapper.historicalData()</span>
@@ -910,13 +959,14 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;historical_data&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="IBKR_API.request_news_bulletins"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_news_bulletins">[docs]</a>    <span class="k">def</span> <span class="nf">request_news_bulletins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allMsgs</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call this function to start receiving news bulletins. Each bulletin</span>
-<span class="sd">        will be returned by the updateNewsBulletin() event.</span>
-
-<span class="sd">        allMsgs:bool - If set to TRUE, returns all the existing bulletins for</span>
-<span class="sd">        the currencyent day and any new ones. If set to FALSE, will only</span>
-<span class="sd">        return new bulletins. &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="IBKR_API.request_news_bulletins"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_news_bulletins">[docs]</a>    <span class="k">def</span> <span class="nf">request_news_bulletins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_messages</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calls request_news_bulletins() API and then waits for the Bridge&#39;s response</span>
+<span class="sd">        :param all_messages: bool</span>
+<span class="sd">        :return: </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_news_bulletins</span><span class="p">(</span><span class="n">all_messages</span><span class="p">)</span>
         <span class="c1"># Process the response from the bridge</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
@@ -1021,6 +1071,20 @@
                              <span class="n">is_smart_depth</span>         <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
                              <span class="n">market_depth_options</span>   <span class="p">:</span> <span class="nb">list</span>
                              <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Request market dept data for a given contract</span>
+
+<span class="sd">        Related Inbound Messages</span>
+<span class="sd">        update_market_depth</span>
+<span class="sd">        update_market_depth_l2</span>
+
+<span class="sd">        :param contract:</span>
+<span class="sd">        :param num_rows:</span>
+<span class="sd">        :param is_smart_depth:</span>
+<span class="sd">        :param market_depth_options:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="sd">&quot;&quot;&quot;Call this function to request market depth for a specific</span>
 <span class="sd">        contract. The market depth will be returned by the updateMktDepth() and</span>
 <span class="sd">        updateMktDepthL2() events.</span>
@@ -1073,17 +1137,22 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="IBKR_API.cancel_histogram_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.cancel_histogram_data">[docs]</a>    <span class="k">def</span> <span class="nf">cancel_histogram_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="c1"># Process the response from the bridge</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span></div>
-
 <div class="viewcode-block" id="IBKR_API.request_real_time_bars"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_real_time_bars">[docs]</a>    <span class="k">def</span> <span class="nf">request_real_time_bars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">barSize</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                                <span class="n">whatToShow</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">useRTH</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
                                <span class="n">realTimeBarsOptions</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call the reqRealTimeBars() function to start receiving real time bar</span>
-<span class="sd">        results through the realtimeBar() EWrapper function.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Request to to begin streaming real time bar data</span>
 
+<span class="sd">        :param request_id:</span>
+<span class="sd">        :param contract:</span>
+<span class="sd">        :param barSize:</span>
+<span class="sd">        :param whatToShow:</span>
+<span class="sd">        :param useRTH:</span>
+<span class="sd">        :param realTimeBarsOptions:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        request_id:int - The Id for the request. Must be a unique value. When the</span>
 <span class="sd">            data is received, it will be identified by this Id. This is also</span>
 <span class="sd">            used when canceling the request.</span>
@@ -1173,14 +1242,17 @@
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.update_display_group"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.update_display_group">[docs]</a>    <span class="k">def</span> <span class="nf">update_display_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract_info</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;request_id:int - The requestId specified in subscribeToGroupEvents().</span>
-<span class="sd">        contract_info:str - The encoded value that uniquely represents the</span>
-<span class="sd">            contract in IB. Possible values include:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="sd">            none = empty selection</span>
-<span class="sd">            contractID@exchange - any non-combination contract.</span>
-<span class="sd">                Examples: 8314@SMART for IBM SMART; 8314@ARCA for IBM @ARCA.</span>
-<span class="sd">            combo = if any combo is selected.&quot;&quot;&quot;</span>
+<span class="sd">        :param request_id: The requestId specified in subscribeToGroupEvents().</span>
+<span class="sd">        :param contract_info: The encoded value that uniquely represents the contract in IB.</span>
+<span class="sd">                              Possible values include:</span>
+<span class="sd">                                    none = empty selection</span>
+<span class="sd">                                    contractID@exchange - any non-combination contract.</span>
+<span class="sd">                                    Examples: 8314@SMART for IBM SMART; 8314@ARCA for IBM @ARCA.</span>
+<span class="sd">                                    combo = if any combo is selected.</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Process the response from the bridge</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>

@@ -523,11 +523,11 @@
                    <span class="n">order</span><span class="o">.</span><span class="n">good_after_time</span><span class="p">,</span>
                    <span class="n">order</span><span class="o">.</span><span class="n">good_till_date</span><span class="p">,</span>
 
-                   <span class="n">order</span><span class="o">.</span><span class="n">fa_group</span><span class="p">,</span>  
-                   <span class="n">order</span><span class="o">.</span><span class="n">fa_method</span><span class="p">,</span>  
-                   <span class="n">order</span><span class="o">.</span><span class="n">fa_percentage</span><span class="p">,</span>  
-                   <span class="n">order</span><span class="o">.</span><span class="n">fa_profile</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">model_code</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">financial_advisers_group</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">financial_advisers_method</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">financial_advisers_percentage</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">financial_advisers_profile</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">modelCode</span>
                    <span class="p">]</span>
 
 
@@ -537,7 +537,7 @@
                     <span class="n">order</span><span class="o">.</span><span class="n">exemptCode</span><span class="p">]</span>
 
 
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">ocaType</span><span class="p">)</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">oca_type</span><span class="p">)</span>
 
         <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">rule80A</span><span class="p">,</span>
                    <span class="n">order</span><span class="o">.</span><span class="n">settlingFirm</span><span class="p">,</span>
@@ -1225,17 +1225,17 @@
 
 
 <div class="viewcode-block" id="ApiCalls.request_news_bulletins"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_news_bulletins">[docs]</a>    <span class="nd">@check_connection</span>
-    <span class="k">def</span> <span class="nf">request_news_bulletins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allMsgs</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call this function to start receiving news bulletins. Each bulletin</span>
-<span class="sd">        will be returned by the updateNewsBulletin() event.</span>
+    <span class="k">def</span> <span class="nf">request_news_bulletins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_messages</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Request to receive news bulletins.</span>
 
-<span class="sd">        allMsgs:bool - If set to TRUE, returns all the existing bulletins for</span>
-<span class="sd">        the currencyent day and any new ones. If set to FALSE, will only</span>
-<span class="sd">        return new bulletins. &quot;&quot;&quot;</span>
-
+<span class="sd">        :param all_messages: If set to TRUE, returns all the existing bulletins for the current day</span>
+<span class="sd">                             If set to FALSE, will only return new bulletins.</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_news_bulletins&#39;</span><span class="p">]</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">allMsgs</span><span class="p">]</span>
+        <span class="n">message_id</span>      <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_news_bulletins&#39;</span><span class="p">]</span>
+        <span class="n">fields</span>          <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">all_messages</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request_pnl"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_pnl">[docs]</a>    <span class="nd">@check_connection</span>
