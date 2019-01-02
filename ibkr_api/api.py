@@ -93,20 +93,28 @@ class IBKR_API(ApiCalls):
 
         return all_data
 
-    def calculate_implied_volatility(self, request_id: int, contract: Contract,
-                                     option_price: float, underlying_price: float,
-                                     implied_vol_options: list):
-        """Call this function to calculate volatility for a supplied
-        option price and underlying price. Result will be delivered
-        via EWrapper.tickOptionComputation()
+    def calculate_implied_volatility(self,
+                                     contract               : Contract,
+                                     option_price           : float,
+                                     underlying_price       : float,
+                                     implied_vol_options    : list):
+        """
+        Make the calculate_implied_volatility function
 
-        request_id:int -  The request id.
-        contract:Contract -  Describes the contract.
-        option_price:double - The price of the option.
-        underlying_price:double - Price of the underlying."""
+
+        :param contract: Option Contract which we want to get the Implied Volatility For
+        :param option_price: Current Option Price
+        :param underlying_price: Underlying Price
+        :param implied_vol_options:
+        :return:
+        """
+
+        # Make the Underlying API Call
+        request_id = self.get_local_request_id()
         super().calculate_implied_volatility(request_id, contract, option_price, underlying_price, implied_vol_options)
+
         # Process the response from the bridge
-        data = self._process_response('symbol_samples')
+        data = self._process_response('tick_option_computation')
         return data
 
     def calculate_option_price(self, request_id: int, contract: Contract,
@@ -1027,6 +1035,8 @@ class IBKR_API(ApiCalls):
         generates new IDs and increments the next valid ID therein).
 
         num_ids:int - deprecated"""
+        super().request_ids(num_ids)
+
         # Process the response from the bridge
         data = self._process_response('')
         return data
