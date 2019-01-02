@@ -14,6 +14,7 @@ IBKR_API - Supporting Greed Monsters since 2019
    overview/installation
    overview/quick_start
    overview/faq
+   samples/ibkr_api
    samples/client_application
    source/modules
 

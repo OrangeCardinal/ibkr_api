@@ -1,6 +1,6 @@
-==================
-Client Application
-==================
+=================
+ClientApplication
+=================
 To help get you started browse some representative usages of the API
 
 
