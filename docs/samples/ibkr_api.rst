@@ -7,6 +7,7 @@ This page has several snippets for common tasks that you may want to do with thi
 Initial Setup
 -----
 .. code-block:: python
+
     from ibkr_api.api import IBKR_API
     from ibkr_api.classes.contracts.contract import Contract
     from ibkr_api.classes.stocks.dow30 import Dow30
@@ -19,6 +20,7 @@ Initial Setup
 Get all linked accounts (aka 'Family Codes')
 --------------------------------------------
 .. code-block:: python
+
     family_codes = ibkr.request_family_codes()
     for code in family_codes:
         desc = "{0} - {1}".format(code['account_id'],code['family_code'])
@@ -27,6 +29,7 @@ Get all linked accounts (aka 'Family Codes')
 Find All Contracts that Match 'TSLA'
 ------------------------------------
 .. code-block:: python
+
     request_id, contracts = ibkr.request_matching_symbols('TSLA')
     for c in contracts:
         print(c)
@@ -38,6 +41,7 @@ Find All Contracts that Match 'TSLA'
 Display Account Positions
 -------------------------
 .. code-block:: python
+
     position_data = ibkr.request_positions()
     for data in position_data:
         c = data['contract']
@@ -47,6 +51,7 @@ Display Account Positions
 Get the option chains for all Dow 30 Stocks
 -------------------------------------------
 .. code-block:: python
+
     dow30 = Dow30()
     for stk in dow.stocks():
         stk = ibkr.request_contract_data(stk)
@@ -57,6 +62,7 @@ Get the option chains for all Dow 30 Stocks
 Get the Last Year of Daily Prices for XOM
 -----------------------------------------
 .. code-block:: python
+
     dow30 = Dow30()
     # contract = Contract(symbol="XOM", security_type="STK") - Another way to get a contract
     contract = dow30.XOM()
