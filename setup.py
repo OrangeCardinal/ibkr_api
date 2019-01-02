@@ -8,7 +8,7 @@ setuptools.setup(
     version                         = "0.0.0"                                                       ,
     author                          = "David Orkin"                                                 ,
     author_email                    = "orange.cardinal@gmail.com"                                   ,
-    description                     = "OFFICIALLY the best, unofficial python IBKR API Clients"     ,
+    description                     = "OFFICIALLY the best unofficial python API Client for Interactive Brokers (TWS)",
     long_description                = long_description                                              ,
     long_description_content_type   = "text/markdown"                                               ,
     url                             = "https://github.com/OrangeCardinal/ibkr_api"                  ,
