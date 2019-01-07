@@ -1258,6 +1258,17 @@ class ApiCalls(object):
     @check_connection
     def request_market_data(self, request_id: int, contract: Contract, generic_tick_list: str,
                             snapshot: bool, regulatory_snapshot: bool, market_data_options: list):
+        """
+
+        :param request_id:
+        :param contract:
+        :param generic_tick_list:
+        :param snapshot:
+        :param regulatory_snapshot:
+        :param market_data_options:
+        :return:
+        """
+
         """Call this function to request market data. The market data
                 will be returned by the tickPrice and tickSize events.
 
@@ -1282,24 +1293,15 @@ class ApiCalls(object):
         message_version = 11
 
         # send req market data msg
-        insert_offset = 0
         message_id = Messages.outbound['request_market_data']
-        fields = [message_id, message_version, request_id, contract.symbol, contract.security_type,
+        fields = [message_id, message_version, request_id, contract.id, contract.symbol, contract.security_type,
                           contract.last_trade_date_or_contract_month,
                           contract.strike, contract.right, contract.multiplier, contract.exchange,
                           contract.primary_exchange,
-                          contract.currency, contract.local_symbol]
+                          contract.currency, contract.local_symbol, contract.trading_class]
 
-        # Send Contract Fields
-        if self.server_version() >= MIN_SERVER_VER_REQ_MKT_DATA_CONID:
-            fields.insert(3, contract.id)
-            insert_offset += 1
 
-        if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
-            fields.append(contract.trading_class)
-            insert_offset += 1
-
-        # Send combo legs for BAG requests (srv v8 and above)
+        # Send Combo Legs for BAG Requests
         if contract.security_type == "BAG":
             combo_leg_count = len(contract.combo_legs) if contract.combo_legs else 0
             fields.append(combo_leg_count)
@@ -1310,29 +1312,18 @@ class ApiCalls(object):
                 fields.append(comboLeg.exchange)
 
         # Send Delta Neutral Contract Fields
-        if self.server_version() >= MIN_SERVER_VER_DELTA_NEUTRAL:
-            if contract.delta_neutral_contract:
-                fields.append(True)
-                fields.append(contract.delta_neutral_contract.conId)
-                fields.append(contract.delta_neutral_contract.delta)
-                fields.append(contract.delta_neutral_contract.price)
-            else:
-                fields.append(False)
+        if contract.delta_neutral_contract:
+            fields.append(True)
+            fields.append(contract.delta_neutral_contract.conId)
+            fields.append(contract.delta_neutral_contract.delta)
+            fields.append(contract.delta_neutral_contract.price)
+        else:
+            fields.append(False)
 
-        fields.append(generic_tick_list)
-        fields.append(snapshot)
 
-        if self.server_version() >= MIN_SERVER_VER_REQ_SMART_COMPONENTS:
-            fields.append(regulatory_snapshot)
-
-        # send mktDataOptions parameter
-        # TODO: Clarify if the code is beneficial
-        # if self.server_version() >= MIN_SERVER_VER_LINKING:
-        #    # current doc says this part if for "internal use only" -> won't support it
-        #    if mktDataOptions:
-        #        raise NotImplementedError("not supported")
-        #    mktDataOptionsStr = ""
-        #    fields += [mktDataOptionsStr), ]
+        # TODO: Clarify what market_data_options is for
+        market_data_options = ""
+        fields.extend([generic_tick_list, snapshot, regulatory_snapshot, market_data_options])
 
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
