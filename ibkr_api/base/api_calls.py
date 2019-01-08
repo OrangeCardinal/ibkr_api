@@ -893,10 +893,10 @@ class ApiCalls(object):
                                  end_date_time: str, number_of_ticks: int, whatToShow: str, useRth: int,
                                  ignoreSize: bool, miscOptions: list):
 
-        miscOptionsString = ""
+        misc_options_string = ""
         if miscOptions:
             for tagValue in miscOptions:
-                miscOptionsString += str(tagValue)
+                misc_options_string += str(tagValue)
 
         message_id = Messages.outbound['request_historical_ticks']
         fields = [message_id, request_id, contract.id, contract.symbol, contract.security_type,
@@ -904,7 +904,7 @@ class ApiCalls(object):
                   contract.exchange, contract.primary_exchange, contract.currency, contract.local_symbol,
                   contract.trading_class,
                   contract.include_expired, startDateTime, end_date_time, number_of_ticks, whatToShow, useRth,
-                  ignoreSize, miscOptionsString]
+                  ignoreSize, misc_options_string]
         self.conn.send_message(fields)
 
     @check_connection
@@ -1218,18 +1218,19 @@ class ApiCalls(object):
         self.conn.send_message(fields)
 
     @check_connection
-    def request_tick_by_tick_data(self, request_id: int, contract: Contract, tick_type: str,
-                                  number_of_ticks: int, ignoreSize: bool):
+    def request_tick_by_tick_data(self,
+                                  request_id        : int,
+                                  contract          : Contract,
+                                  tick_type         : str,
+                                  number_of_ticks   : int,
+                                  ignore_size       : bool):
 
         message_id = Messages.outbound['request_tick_by_tick_data']
         fields = [message_id, request_id, contract.id, contract.symbol, contract.security_type,
                   contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
                   contract.exchange, contract.primary_exchange, contract.currency, contract.local_symbol,
-                  contract.trading_class, tick_type
+                  contract.trading_class, tick_type, number_of_ticks, ignore_size
                   ]
-
-        fields.append(number_of_ticks)
-        fields.append(ignoreSize)
 
         self.conn.send_message(fields)
 
@@ -1239,7 +1240,7 @@ class ApiCalls(object):
 
         return self.server_version_
 
-    def verify_request(self, apiName: str, api_version: str):
+    def verify_request(self, api_name: str, api_version: str):
         """
         Allows for an application to request what the correct message should be for a given api/version.
         """
@@ -1252,14 +1253,20 @@ class ApiCalls(object):
 
         message_version = 1
         message_id = Messages.outbound['verify_request']
-        fields = [message_id, message_version, apiName, api_version]
+        fields = [message_id, message_version, api_name, api_version]
         self._send_message(fields)
 
     @check_connection
     def request_market_data(self, request_id: int, contract: Contract, generic_tick_list: str,
                             snapshot: bool, regulatory_snapshot: bool, market_data_options: list):
         """
+        Related Inbound Messages / Functions
+        ------------------------
+        tick_price
+        tick_size
 
+        Parameters
+        ----------
         :param request_id:
         :param contract:
         :param generic_tick_list:
@@ -1268,6 +1275,7 @@ class ApiCalls(object):
         :param market_data_options:
         :return:
         """
+
 
         """Call this function to request market data. The market data
                 will be returned by the tickPrice and tickSize events.
@@ -1541,8 +1549,8 @@ class ApiCalls(object):
         self.conn.send_message(fields)
 
     @check_connection
-    def request__real_time_bars(self, request_id: int, contract: Contract, barSize: int,
-                                whatToShow: str, useRTH: bool,
+    def request__real_time_bars(self, request_id: int, contract: Contract, bar_size: int,
+                                what_to_show: str, use_rth: bool,
                                 realTimeBarsOptions: list):
         """Call the reqRealTimeBars() function to start receiving real time bar
         results through the realtimeBar() EWrapper function.
@@ -1552,15 +1560,15 @@ class ApiCalls(object):
             used when canceling the request.
         contract:Contract - This object contains a description of the contract
             for which real time bars are being requested
-        barSize:int - Currently only 5 second bars are supported, if any other
+        bar_size:int - Currently only 5 second bars are supported, if any other
             value is used, an exception will be thrown.
-        whatToShow:str - Determines the nature of the data extracted. Valid
+        what_to_show:str - Determines the nature of the data extracted. Valid
             values include:
             TRADES
             BID
             ASK
             MIDPOINT
-        useRTH:bool - Regular Trading Hours only. Valid values include:
+        use_rth:bool - Regular Trading Hours only. Valid values include:
             0 = all data available during the time span requested is returned,
                 including time intervals when the market in question was
                 outside of regular trading hours.
@@ -1571,28 +1579,18 @@ class ApiCalls(object):
 
         message_version = 3
         message_id = Messages.outbound['request_real_time_bars']
-        fields = [message_id, message_version, request_id]
-
-        # send contract fields
-        fields.append(contract.id)
-
-        fields.extend([contract.symbol, contract.security_type, contract.last_trade_date_or_contract_month,
-                       contract.strike, contract.right, contract.multiplier, contract.exchange,
-                       contract.primary_exchange,
-                       contract.currency, contract.local_symbol])
-
-
-        fields += [contract.trading_class, ]
-
-        fields += [barSize, whatToShow, useRTH]
+        fields = [message_id, message_version, request_id, contract.id,
+                  contract.symbol, contract.security_type, contract.last_trade_date_or_contract_month,
+                  contract.strike, contract.right, contract.multiplier, contract.exchange,
+                  contract.primary_exchange, contract.currency, contract.local_symbol,
+                  contract.trading_class, bar_size, what_to_show, use_rth]
 
         # send realTimeBarsOptions parameter
-        if self.server_version() >= MIN_SERVER_VER_LINKING:
-            realTimeBarsOptionsStr = ""
-            if realTimeBarsOptions:
-                for tagValueOpt in realTimeBarsOptions:
-                    realTimeBarsOptionsStr += str(tagValueOpt)
-            fields += [realTimeBarsOptionsStr, ]
+        realTimeBarsOptionsStr = ""
+        if realTimeBarsOptions:
+            for tagValueOpt in realTimeBarsOptions:
+                realTimeBarsOptionsStr += str(tagValueOpt)
+        fields += [realTimeBarsOptionsStr, ]
 
         self.conn.send_message(fields)
 
@@ -1740,28 +1738,30 @@ class ApiCalls(object):
 
     @check_connection
     def request_security_definition_option_parameters(self, request_id: int, underlying_symbol: str,
-                                                      futFopExchange: str, underlyingSecType: str,
+                                                      futFopExchange: str, underlying_security_type: str,
                                                       underlying_contract_id: int):
         """Requests security definition option parameters for viewing a
         contract's option chain request_id the ID chosen for the request
         underlying_symbol futFopExchange The exchange on which the returned
         options are trading. Can be set to the empty string "" for all
-        exchanges. underlyingSecType The type of the underlying security,
+        exchanges. underlying_security_type The type of the underlying security,
         i.e. STK underlying_contract_id the contract ID of the underlying security.
         Response comes via EWrapper.securityDefinitionOptionParameter()
         """
 
         message_id = Messages.outbound['request_security_definition_option_parameters']
         fields = [message_id, request_id, underlying_symbol,
-                  futFopExchange, underlyingSecType, underlying_contract_id]
+                  futFopExchange, underlying_security_type, underlying_contract_id]
         message = self.conn.make_message(fields)
         self.conn.send_message(message)
 
     @check_connection
     def request_soft_dollar_tiers(self, request_id: int):
-        """Requests pre-defined Soft Dollar Tiers. This is only supported for
-        registered professional advisors and hedge and mutual funds who have
-        configured Soft Dollar Tiers in Account Management."""
+        """
+        Requests pre-defined Soft Dollar Tiers.
+        This is only supported for registered professional advisers, hedge funds, and mutual funds who have
+        configured Soft Dollar Tiers in Account Management.
+        """
 
         message_id = Messages.outbound['request_soft_dollar_tiers']
         fields = [message_id, request_id]
@@ -1770,6 +1770,10 @@ class ApiCalls(object):
 
     @check_connection
     def request_family_codes(self):
+        """
+        Get Information on Related Accounts (aka "Family Codes")
+        :return:
+        """
 
         message_id = Messages.outbound['request_family_codes']
         fields = [message_id]
