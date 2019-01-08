@@ -479,54 +479,104 @@ class MessageParser(object):
 
     @staticmethod
     def tick_price(fields):
-        message_id = int(fields[0])
-        request_id = int(fields[1])
-        tick_type = int(fields[2])
-        price = float(fields[3])
-        size = int(fields[4])
-        attr_mask = int(fields[5])
+        """
+        Process tick_price messages received from the Bridge (TWS/IB Gateway)
 
-        # attrib = TickAttrib()
-        attributes ={
-            'can_auto_execute' : attr_mask & 1 != 0,
-            'past_limit' : attr_mask & 2 != 0 ,
-            'pre_open': attr_mask & 4 != 0
+        :param fields:
+        :return:
+        """
+        message_id      = int(fields[0])
+        request_id      = int(fields[2])
+        tick_type_id    = int(fields[3])
+        price           = float(fields[4])
+        size            = int(fields[5])
+        attr_mask       = int(fields[6])
+
+        tick_data =    {
+            'tick_type_id'      : tick_type_id          ,
+            'size'              : size                  ,
+            'price'             : price                 ,
+            'can_auto_execute'  : attr_mask & 1 != 0    ,
+            'past_limit'        : attr_mask & 2 != 0    ,
+            'pre_open'          : attr_mask & 4 != 0
         }
 
+
+        #TODO: Check if this code is needed
         # process ver 2 fields
-        size_tick_type = TickType.NOT_SET
-        if TickType.BID == tick_type:
-            size_tick_type = TickType.BID_SIZE
-        elif TickType.ASK == tick_type:
-            size_tick_type = TickType.ASK_SIZE
-        elif TickType.LAST == tick_type:
-            size_tick_type = TickType.LAST_SIZE
-        elif TickType.DELAYED_BID == tick_type:
-            size_tick_type = TickType.DELAYED_BID_SIZE
-        elif TickType.DELAYED_ASK == tick_type:
-            size_tick_type = TickType.DELAYED_ASK_SIZE
-        elif TickType.DELAYED_LAST == tick_type:
-            size_tick_type = TickType.DELAYED_LAST_SIZE
+        #size_tick_type = TickType.NOT_SET
+        #if TickType.BID == tick_type:
+        #    size_tick_type = TickType.BID_SIZE
+        #elif TickType.ASK == tick_type:
+        #    size_tick_type = TickType.ASK_SIZE
+        #elif TickType.LAST == tick_type:
+        #    size_tick_type = TickType.LAST_SIZE
+        #elif TickType.DELAYED_BID == tick_type:
+        #    size_tick_type = TickType.DELAYED_BID_SIZE
+        #elif TickType.DELAYED_ASK == tick_type:
+        #    size_tick_type = TickType.DELAYED_ASK_SIZE
+        #elif TickType.DELAYED_LAST == tick_type:
+        #    size_tick_type = TickType.DELAYED_LAST_SIZE
 
-        if size_tick_type != TickType.NOT_SET:
-            pass
+        #if size_tick_type != TickType.NOT_SET:
+        #    pass
 
+        return message_id, request_id, tick_data
+
+    @staticmethod
+    def tick_request_params(fields):
+        print(fields)
+        message_id = int(fields[0])
+        request_id = int(fields[1])
+        data = {
+            'min_tick'              : float(fields[2])                  ,
+            'bbo_exchange'          : bytearray(fields[3]).decode()     ,
+            'snapshot_permisions'   : bytearray(fields[4]).decode()
+        }
+        return message_id, request_id, data
+
+    @staticmethod
+    def tick_size(fields):
+        print(len(fields))
+        print(fields)
+        message_id = int(fields[0])
+        #TODO: Figure out what fields[1] is
+
+        request_id = int(fields[2])
+        data = {
+            'tick_type_id'  :   int(fields[3])  ,
+            'size'          :   int(fields[4])  ,
+        }
+
+        return message_id, request_id, data
+
+    @staticmethod
+    def tick_string(fields):
+        message_id = int(fields[0])
+        #TODO: Figure out what fields[1] is
+        request_id = int(fields[2])
+        data = {
+            'tick_type_id': int(fields[3]),
+            'value'       : bytearray(fields[4])
+        }
+
+        return message_id, request_id, data
 
     @staticmethod
     def order_status(fields):
         info = {
-            'message_id': int(fields[0]),
-            'order_id' : int(fields[1]),
-            'status' : bytearray(fields[2]).decode(),
-            'filled' : float(fields[3]),
-            'remaining' : float(fields[4]),
-            'average_fill_price':float(fields[5]),
-            'perm_id':int(fields[6]),
-            'parent_id':int(fields[7]),
-            'last_fill_price':int(fields[8]),
-            'client_id':int(fields[9]),
-            'why_held':bytearray(fields[10]).decode(),
-            'market_cap_price':float(fields[11]),
+            'message_id'            : int(fields[0]),
+            'order_id'              : int(fields[1]),
+            'status'                : bytearray(fields[2]).decode(),
+            'filled'                : float(fields[3]),
+            'remaining'             : float(fields[4]),
+            'average_fill_price'    : float(fields[5]),
+            'perm_id'               : int(fields[6]),
+            'parent_id'             : int(fields[7]),
+            'last_fill_price'       : int(fields[8]),
+            'client_id'             : int(fields[9]),
+            'why_held'              : bytearray(fields[10]).decode(),
+            'market_cap_price'      : float(fields[11]),
         }
         return info
 
@@ -581,34 +631,34 @@ class MessageParser(object):
         order.fa_method                             = bytearray(fields[32]).decode()
         order.fa_percentage                         = bytearray(fields[33]).decode()
         order.fa_profile                            = bytearray(fields[34]).decode()
-        order.modelCode                             = bytearray(fields[35]).decode()
-        order.goodTillDate                          = bytearray(fields[36]).decode()  # ver 8 field
-        order.rule80A                               = bytearray(fields[37]).decode()  # ver 9 field
+        order.model_code                            = bytearray(fields[35]).decode()
+        order.good_till_date                        = bytearray(fields[36]).decode()
+        order.rule80A                               = bytearray(fields[37]).decode()
         order.percent_offset                        = float(fields[38])
-        order.settlingFirm                          = bytearray(fields[39]).decode()  # ver 9 field
-        order.shortSaleSlot                         = int(fields[40])  # ver 9 field
-        order.designatedLocation                    = bytearray(fields[41]).decode()  # ver 9 field
-        order.exemptCode                            = int(fields[42])
-        order.auctionStrategy    = int(fields[43])
-        order.startingPrice      = float(fields[44])
-        order.stockRefPrice      = float(fields[45])
-        order.delta              = float(fields[46])
-        order.stockRangeLower    = float(fields[47])
-        order.stockRangeUpper    = float(fields[48])
-        order.displaySize        = float(fields[49])
+        order.settling_firm                         = bytearray(fields[39]).decode()
+        order.short_sale_slot                       = int(fields[40])
+        order.designated_location                   = bytearray(fields[41]).decode()
+        order.exempt_code                           = int(fields[42])
+        order.auction_strategy                      = int(fields[43])
+        order.startingPrice                         = float(fields[44])
+        order.stockRefPrice                         = float(fields[45])
+        order.delta                                 = float(fields[46])
+        order.stockRangeLower                       = float(fields[47])
+        order.stockRangeUpper                       = float(fields[48])
+        order.displaySize                           = float(fields[49])
 
 
-        order.blockOrder    = int(fields[48]) == 1
-        order.sweepToFill   = int(fields[49]) == 1
-        order.allOrNone     = int(fields[50]) == 1
-        order.min_qty        = int(fields[51])
-        order.ocaType       = int(fields[52])
-        order.eTradeOnly    = int(fields[53]) == 1
-        order.firmQuoteOnly = int(fields[54]) == 1
-        order.nbboPriceCap  = float(fields[55])
+        order.block_order                           = int(fields[48]) == 1
+        order.sweep_to_fill                         = int(fields[49]) == 1
+        order.all_or_none                           = int(fields[50]) == 1
+        order.min_qty                               = int(fields[51])
+        order.oca_type                              = int(fields[52])
+        order.eTradeOnly                            = int(fields[53]) == 1
+        order.firm_quote_only                       = int(fields[54]) == 1
+        order.nbbo_price_cap                        = float(fields[55])
 
-        order.parent_id      = int(fields[56])
-        order.trigger_method = int(fields[57])
+        order.parent_id                             = int(fields[56])
+        order.trigger_method                        = int(fields[57])
 
         order.volatility = float(fields[58])
         order.volatility_type = int(fields[59])
