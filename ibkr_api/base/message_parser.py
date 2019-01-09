@@ -491,6 +491,7 @@ class MessageParser(object):
         price           = float(fields[4])
         size            = int(fields[5])
         attr_mask       = int(fields[6])
+        tick_type       = TickType(tick_type_id)
 
         tick_data =    {
             'tick_type_id'      : tick_type_id          ,
@@ -498,34 +499,14 @@ class MessageParser(object):
             'price'             : price                 ,
             'can_auto_execute'  : attr_mask & 1 != 0    ,
             'past_limit'        : attr_mask & 2 != 0    ,
-            'pre_open'          : attr_mask & 4 != 0
+            'pre_open'          : attr_mask & 4 != 0    ,
+            'tick_type'         : tick_type
         }
-
-
-        #TODO: Check if this code is needed
-        # process ver 2 fields
-        #size_tick_type = TickType.NOT_SET
-        #if TickType.BID == tick_type:
-        #    size_tick_type = TickType.BID_SIZE
-        #elif TickType.ASK == tick_type:
-        #    size_tick_type = TickType.ASK_SIZE
-        #elif TickType.LAST == tick_type:
-        #    size_tick_type = TickType.LAST_SIZE
-        #elif TickType.DELAYED_BID == tick_type:
-        #    size_tick_type = TickType.DELAYED_BID_SIZE
-        #elif TickType.DELAYED_ASK == tick_type:
-        #    size_tick_type = TickType.DELAYED_ASK_SIZE
-        #elif TickType.DELAYED_LAST == tick_type:
-        #    size_tick_type = TickType.DELAYED_LAST_SIZE
-
-        #if size_tick_type != TickType.NOT_SET:
-        #    pass
 
         return message_id, request_id, tick_data
 
     @staticmethod
     def tick_request_params(fields):
-        print(fields)
         message_id = int(fields[0])
         request_id = int(fields[1])
         data = {
@@ -537,15 +518,17 @@ class MessageParser(object):
 
     @staticmethod
     def tick_size(fields):
-        print(len(fields))
-        print(fields)
         message_id = int(fields[0])
         #TODO: Figure out what fields[1] is
 
         request_id = int(fields[2])
+        tick_type_id = int(fields[3])
+        tick_type    = TickType(tick_type_id)
         data = {
-            'tick_type_id'  :   int(fields[3])  ,
+            'tick_type_id'  :   tick_type_id    ,
             'size'          :   int(fields[4])  ,
+            'tick_type'     :   tick_type
+
         }
 
         return message_id, request_id, data
@@ -1142,6 +1125,15 @@ class MessageParser(object):
 
     @staticmethod
     def smart_components(fields):
+        """
+        Parse smart_components messages and return well formatted data
+
+        :param fields:
+        :returns: bit_number      - ????
+                  exchange        - Name of the Exchange
+                  exchange_letter - the one letter code for the given exchange
+        """
+
         message_id       = int(fields[0])
         request_id       = int(fields[1])
         num_components   = int(fields[2])
@@ -1149,10 +1141,11 @@ class MessageParser(object):
         smart_components = []
         for _ in range(num_components):
             smart_component = {
-                'bitNumber'      : int(fields[field_index]),
-                'exchange'       : bytearray(fields[field_index]).decode(),
-                'exchangeLetter' : bytearray(fields[field_index]).decode()
+                'bit_number'        : int(fields[field_index]),
+                'exchange'          : bytearray(fields[field_index+1]).decode(),
+                'exchange_letter'   : bytearray(fields[field_index+2]).decode()
             }
+            field_index += 3
             smart_components.append(smart_component)
         return message_id, request_id, smart_components
 
