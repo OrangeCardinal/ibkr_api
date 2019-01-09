@@ -1120,7 +1120,7 @@ class MessageParser(object):
     def security_definition_option_parameter_end(fields):
         message_id = int(fields[0])
         request_id = int(fields[1])
-        return None
+        return message_id, request_id
 
 
     @staticmethod
@@ -1229,9 +1229,17 @@ class MessageParser(object):
 
     @staticmethod
     def historical_news_end(fields):
+        """
+
+        :param fields: Bridge Message Fields
+        :return: message_id -
+        :return: request_id - The initial request's request_id
+        :return: has_more - More data is available
+        """
         message_id = int(fields[0])
         request_id = int(fields[1])
         has_more = int(fields[2]) == 1
+        return message_id, request_id, has_more
 
     @staticmethod
     def histogram_data(fields):
@@ -1253,21 +1261,21 @@ class MessageParser(object):
     @staticmethod
     def market_rule(fields):
         message_id = int(fields[0])
-        marketRuleId = int(fields[1])
+        market_rule_id = int(fields[1])
 
-        nPriceIncrements = int(fields[2])
+        n_price_increments = int(fields[2])
         field_index = 3
-        priceIncrements = []
+        price_increments = []
 
-        if nPriceIncrements > 0:
-            for _ in range(nPriceIncrements):
-                prcInc = {
-                'low_edge': float(fields[field_index]),
+        if n_price_increments > 0:
+            for _ in range(n_price_increments):
+                price_increment = {
+                'low_edge'  : float(fields[field_index]),
                 'increment' : float(fields[field_index + 1])
                 }
                 field_index += 2
-                priceIncrements.append(prcInc)
-
+                price_increments.append(price_increment)
+        return message_id, market_rule_id, price_increments
 
     @staticmethod
     def pnl(fields):
