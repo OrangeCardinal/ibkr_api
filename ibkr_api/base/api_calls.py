@@ -443,16 +443,16 @@ class ApiCalls(object):
             combo_legs_count = len(contract.combo_legs) if contract.combo_legs else 0
             fields.append(combo_legs_count)
             if combo_legs_count > 0:
-                for comboLeg in contract.combo_legs:
-                    assert comboLeg
-                    fields += [comboLeg.conId,
-                               comboLeg.ratio,
-                               comboLeg.action,
-                               comboLeg.exchange,
-                               comboLeg.openClose,
-                               comboLeg.shortSaleSlot,
-                               comboLeg.designatedLocation,
-                               comboLeg.exemptCode]
+                for combo_leg in contract.combo_legs:
+                    assert combo_leg
+                    fields += [combo_leg.conId,
+                               combo_leg.ratio,
+                               combo_leg.action,
+                               combo_leg.exchange,
+                               combo_leg.openClose,
+                               combo_leg.shortSaleSlot,
+                               combo_leg.designatedLocation,
+                               combo_leg.exemptCode]
 
         # Send order combo legs for BAG requests
         if self.server_version() >= MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE and contract.security_type == "BAG":
@@ -1099,8 +1099,27 @@ class ApiCalls(object):
             self.api_state  = "Disconnected from the Bridge Application(TWS/IB Gateway)."
 
     def request_historical_data(self, contract: Contract, end_date_time: str,
-                                duration: str, bar_size_setting: str, what_to_show: str,
+                                duration: str, bar_size_setting, what_to_show: str,
                                 use_rth: int, format_date: int, keep_up_to_date: bool, chart_options: list):
+        """
+        Make the 'historical_data' message
+        Send the message to the Bridge
+        
+        Related
+        
+        Parameters
+        ----------
+        :param contract: 
+        :param end_date_time: 
+        :param duration: 
+        :param bar_size_setting: string or `BarSize` 
+        :param what_to_show: 
+        :param use_rth: 
+        :param format_date: 
+        :param keep_up_to_date: 
+        :param chart_options: 
+        :return: 
+        """
         """Requests contracts' historical data. When requesting historical data, a
         finishing time and date is required along with a duration string. The
         resulting bars will be returned in EWrapper.historicalData()
@@ -1192,11 +1211,11 @@ class ApiCalls(object):
        # Send combo legs for BAG requests
         if contract.security_type == "BAG":
             fields.append(len(contract.combo_legs))
-            for comboLeg in contract.combo_legs:
-                fields.append(comboLeg.contract_id)
-                fields.append(comboLeg.ratio)
-                fields.append(comboLeg.action)
-                fields.append(comboLeg.exchange)
+            for combo_leg in contract.combo_legs:
+                fields.append(combo_leg.contract_id)
+                fields.append(combo_leg.ratio)
+                fields.append(combo_leg.action)
+                fields.append(combo_leg.exchange)
 
 
         fields.append(keep_up_to_date)
@@ -1215,7 +1234,9 @@ class ApiCalls(object):
     def request_news_bulletins(self, all_messages: bool):
         """
         Request to receive news bulletins.
-
+        
+        Parameters
+        ----------
         :param all_messages: If set to TRUE, returns all the existing bulletins for the current day
                              If set to FALSE, will only return new bulletins.
         :return:
@@ -1334,11 +1355,11 @@ class ApiCalls(object):
         if contract.security_type == "BAG":
             combo_leg_count = len(contract.combo_legs) if contract.combo_legs else 0
             fields.append(combo_leg_count)
-            for comboLeg in contract.combo_legs:
-                fields.append(comboLeg.conId)
-                fields.append(comboLeg.ratio)
-                fields.append(comboLeg.action)
-                fields.append(comboLeg.exchange)
+            for combo_leg in contract.combo_legs:
+                fields.append(combo_leg.conId)
+                fields.append(combo_leg.ratio)
+                fields.append(combo_leg.action)
+                fields.append(combo_leg.exchange)
 
         # Send Delta Neutral Contract Fields
         if contract.delta_neutral_contract:
@@ -1483,13 +1504,13 @@ class ApiCalls(object):
 
     @check_connection
     def request_histogram_data(self, ticker_id: int, contract: Contract,
-                               useRTH: bool, time_period: str):
+                               use_real_time_hours: bool, time_period: str):
 
         message_id = Messages.outbound['request_histogram_data']
         fields = [message_id, ticker_id, contract.id, contract.symbol, contract.security_type,
                   contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
                   contract.exchange, contract.primary_exchange, contract.currency, contract.local_symbol,
-                  contract.trading_class, contract.include_expired, useRTH,
+                  contract.trading_class, contract.include_expired, use_real_time_hours,
                   time_period]
         self.conn.send_message(fields)
 
