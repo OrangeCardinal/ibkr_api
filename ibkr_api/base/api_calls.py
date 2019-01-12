@@ -80,7 +80,7 @@ class ApiCalls(object):
     @check_connection
     def calculate_implied_volatility(self, request_id: int, contract: Contract,
                                      option_price: float, underlying_price: float,
-                                     implVolOptions: list):
+                                     implied_vol_options: list):
         """
         Call this function to calculate volatility for a supplied
         option price and underlying price. Result will be delivered
@@ -102,9 +102,9 @@ class ApiCalls(object):
                   contract.currency, contract.local_symbol, contract.trading_class, option_price, underlying_price]
 
         implVolOptStr = ""
-        tag_values_count = len(implVolOptions) if implVolOptions else 0
-        if implVolOptions:
-            for implVolOpt in implVolOptions:
+        tag_values_count = len(implied_vol_options) if implied_vol_options else 0
+        if implied_vol_options:
+            for implVolOpt in implied_vol_options:
                 implVolOptStr += str(implVolOpt)
         fields.extend([tag_values_count, implVolOptStr])
 
@@ -439,9 +439,9 @@ class ApiCalls(object):
 
         # Send combo legs for BAG requests (srv v8 and above)
         if contract.security_type == "BAG":
-            comboLegsCount = len(contract.combo_legs) if contract.combo_legs else 0
-            fields.append(comboLegsCount)
-            if comboLegsCount > 0:
+            combo_legs_count = len(contract.combo_legs) if contract.combo_legs else 0
+            fields.append(combo_legs_count)
+            if combo_legs_count > 0:
                 for comboLeg in contract.combo_legs:
                     assert comboLeg
                     fields += [comboLeg.conId,
@@ -449,10 +449,9 @@ class ApiCalls(object):
                                comboLeg.action,
                                comboLeg.exchange,
                                comboLeg.openClose,
-                               comboLeg.shortSaleSlot,  # srv v35 and above
-                               comboLeg.designatedLocation]  # srv v35 and above
-                    if self.server_version() >= MIN_SERVER_VER_SSHORTX_OLD:
-                        fields.append(comboLeg.exemptCode)
+                               comboLeg.shortSaleSlot,
+                               comboLeg.designatedLocation,
+                               comboLeg.exemptCode]
 
         # Send order combo legs for BAG requests
         if self.server_version() >= MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE and contract.security_type == "BAG":
@@ -1161,9 +1160,27 @@ class ApiCalls(object):
         # Create Message
         request_id = 29
         message_id = Messages.outbound['request_historical_data']
+
+
+        # Stocks don't have these attributes
+        last_trade_date_or_contract_month = ""
+        if hasattr(contract,'last_trade_date_or_contract_month'):
+            last_trade_date_or_contract_month = contract.last_trade_date_or_contract_month
+
+        right = ""
+        if hasattr(contract, 'right'):
+            right = contract.right
+
+        strike = ""
+        if hasattr(contract, 'strike'):
+            strike = contract.strike
+
+        multiplier = ""
+        if hasattr(contract,'multiplier'):
+            multiplier = contract.multiplier
+
         fields = [message_id, request_id, contract.id, contract.symbol, contract.security_type,
-                    contract.last_trade_date_or_contract_month,
-                    contract.strike, contract.right, contract.multiplier, contract.exchange,
+                    last_trade_date_or_contract_month,strike, right, multiplier, contract.exchange,
                     contract.primary_exchange, contract.currency, contract.local_symbol, contract.trading_class,
                     contract.include_expired,end_date_time, bar_size_setting, duration, use_rth, what_to_show, format_date]
 
