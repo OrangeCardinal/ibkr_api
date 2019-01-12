@@ -1,4 +1,4 @@
-from classes.contracts.contract import Contract
+from ibkr_api.classes.contracts.contract import Contract
 
 
 class ContractDetails(object):
