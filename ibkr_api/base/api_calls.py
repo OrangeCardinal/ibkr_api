@@ -786,14 +786,14 @@ class ApiCalls(object):
         return message_sent
 
     def request_contract_data(self, contract: Contract, request_id=None):
-        """Call this function to download all details for a particular
-        underlying. The contract details will be received via the contractDetails()
-        function on the EWrapper.
+        """
+        Creates a request_contract_data message
+        Sends the message to the Bridge
 
-        request_id:int - The ID of the data request. Ensures that responses are
-            make_fieldatched to requests if several requests are in process.
-        contract:Contract - The summary description of the contract being looked
-            up."""
+        :param contract: Contract to get data about
+        :param request_id: Unique Identifier for this Request
+        :return:
+        """
 
         if request_id is None:
            request_id = self.get_local_request_id()
@@ -889,13 +889,13 @@ class ApiCalls(object):
         self.conn.send_message(fields)
 
     @check_connection
-    def request_historical_ticks(self, request_id: int, contract: Contract, startDateTime: str,
-                                 end_date_time: str, number_of_ticks: int, whatToShow: str, useRth: int,
-                                 ignoreSize: bool, miscOptions: list):
+    def request_historical_ticks(self, request_id: int, contract: Contract, start_date_time: str,
+                                 end_date_time: str, number_of_ticks: int, what_to_show: str, useRth: int,
+                                 ignore_size: bool, misc_options: list):
 
         misc_options_string = ""
-        if miscOptions:
-            for tagValue in miscOptions:
+        if misc_options:
+            for tagValue in misc_options:
                 misc_options_string += str(tagValue)
 
         message_id = Messages.outbound['request_historical_ticks']
@@ -903,8 +903,8 @@ class ApiCalls(object):
                   contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
                   contract.exchange, contract.primary_exchange, contract.currency, contract.local_symbol,
                   contract.trading_class,
-                  contract.include_expired, startDateTime, end_date_time, number_of_ticks, whatToShow, useRth,
-                  ignoreSize, misc_options_string]
+                  contract.include_expired, start_date_time, end_date_time, number_of_ticks, what_to_show, useRth,
+                  ignore_size, misc_options_string]
         self.conn.send_message(fields)
 
     @check_connection
