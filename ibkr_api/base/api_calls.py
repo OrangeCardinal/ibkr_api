@@ -11,6 +11,7 @@ from ibkr_api.classes.contracts.contract import Contract
 from ibkr_api.classes.order import Order
 from ibkr_api.classes.scanner import Scanner
 
+from enum import Enum
 from functools import wraps
 import socket
 
@@ -1154,15 +1155,18 @@ class ApiCalls(object):
                 1/1/1970 GMT.
         chartOptions:list - For internal use only. Use default value XYZ. """
 
-        # Get the request id for this work
-        #request_id = self.conn.generate_request_id()
-
         # Create Message
         request_id = 29
         message_id = Messages.outbound['request_historical_data']
 
+        # Handle cases where the representing Enum is passed in instead of a string
+        if isinstance(bar_size_setting,Enum):
+            bar_size_setting = bar_size_setting.value
 
-        # Stocks don't have these attributes
+        if isinstance(what_to_show,Enum):
+            what_to_show = what_to_show.value
+
+        # Stocks don't have these attributes, if they don't exist empty values are passed instead as the Bridge expects
         last_trade_date_or_contract_month = ""
         if hasattr(contract,'last_trade_date_or_contract_month'):
             last_trade_date_or_contract_month = contract.last_trade_date_or_contract_month
