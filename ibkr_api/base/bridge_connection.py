@@ -199,10 +199,12 @@ class BridgeConnection:
 
     def read_message(self, buf: bytes) -> tuple:
         """ first the size prefix and then the corresponding msg payload """
+
         if len(buf) < 4:
             return (0, "", buf)
+
         size = struct.unpack("!I", buf[0:4])[0]
-        logger.debug("read_message: size: %d", size)
+
         if len(buf) - 4 >= size:
             text = struct.unpack("!%ds" % size, buf[4:4 + size])[0]
             return size, text, buf[4 + size:]
