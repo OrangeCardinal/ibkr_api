@@ -17,6 +17,7 @@ from ibkr_api.classes.enum.tick_type             import TickType
 
 from dateutil   import parser as date_parser
 from datetime   import date
+import pandas   as pd
 import logging
 import xmltodict
 import time
@@ -214,9 +215,10 @@ class MessageParser(object):
         :param message: API Response message
         :returns: (request_id:int, timestamp)
         """
-        request_id = int(fields['fields'][1])
-        timestamp  = time.ctime(int(fields['fields'][2]))
-        return request_id, timestamp
+        message_id = int(fields[0])
+        request_id = int(fields[1])
+        timestamp  = time.ctime(int(fields[2]))
+        return message_id, request_id, timestamp
 
     @staticmethod
     def family_codes(fields):
@@ -251,26 +253,40 @@ class MessageParser(object):
             'end_date'   : fields[3],
             'bar_count'  : int(fields[4])
         }
+        df_data     = {'date':[],'open':[],'high':[],'low':[],'close':[]}
         current_bar = 1
-        bar_index = 5
+        bar_index   = 5
 
+        #TODO: Fix the date code here (it is losing info)
         while current_bar <= data['bar_count']:
-            bar = Bar()
-            bar_date = bytearray(fields[bar_index]).decode()
-            year, month, day   = int(bar_date[0:4]), int(bar_date[4:6]), int(bar_date[6:8])
-            bar.date           = date(year, month, day)
-            bar.open           = float(fields[bar_index+1])
-            bar.high           = float(fields[bar_index+2])
-            bar.low            = float(fields[bar_index+3])
-            bar.close          = float(fields[bar_index+4])
-            bar.volume         = int(fields[bar_index+5])
-            bar.average        = float(fields[bar_index+6])
-            bar.bar_count      = int(fields[bar_index+7])
-            bar_index         += 8
-            current_bar       += 1
+            # Create the Bar class and append it to the list of Bars
+            bar                 = Bar()
+            bar_date            = bytearray(fields[bar_index]).decode()
+            year, month, day    = int(bar_date[0:4]), int(bar_date[4:6]), int(bar_date[6:8])
+            bar.date            = date(year, month, day)
+            bar.open            = float(fields[bar_index+1])
+            bar.high            = float(fields[bar_index+2])
+            bar.low             = float(fields[bar_index+3])
+            bar.close           = float(fields[bar_index+4])
+            bar.volume          = int(fields[bar_index+5])
+            bar.average         = float(fields[bar_index+6])
+            bar.bar_count       = int(fields[bar_index+7])
             bars.append(bar)
 
-        data ['bars'] = bars
+            # Prepare the data for the data frame
+            df_data['date'].append(bar.date)
+            df_data['open'].append(bar.open)
+            df_data['high'].append(bar.high)
+            df_data['low'].append(bar.low)
+            df_data['close'].append(bar.close)
+
+            # Update indexes
+            bar_index          += 8
+            current_bar        += 1
+
+
+        data['data_frame'] = pd.DataFrame(data=df_data)
+        data['bars'] = bars
         return message_id, request_id, data
     
     @staticmethod
