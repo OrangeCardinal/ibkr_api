@@ -10,7 +10,9 @@ It takes care of almost everything:
 - executing api requests
 - gathering and returning the api response data
 """
+from functools import wraps
 
+import datetime
 import logging
 import time
 
@@ -22,12 +24,27 @@ from ibkr_api.classes.contracts.contract    import Contract
 from ibkr_api.classes.order                 import Order
 from ibkr_api.classes.scanner               import Scanner
 
-import datetime
 logger = logging.getLogger(__name__)
+
+def drop_message_id_and_request_id(func):
+    @wraps(func)
+    def new_func(self, *func_args,**func_kwargs):
+        data = func(self, *func_args, **func_kwargs)
+        if data:
+            return data[2]
+        return data
+    return new_func
+
 class IBKR_API(ApiCalls):
-    def __init__(self, host, port, message_timeout:int=2):
-        client_id = 0
-        self.message_timeout = message_timeout
+    def __init__(self, host, port, client_id:int=0, message_timeout:int=2):
+        # Each application connected to the bridge must have a unique identifier
+        self.client_id              = client_id
+
+        # Governs how long to wait for a response from the Bridge
+        self.message_timeout        = message_timeout
+
+        # Stores any message that was skipped during processing (which is a byproduct of hiding the asynchronous design)
+        self.unprocessed_messages   = []
 
         super().__init__()
         super().connect(host, port, client_id)
@@ -78,6 +95,9 @@ class IBKR_API(ApiCalls):
                     # See if we need to consider this code end of processing
                     if info['code'] in end_on_codes:
                         data_received = True
+                else:
+                    logger.debug("Message ID: {0} added to unprocessed messages".format(msg['id']))
+                    self.unprocessed_messages.append(msg)
 
             # We may not be connected to the bridge, if no data received after the message timeout threshold break
             current_time = datetime.datetime.now()
@@ -93,6 +113,9 @@ class IBKR_API(ApiCalls):
 
         return all_data
 
+    #################
+    ### API Calls ###
+    #################
     def calculate_implied_volatility(self,
                                      contract               : Contract,
                                      option_price           : float,
@@ -117,9 +140,11 @@ class IBKR_API(ApiCalls):
         data = self._process_response('tick_option_computation')
         return data
 
-    def calculate_option_price(self, request_id: int, contract: Contract,
-                               volatility: float, underlying_price: float,
-                               option_price_options: list):
+    def calculate_option_price(self,
+                               contract             : Contract,
+                               volatility           : float,
+                               underlying_price     : float,
+                               option_price_options : list):
         """Call this function to calculate option price and greek values
         for a supplied volatility and underlying price.
 
@@ -127,8 +152,11 @@ class IBKR_API(ApiCalls):
         contract:Contract - Describes the contract.
         volatility:double - The volatility.
         underlying_price:double - Price of the underlying."""
+        # Make the Underlying API Call
+        request_id = self.get_local_request_id()
         super().calculate_option_price(request_id, contract, volatility, underlying_price, option_price_options)
-        # Process the response from the bridge
+
+        # Process the Response from the Bridge
         data = self._process_response('')
         return data
 
@@ -369,6 +397,46 @@ class IBKR_API(ApiCalls):
         data = self._process_response('family_codes')
         return data
 
+    def request_market_data(self,
+                            contract            : Contract  ,
+                            generic_tick_list   : str       ,
+                            snapshot            : bool      ,
+                            regulatory_snapshot : bool      ,
+                            market_data_options : list):
+        """
+        Creates a subscription
+        
+        Related Links
+        -------------
+        https://interactivebrokers.github.io/tws-api/tick_types.html
+
+
+        :param contract: Contract for which market data is being requested
+        :param generic_tick_list: A comma separated string of ticks or an actual list of integers
+                                  Prefixing w/ 'mdoff' indicates that top mkt data shouldn't tick.
+                                  You can specify the news source by postfixing w/ ':<source>.
+                                  Example: "mdoff,292:FLY+BRF"
+        :param snapshot: If true, get the data once and e
+        :param regulatory_snapshot: With the US Value Snapshot Bundle for stocks, regulatory snapshots are available for 0.01 USD each.
+        :param market_data_options: ???? A mystery that IB only knows (They note, "use default value XYZ")
+        :return:
+        """
+
+
+        """Call this function to request market data. The market data
+                will be returned by the tickPrice and tickSize events.
+
+                snapshot:bool - Check to return a single snapshot of Market data and
+                    have the market data subscription cancel. Do not enter any
+                    genericTicklist values if you use snapshots. """
+
+        # Process the response from the bridge
+        request_id = self.get_local_request_id()
+        super().request_market_data(request_id, contract, generic_tick_list, snapshot, regulatory_snapshot, market_data_options)
+        messages = ['tick_price','tick_size']
+        data = self._process_response('tick_option_computation')
+        return data
+
     def request_matching_symbols(self, pattern: str):
         # Make the underlying API call
         request_id = self.get_local_request_id()
@@ -429,17 +497,39 @@ class IBKR_API(ApiCalls):
                 position_data.append(raw_data[2])
         return position_data
 
+    @drop_message_id_and_request_id
+    def request_smart_components(self,
+                                 bbo_exchange: str):
+        """
+        Provides a list of the exchanges that comprise the 'SMART' exchange
+
+        :param bbo_exchange:
+        :return:
+        """
+        # Make the API call to the bridge
+        request_id = self.get_local_request_id()
+        super().request_smart_components(request_id, bbo_exchange)
+
+        # Process the response from the bridge
+        data = self._process_response('smart_components')
+
+        return data
+
+    @drop_message_id_and_request_id
     def request_scanner_parameters(self):
-        """Requests an XML string that describes all possible scanner queries."""
+        """
+        Requests an XML string that describes all possible scanner queries.
+
+        :return:
+        """
+
         # Make the api call
         super().request_scanner_parameters()
 
         # Process the response from the bridge
         data = self._process_response('scanner_parameters')
-        if data is None:
-            return data
 
-        return data[2]
+        return data
 
     def request_scanner_subscription(self,
                                      scanner: Scanner,
@@ -627,8 +717,15 @@ class IBKR_API(ApiCalls):
 
         return timestamp
 
-    def request_executions(self, client_id="", account_code="", time="",
-                           symbol="", security_type="", exchange="", side=""):
+    def request_executions(self, 
+                           client_id        = "" , 
+                           account_code     = "" , 
+                           time             = "" ,
+                           symbol           = "" , 
+                           security_type    = "" , 
+                           exchange         = "" , 
+                           side             = ""
+                           ):
         """When this function is called, the execution reports that meet the
         filter criteria are downloaded to the client via the execDetails()
         function. To view executions beyond the past 24 hours, open the
@@ -672,8 +769,13 @@ class IBKR_API(ApiCalls):
 
     # Note that formatData parameter affects intraday bars only
     # 1-day bars always return with date in YYYYMMDD format
-    def request_head_time_stamp(self, request_id: int, contract: Contract,
-                                whatToShow: str, useRTH: int, format_date: int):
+    def request_head_time_stamp(self, 
+                                request_id: int, 
+                                contract: Contract,
+                                whatToShow: str, 
+                                useRTH: int, 
+                                format_date: int
+                                ):
         super().request_head_time_stamp()
         # Process the response from the bridge
         data = self._process_response('request_head_time_stamp')
@@ -807,11 +909,6 @@ class IBKR_API(ApiCalls):
         data = self._process_response('request_positions_multi')
         return data
 
-    def request_smart_components(self, request_id: int, bboExchange: str):
-        # Process the response from the bridge
-        data = self._process_response('request_smart_components')
-        return data
-
     def set_server_log_level(self, log_level: int):
         """The default detail level is ERROR. For more details, see API
         Logging."""
@@ -833,40 +930,46 @@ class IBKR_API(ApiCalls):
         data = self._process_response('subscribe_to_group_events')
         return data
 
-    #################
-    ### API Calls ###
-    #################
-    def request_contract_data(self, contract: Contract):
+    @drop_message_id_and_request_id
+    def request_contract_data(self,
+                              contract: Contract):
         """
-
+        Gets all available details for the given contract.
         :param contract:
         :return:
 
-        #Call this function to download all details for a particular
-        #underlying. The contract details will be received via the contractDetails()
-        #function on the EWrapper.
-
-        #request_id:int - The ID of the data request. Ensures that responses are
-        #    make_fieldatched to requests if several requests are in process.
-        #contract:Contract - The summary description of the contract being looked
-        #    up.
         """
-        super().request_contract_data(contract)
+        # Generate a local request id
+        request_id = self.get_local_request_id()
+
+        # Make the underlying API Call
+        super().request_contract_data(contract, request_id)
+
+        # Process contract_data response message
         data = self._process_response('contract_data')
-        return data[2]
+
+        return data
 
 
-    def request_historical_data(self, contract: Contract, end_date_time: str,
-                                duration: str, bar_size_setting: str, what_to_show: str,
-                                use_rth: int, format_date: int, keep_up_to_date: bool, chart_options: list):
+    @drop_message_id_and_request_id
+    def request_historical_data(self, 
+                                contract            : Contract, 
+                                end_date_time       : str,
+                                duration            : str, 
+                                bar_size_setting    : str, 
+                                what_to_show        : str,
+                                use_rth             : int, 
+                                format_date         : int=1,
+                                chart_options       : list=[]
+                                ):
         """
-        Request Historical Data
+        Request Historical Data for a given Contract with the specified parameters
 
-        :param contract:
+        :param contract: Contract that we want historical data for
         :param end_date_time:
         :param duration:
-        :param bar_size_setting:
-        :param what_to_show:
+        :param bar_size_setting: Controls how large a bar is. Legal values are defined in the `BarSize` class
+        :param what_to_show: Determines what data is returned by the Bridge. Legal values are in the `Show` class
         :param use_rth:
         :param format_date:
         :param keep_up_to_date:
@@ -892,29 +995,6 @@ class IBKR_API(ApiCalls):
         durationStr:str - Set the query duration up to one week, using a time unit
             of seconds, days or weeks. Valid values include any integer followed by a space
             and then S (seconds), D (days) or W (week). If no unit is specified, seconds is used.
-        barSizeSetting:str - Specifies the size of the bars that will be returned (within IB/TWS listimits).
-            Valid values include:
-            1 sec
-            5 secs
-            15 secs
-            30 secs
-            1 min
-            2 mins
-            3 mins
-            5 mins
-            15 mins
-            30 mins
-            1 hour
-            1 day
-        whatToShow:str - Determines the nature of data beinging extracted. Valid values include:
-
-            TRADES
-            MIDPOINT
-            BID
-            ASK
-            BID_ASK
-            HISTORICAL_VOLATILITY
-            OPTION_IMPLIED_VOLATILITY
         useRTH:int - Determines whether to return all data available during the requested time span,
             or only data that falls within regular trading hours. Valid values include:
 
@@ -928,6 +1008,10 @@ class IBKR_API(ApiCalls):
             2 - dates are returned as a long integer specifying the number of seconds since
                 1/1/1970 GMT.
         chartOptions:list - For internal use only. Use default value XYZ. """
+
+        # As we are running in a synchronized mode, this should be set to False always
+        keep_up_to_date = False
+
         super().request_historical_data(contract,end_date_time,duration, bar_size_setting, what_to_show,
                                         use_rth, format_date, keep_up_to_date, chart_options)
         data = self._process_response('historical_data')
@@ -994,33 +1078,6 @@ class IBKR_API(ApiCalls):
         data = self._process_response('tick_by_tick_data')
         return data
 
-    def request_market_data(self, request_id: int, contract: Contract, generic_tick_list: str,
-                            snapshot: bool, regulatory_snapshot: bool, market_data_options: list):
-        """Call this function to request market data. The market data
-                will be returned by the tickPrice and tickSize events.
-
-                request_id: int - The ticker id. Must be a unique value. When the
-                    market data returns, it will be identified by this tag. This is
-                    also used when canceling the market data.
-                contract:Contract - This structure contains a description of the
-                    Contract for which market data is being requested.
-                genericTickList:str - A commma delimited list of generic tick types.
-                    Tick types can be found in the Generic Tick Types page.
-                    Prefixing w/ 'mdoff' indicates that top mkt data shouldn't tick.
-                    You can specify the news source by postfixing w/ ':<source>.
-                    Example: "mdoff,292:FLY+BRF"
-                snapshot:bool - Check to return a single snapshot of Market data and
-                    have the market data subscription cancel. Do not enter any
-                    genericTicklist values if you use snapshots.
-                regulatorySnapshot: bool - With the US Value Snapshot Bundle for stocks,
-                    regulatory snapshots are available for 0.01 USD each.
-                mktDataOptions:list - For internal use only.
-                    Use default value XYZ. """
-        # Process the response from the bridge
-        super().request_market_data(request_id, contract, generic_tick_list, snapshot, regulatory_snapshot, market_data_options)
-        data = self._process_response('market_data')
-        return data
-
     def tws_connection_time(self):
         """Returns the time the API application made a connection to TWS."""
         # Process the response from the bridge
@@ -1031,7 +1088,7 @@ class IBKR_API(ApiCalls):
         """Call this function to request from TWS the next valid ID that
         can be used when placing an order.  After calling this function, the
         nextValidId() event will be triggered, and the id returned is that next
-        valid ID. That ID will reflect any autobinding that has occurred (which
+        valid ID. That ID will reflect any auto binding that has occurred (which
         generates new IDs and increments the next valid ID therein).
 
         num_ids:int - deprecated"""
@@ -1108,7 +1165,7 @@ class IBKR_API(ApiCalls):
         return data
 
     def request_histogram_data(self, ticker_id: int, contract: Contract,
-                               useRTH: bool, time_period: str):
+                               use_rth: bool, time_period: str):
         # Process the response from the bridge
         data = self._process_response('')
         return data
@@ -1163,8 +1220,10 @@ class IBKR_API(ApiCalls):
         data = self._process_response('')
         return data
 
-    def request_fundamental_data(self, contract: Contract,
-                                 report_type: str, request_options: list):
+    def request_fundamental_data(self,
+                                 contract           : Contract,
+                                 report_type        : str,
+                                 request_options    : list):
         """Call this function to receive fundamental data for
         stocks. The appropriate market data subscription must be set up in
         Account Management before you can receive this data.
@@ -1194,7 +1253,14 @@ class IBKR_API(ApiCalls):
         return data
 
 
-    def request_news_article(self, request_id: int, provider_code: str, article_id: str, news_article_options: list):
+    def request_news_article(self,
+                             provider_code          : str   ,
+                             article_id             : str   ,
+                             news_article_options   : list):
+        # Make the Underlying API Call
+        request_id = self.get_local_request_id()
+        super().request_news_article(request_id,provider_code, article_id, news_article_options)
+
         # Process the response from the bridge
         data = self._process_response('news_article')
         return data
