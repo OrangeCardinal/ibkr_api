@@ -115,7 +115,7 @@ class Messages(object):
             'cancel_real_time_bars'                             : 51 ,
             'request_fundamental_data'                          : 52 ,
             'cancel_fundamental_data'                           : 53 ,
-            'request_calc_implied_volatility'                   : 54 ,
+            'calculate_implied_volatility'                      : 54 ,
             'request_calc_option_price'                         : 55 ,
             'cancel_calculate_implied_volatility'               : 56 ,
             'cancel_calc_option_price'                          : 57 ,
