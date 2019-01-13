@@ -79,35 +79,39 @@ class ApiCalls(object):
         return request_id
 
     @check_connection
-    def calculate_implied_volatility(self, request_id: int, contract: Contract,
-                                     option_price: float, underlying_price: float,
-                                     implied_vol_options: list):
+    def calculate_implied_volatility(self,
+                                     request_id             : int,
+                                     contract               : Contract,
+                                     option_price           : float,
+                                     underlying_price       : float,
+                                     implied_vol_options    : list):
         """
-        Call this function to calculate volatility for a supplied
-        option price and underlying price. Result will be delivered
-        via EWrapper.tickOptionComputation()
+        Creates a 'calculate_implied_volatility' message
+        Sends Message to Bridge
 
-        request_id:int -  The request id.
-        contract:Contract -  Describes the contract.
-        option_price:double - The price of the option.
-        underlying_price:double - Price of the underlying.
+        :param request_id: Unique Identifier for this Request
+        :param contract: Option which we want to calculate the Implied Volatility of
+        :param option_price: Option Price
+        :param underlying_price: Underlying Price
+        :param implied_vol_options:
+        :return:
         """
 
         message_version = 3
 
-        # send req market data msg
-        message_id = Messages.outbound['request_calc_implied_volat']
+
+        message_id = Messages.outbound['calculate_implied_volatility']
         fields = [message_id, message_version, request_id, contract.id, contract.symbol,
                   contract.security_type, contract.last_trade_date_or_contract_month, contract.strike,
                   contract.right, contract.multiplier, contract.exchange, contract.primary_exchange,
                   contract.currency, contract.local_symbol, contract.trading_class, option_price, underlying_price]
 
-        implVolOptStr = ""
+        impl_vol_opt_str = ""
         tag_values_count = len(implied_vol_options) if implied_vol_options else 0
         if implied_vol_options:
-            for implVolOpt in implied_vol_options:
-                implVolOptStr += str(implVolOpt)
-        fields.extend([tag_values_count, implVolOptStr])
+            for opt in implied_vol_options:
+                impl_vol_opt_str += str(opt)
+        fields.extend([tag_values_count, impl_vol_opt_str])
 
         self.conn.send_message(fields)
 
@@ -800,10 +804,27 @@ class ApiCalls(object):
 
         # send req market data msg
         message_version = 8
+
+        # Handle the Fields that may not exist in a contract
+        last_trade_date_or_contract_month = ''
+        if hasattr(contract, 'last_trade_date_or_contract_month'):
+            last_trade_date_or_contract_month = contract.last_trade_date_or_contract_month
+
+        multiplier = ''
+        if hasattr(contract,'multiplier'):
+            multiplier = contract.multiplier
+        right = ''
+        if hasattr(contract, 'right'):
+            right = contract.right
+
+        strike = ''
+        if hasattr(contract, 'strike'):
+            strike = contract.strike
+
         message_id = Messages.outbound['request_contract_data']
         fields = [message_id, message_version, request_id, contract.id, contract.symbol,
-                  contract.security_type, contract.last_trade_date_or_contract_month,contract.strike, contract.right,
-                  contract.multiplier,contract.exchange, contract.primary_exchange,contract.currency, contract.local_symbol,
+                  contract.security_type, last_trade_date_or_contract_month,strike, right,
+                  multiplier,contract.exchange, contract.primary_exchange,contract.currency, contract.local_symbol,
                   contract.trading_class,contract.include_expired,  contract.security_id_type, contract.security_id]
 
         self._send_message(fields)
