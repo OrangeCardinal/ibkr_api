@@ -152,6 +152,20 @@ class MessageParser(object):
         return request_id, message_id, contract
 
     @staticmethod
+    def contract_data_end(fields):
+        """
+        Parse the contract_data_end message and return well formatted data
+
+        :param fields:
+        :return:
+        """
+
+        message_id  = int(fields[0])
+        request_id  = int(fields[1])
+        return_code = int(fields[2])
+        return message_id, request_id, None
+
+    @staticmethod
     def bond_contract_data(fields):
 
         contract = Contract()
