@@ -52,11 +52,12 @@ Get the option chains for all Dow 30 Stocks
 -------------------------------------------
 .. code-block:: python
 
-    dow30 = Dow30()
-    for stk in dow.stocks():
-        stk = ibkr.request_contract_data(stk)
-        option_chain = ibkr.request_option_chain(stk)
-        print(option_chain)
+   dow30 = Dow30()
+   for stk in dow30.stocks():
+       stk = ibkr.request_contract_data(stk)
+       option_chains = ibkr.request_option_chains(stk)
+       for opt_chain in option_chains:
+           print(opt_chain)
 
 
 Get the Last Year of Daily Prices for XOM
