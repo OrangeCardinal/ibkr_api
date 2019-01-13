@@ -1134,9 +1134,15 @@ class MessageParser(object):
 
     @staticmethod
     def security_definition_option_parameter_end(fields):
+        """
+        Parse the security_definition_option_parameter_end message and return well formatted data
+
+        :param fields:
+        :returns: message_id, request_id, None
+        """
         message_id = int(fields[0])
         request_id = int(fields[1])
-        return message_id, request_id
+        return message_id, request_id, None
 
 
     @staticmethod
