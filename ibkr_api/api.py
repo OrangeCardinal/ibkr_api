@@ -1,12 +1,12 @@
 """
 IBKR_API is the simplest interface available. 
-The Bridge returns data in an asynchronus manner and on top of that one request for many requests results in several
+The Bridge returns data in an asynchronous manner and on top of that one request for many requests results in several
 messages of varying message types. This class hides all this complexity from the end user and allows for easy tasks to be
 automated. For more advanced usage please see the ClientApplication and MultiClientApplication classes. 
 
 The main class to use from API user's point of view.
 It takes care of almost everything:
-- creating the connection to TWS/IBGW
+- creating the connection to TWS/IB Gateway
 - executing api requests
 - gathering and returning the api response data
 """
@@ -27,12 +27,34 @@ from ibkr_api.classes.scanner               import Scanner
 logger = logging.getLogger(__name__)
 
 def drop_message_id_and_request_id(func):
+    """
+    Drops the message id and request id values and only returns the 'actual' data a user expects
+
+    :param func: Original Function
+    :return: Function with modified return values
+    """
     @wraps(func)
     def new_func(self, *func_args,**func_kwargs):
         data = func(self, *func_args, **func_kwargs)
-        if data:
-            return data[2]
-        return data
+
+        # Strip out any Message ID and Request ID values which are not needed for this call
+        if isinstance(data,list) and len(data) > 1:
+            real_return_value = []
+            for item in data:
+                if item[2] is not None:
+                    real_return_value.append(item[2])
+        elif isinstance(data,list) or isinstance(data,tuple):
+            real_return_value = data[2]
+        else:
+            real_return_value = data
+
+        # If there is only one element in the array, return the element not the array
+        if real_return_value is None:
+            return None
+        elif (real_return_value,list) and len(real_return_value) == 1:
+            return real_return_value[0]
+        else:
+            return real_return_value
     return new_func
 
 class IBKR_API(ApiCalls):
@@ -96,7 +118,7 @@ class IBKR_API(ApiCalls):
                     if info['code'] in end_on_codes:
                         data_received = True
                 else:
-                    logger.debug("Message ID: {0} added to unprocessed messages".format(msg['id']))
+                    logger.debug("Message #{0} - '{1}' added to unprocessed messages".format(msg['id'], msg['action']))
                     self.unprocessed_messages.append(msg)
 
             # We may not be connected to the bridge, if no data received after the message timeout threshold break
@@ -446,7 +468,11 @@ class IBKR_API(ApiCalls):
         data = self._process_response('symbol_samples')
         return data
 
-    def request_option_chain(self, underlying: Contract, exchange=""):
+
+    @drop_message_id_and_request_id
+    def request_option_chains(self,
+                              underlying: Contract,
+                              exchange=""):
         """
         Convenience function for request_security_definition_option_parameters
         :param underlying:
@@ -464,12 +490,15 @@ class IBKR_API(ApiCalls):
 
         super().request_security_definition_option_parameters(request_id, underlying.symbol, exchange,
                                                               underlying.security_type, underlying.id)
-        data = self._process_response('security_definition_option_parameter')
-        return data[2]
+        messages_to_process = ['security_definition_option_parameter','security_definition_option_parameter_end']
+        data = self._process_response(messages_to_process)
 
-    def request_security_definition_option_parameters(self, underlying_symbol: str,
-                                                      exchange: str,
-                                                      underlying_sec_type: str,
+        return data
+
+    def request_security_definition_option_parameters(self,
+                                                      underlying_symbol     : str,
+                                                      exchange              : str,
+                                                      underlying_sec_type   : str,
                                                       underlying_contract_id: int):
 
         # Process the response from the bridge
@@ -945,8 +974,9 @@ class IBKR_API(ApiCalls):
         # Make the underlying API Call
         super().request_contract_data(contract, request_id)
 
-        # Process contract_data response message
-        data = self._process_response('contract_data')
+        # Process contract_data and contract_data_end response messages
+        messages_to_process = ['contract_data','contract_data_end']
+        data = self._process_response(messages_to_process)
 
         return data
 
@@ -1008,11 +1038,11 @@ class IBKR_API(ApiCalls):
             2 - dates are returned as a long integer specifying the number of seconds since
                 1/1/1970 GMT.
         chartOptions:list - For internal use only. Use default value XYZ. """
-
+        request_id = self.get_local_request_id()
         # As we are running in a synchronized mode, this should be set to False always
         keep_up_to_date = False
 
-        super().request_historical_data(contract,end_date_time,duration, bar_size_setting, what_to_show,
+        super().request_historical_data(request_id, contract,end_date_time,duration, bar_size_setting, what_to_show,
                                         use_rth, format_date, keep_up_to_date, chart_options)
         data = self._process_response('historical_data')
         return data
