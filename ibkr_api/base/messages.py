@@ -70,7 +70,7 @@ class Messages(object):
             'news_providers'                                : 85,
             'historical_news'                               : 86,
             'historical_news_end'                           : 87,
-            'head_timestamp'                                : 88,
+            'head_time_stamp'                               : 88,
             'histogram_data'                                : 89,
             'historical_data_update'                        : 90,
             'reroute_market_data_req'                       : 91,
@@ -147,10 +147,10 @@ class Messages(object):
             'request_news_article'                              : 84 ,
             'request_news_providers'                            : 85 ,
             'request_historical_news'                           : 86 ,
-            'request_head_timestamp'                            : 87 ,
+            'request_head_time_stamp'                           : 87 ,
             'request_histogram_data'                            : 88 ,
             'cancel_histogram_data'                             : 89 ,
-            'cancel_head_timestamp'                             : 90 ,
+            'cancel_head_time_stamp'                            : 90 ,
             'request_market_rule'                               : 91 ,
             'request_pnl'                                       : 92 ,
             'cancel_pnl'                                        : 93 ,
@@ -166,8 +166,11 @@ class Messages(object):
         def parse_message(message: bytes):
             """ Parse message into a list of fields.
             The message is made of fields separated by NULL character"""
-            fields      = message.split(b"\0")
-            fields[0]   = int(fields[0])
+
+            fields = message.split(b"\0")
+            # First field is always message id and as such can be converted to int here
+            fields[0] = int(fields[0])
+
             return tuple(fields[0:-1])
 
         @staticmethod

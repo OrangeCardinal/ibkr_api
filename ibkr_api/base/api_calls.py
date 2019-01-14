@@ -54,6 +54,37 @@ class ApiCalls(object):
         self.request_handler  = request_handler   # Functions if exist are called before and/or after api calls
         self.response_handler = response_handler  # API Responses Functions provided by the end user
 
+
+    @staticmethod
+    def _get_optional_fields(contract):
+        """
+        Process the fields a contract may not have (using the default if it doesn't exist)
+
+        :param contract:
+        :return:
+        """
+        fields = {
+            'last_trade_date_or_contract_month' : ''    ,
+            'strike'                            : ''    ,
+            'right'                             : ''    ,
+            'multiplier'                        : ''
+        }
+
+
+        if hasattr(contract,'multiplier'):
+            fields['multiplier'] = contract.multiplier
+
+        if hasattr(contract,'last_trade_date_or_contract_month'):
+            fields['last_trade_date_or_contract_month'] = contract.last_trade_date_or_contract_month
+
+        if hasattr(contract,'strike'):
+            fields['strike'] = contract.strike
+
+        if hasattr(contract,'right'):
+            fields['right'] = contract.right
+
+        return fields
+
     def _send_message(self, fields):
         """
         Send the message if connected.
@@ -881,15 +912,33 @@ class ApiCalls(object):
     # Note that formatData parameter affects intraday bars only
     # 1-day bars always return with date in YYYYMMDD format
     @check_connection
-    def request_head_time_stamp(self, request_id: int, contract: Contract,
-                                whatToShow: str, useRTH: int, formatDate: int):
+    def request_head_time_stamp(self,
+                                request_id      : int       ,
+                                contract        : Contract  ,
+                                what_to_show    : str       ,
+                                use_rth         : int       ,
+                                format_date     : int):
+        """
+        Creates a 'request_head_timestamp' message and sends the message to the bridge
 
-        message_id = Messages.outbound['request_head_timestamp']
+        :param request_id:
+        :param contract:
+        :param what_to_show:
+        :param use_rth:
+        :param format_date:
+        :return:
+        """
+
+        # Handle Optional Contract Fields
+        fields = self._get_optional_fields(contract)
+
+
+        message_id = Messages.outbound['request_head_time_stamp']
         fields = [message_id, request_id, contract.id, contract.symbol, contract.security_type,
-                  contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
+                  fields['last_trade_date_or_contract_month'], fields['strike'], fields['right'], fields['multiplier'],
                   contract.exchange, contract.primary_exchange, contract.currency, contract.local_symbol,
                   contract.trading_class,
-                  contract.include_expired, useRTH, whatToShow, formatDate]
+                  contract.include_expired, use_rth, what_to_show, format_date]
         self.conn.send_message(fields)
 
     @check_connection
@@ -1119,9 +1168,17 @@ class ApiCalls(object):
             logging.error(socket.error)
             self.api_state  = "Disconnected from the Bridge Application(TWS/IB Gateway)."
 
-    def request_historical_data(self, contract: Contract, end_date_time: str,
-                                duration: str, bar_size_setting, what_to_show: str,
-                                use_rth: int, format_date: int, keep_up_to_date: bool, chart_options: list):
+    def request_historical_data(self,
+                                request_id:int,
+                                contract: Contract,
+                                end_date_time: str,
+                                duration: str,
+                                bar_size_setting,
+                                what_to_show,
+                                use_rth: int,
+                                format_date: int,
+                                keep_up_to_date: bool,
+                                chart_options: list):
         """
         Make the 'historical_data' message
         Send the message to the Bridge
@@ -1134,11 +1191,11 @@ class ApiCalls(object):
         :param end_date_time: 
         :param duration: 
         :param bar_size_setting: string or `BarSize` 
-        :param what_to_show: 
+        :param what_to_show: String or `Show` enum
         :param use_rth: 
         :param format_date: 
         :param keep_up_to_date: 
-        :param chart_options: 
+        :param chart_options: Not sure what this is yet
         :return: 
         """
         """Requests contracts' historical data. When requesting historical data, a
@@ -1193,10 +1250,9 @@ class ApiCalls(object):
             1 - dates applying to bars returned in the format: yyyymmdd{space}{space}hh:mm:dd
             2 - dates are returned as a long integer specifying the number of seconds since
                 1/1/1970 GMT.
-        chartOptions:list - For internal use only. Use default value XYZ. """
+        """
 
         # Create Message
-        request_id = 29
         message_id = Messages.outbound['request_historical_data']
 
         # Handle cases where the representing Enum is passed in instead of a string
@@ -1240,6 +1296,7 @@ class ApiCalls(object):
 
 
         fields.append(keep_up_to_date)
+
         # send chartOptions parameter
         chart_options_str = ""
         if chart_options:
@@ -1249,7 +1306,6 @@ class ApiCalls(object):
 
         # Send the Message
         self._send_message(fields)
-
 
     @check_connection
     def request_news_bulletins(self, all_messages: bool):

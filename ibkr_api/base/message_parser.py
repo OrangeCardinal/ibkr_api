@@ -254,6 +254,20 @@ class MessageParser(object):
         return family_codes
 
     @staticmethod
+    def head_time_stamp(fields):
+        """
+        Parse the head_time_stamp message and return well formatted data
+        
+        :param fields:
+        :return:
+        """
+
+        message_id      = int(fields[0])
+        request_id      = int(fields[1])
+        head_timestamp  = MessageParser._parse_ib_date(bytearray(fields[2]).decode())
+        return message_id, request_id, head_timestamp
+
+    @staticmethod
     def historical_data(fields):
         """
         :param fields: The previously parsed message fields

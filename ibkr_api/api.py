@@ -51,7 +51,7 @@ def drop_message_id_and_request_id(func):
         # If there is only one element in the array, return the element not the array
         if real_return_value is None:
             return None
-        elif (real_return_value,list) and len(real_return_value) == 1:
+        elif isinstance(real_return_value,list) and len(real_return_value) == 1:
             return real_return_value[0]
         else:
             return real_return_value
@@ -798,16 +798,26 @@ class IBKR_API(ApiCalls):
 
     # Note that formatData parameter affects intraday bars only
     # 1-day bars always return with date in YYYYMMDD format
-    def request_head_time_stamp(self, 
-                                request_id: int, 
-                                contract: Contract,
-                                whatToShow: str, 
-                                useRTH: int, 
-                                format_date: int
+    @drop_message_id_and_request_id
+    def request_head_time_stamp(self,
+                                contract        : Contract,
+                                what_to_show    : str,
+                                use_rth         : int=0,
+                                format_date     : int=1
                                 ):
-        super().request_head_time_stamp()
+        """
+        Get the earliest time stamp available for the given contract/type of data
+
+        :param contract: Contract we want to get earliest time stamp for
+        :param what_to_show: string or ``Show`` enum value
+        :param use_rth:
+        :param format_date:
+        :return:
+        """
+        request_id = self.get_local_request_id()
+        super().request_head_time_stamp(request_id, contract, what_to_show, use_rth, format_date)
         # Process the response from the bridge
-        data = self._process_response('request_head_time_stamp')
+        data = self._process_response('head_time_stamp')
         return data
 
     def request_historical_news(self,
