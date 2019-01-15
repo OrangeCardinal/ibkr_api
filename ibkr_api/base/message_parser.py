@@ -86,37 +86,33 @@ class MessageParser(object):
         request_id                                  = int(fields[2])
         contract.symbol                             = bytearray(fields[3]).decode()
         contract.security_type                      = bytearray(fields[4]).decode()
-
-
-
         contract.last_trade_date_or_contract_month  = MessageParser._parse_ib_date(bytearray(fields[5]).decode())
-        contract.strike                 = float(fields[6])
-
-        contract.right                  = bytearray(fields[7]).decode()
-        contract.exchange               = bytearray(fields[8]).decode()
-        contract.currency               = bytearray(fields[9]).decode()
-        contract.local_symbol           = bytearray(fields[10]).decode()
-        contract.market_name            = bytearray(fields[11]).decode()
-        contract.trading_class          = bytearray(fields[12]).decode()
-        contract.id                     = int(fields[13])
-        contract.min_tick               = float(fields[14])
-        contract.md_size_multiplier     = int(fields[15])
-        contract.multiplier             = bytearray(fields[16]).decode()
-        contract.order_types            = bytearray(fields[17]).decode()
-        contract.valid_exchanges        = bytearray(fields[18]).decode()
-        contract.price_magnifier        = int(fields[19])
-        contract.under_contract_id      = int(fields[20])
-        contract.long_name              = bytearray(fields[21]).decode()
-        contract.primary_exchange       = bytearray(fields[22]).decode()
-        contract.contract_month         = bytearray(fields[23]).decode()
-        contract.industry               = bytearray(fields[24]).decode()
-        contract.category               = bytearray(fields[25]).decode()
-        contract.sub_category           = bytearray(fields[25]).decode()
-        contract.time_zone_id           = bytearray(fields[26]).decode()
-        contract.trading_hours          = bytearray(fields[27]).decode()
-        contract.regular_trading_hours  = bytearray(fields[28]).decode()
-        contract.ev_rule                = bytearray(fields[29]).decode()
-        contract.ev_multiplier          = bytearray(fields[30]).decode()
+        contract.strike                             = float(fields[6])
+        contract.right                              = bytearray(fields[7]).decode()
+        contract.exchange                           = bytearray(fields[8]).decode()
+        contract.currency                           = bytearray(fields[9]).decode()
+        contract.local_symbol                       = bytearray(fields[10]).decode()
+        contract.market_name                        = bytearray(fields[11]).decode()
+        contract.trading_class                      = bytearray(fields[12]).decode()
+        contract.id                                 = int(fields[13])
+        contract.min_tick                           = float(fields[14])
+        contract.md_size_multiplier                 = int(fields[15])
+        contract.multiplier                         = bytearray(fields[16]).decode()
+        contract.order_types                        = bytearray(fields[17]).decode()
+        contract.valid_exchanges                    = bytearray(fields[18]).decode()
+        contract.price_magnifier                    = int(fields[19])
+        contract.under_contract_id                  = int(fields[20])
+        contract.long_name                          = bytearray(fields[21]).decode()
+        contract.primary_exchange                   = bytearray(fields[22]).decode()
+        contract.contract_month                     = bytearray(fields[23]).decode()
+        contract.industry                           = bytearray(fields[24]).decode()
+        contract.category                           = bytearray(fields[25]).decode()
+        contract.sub_category                       = bytearray(fields[26]).decode()
+        contract.time_zone_id                       = bytearray(fields[27]).decode()
+        contract.trading_hours                      = bytearray(fields[28]).decode()
+        contract.regular_trading_hours              = bytearray(fields[29]).decode()
+        contract.ev_rule                            = bytearray(fields[30]).decode()
+        contract.ev_multiplier                      = bytearray(fields[31]).decode()
 
         ##########################################
         # Parse Regular Trading Hour Information #
@@ -139,34 +135,27 @@ class MessageParser(object):
 
             contract.regular_trading_hours = regular_trading_hours
 
+        ######################################
+        # Parse Security ID List Information #
+        ######################################
+        security_id_list_count      = int(fields[32])
+        contract.security_id_list   = []
+        index                       = 33
+        if security_id_list_count > 0:
+            for _ in range(security_id_list_count):
+                tag = {
+                    'name'      :   bytearray(fields[index+1]).decode(),
+                    'value'     :   bytearray(fields[index+2]).decode()
+                }
+                index += 2
+                contract.security_id_list.append(tag)
 
-        #print(len(fields))
-        #security_id_list_count          = int(fields[31])
-        #print("Security: {0}".format(security_id_list_count))
-        # #TODO: Fix here down
+        contract.aggregate_group        = int(fields[index])
+        contract.under_symbol           = bytearray(fields[index+1]).decode()
+        contract.under_sec_type         = bytearray(fields[index+2]).decode()
+        contract.market_rule_ids        = bytearray(fields[index+3]).decode()
+        contract.real_expiration_date   = bytearray(fields[index+4]).decode()
 
-        """
-        Not yet ported
-        secIdListCount = int(fields[])
-        if secIdListCount > 0:
-            contract.secIdList = []
-            for _ in range(secIdListCount):
-                tagValue = TagValue()
-                tagValue.tag :bytearray(fields[]).decode()
-                tagValue.value :bytearray(fields[]).decode()
-                contract.secIdList.append(tagValue)
-
-
-        contract.aggGroup = int(fields[])
-
-
-        contract.underSymbol = bytearray(fields[]).decode()
-        contract.underSecType = bytearray(fields[]).decode()
-
-
-        contract.marketRuleIds = bytearray(fields[]).decode()
-        contract.realExpirationDate = bytearray(fields[]).decode()
-        """
         return request_id, message_id, contract
 
     @staticmethod
@@ -1238,7 +1227,7 @@ class MessageParser(object):
                 'security_type'     : bytearray(fields[field_index+1]).decode(),
                 'listing_exchange'  : bytearray(fields[field_index+2]).decode(),
                 'service_data_type' : bytearray(fields[field_index+3]).decode(),
-                'agg_group'         : int(fields[field_index+4])
+                'aggregate_group'         : int(fields[field_index+4])
             }
             field_index += 5
             depth_mkt_data_descriptions.append(desc)
