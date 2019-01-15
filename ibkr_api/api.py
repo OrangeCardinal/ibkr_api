@@ -904,12 +904,19 @@ class IBKR_API(ApiCalls):
         data = self._process_response('request_market_depth_exchanges')
         return data
 
+    @drop_message_id_and_request_id
     def request_market_rule(self, market_rule_id: int):
+        """
+        Request the Market Rule for the Given ID
 
+        :param market_rule_id: Integer Identifier for the Market Rule
+        :return:
+        """
+        # Make the underlying API Call
         super().request_market_rule(market_rule_id)
 
-        # Process the response from the bridge
-        data = self._process_response('request_market_rule')
+        # Process the Response From the Bridge
+        data = self._process_response('market_rule')
         return data
 
     def request_news_providers(self):
