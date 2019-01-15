@@ -86,9 +86,12 @@ class MessageParser(object):
         request_id                                  = int(fields[2])
         contract.symbol                             = bytearray(fields[3]).decode()
         contract.security_type                      = bytearray(fields[4]).decode()
-        contract.last_trade_date_or_contract_month  = MessageParser._parse_ib_date(bytearray(fields[5]).decode())
 
+
+
+        contract.last_trade_date_or_contract_month  = MessageParser._parse_ib_date(bytearray(fields[5]).decode())
         contract.strike                 = float(fields[6])
+
         contract.right                  = bytearray(fields[7]).decode()
         contract.exchange               = bytearray(fields[8]).decode()
         contract.currency               = bytearray(fields[9]).decode()
@@ -111,21 +114,36 @@ class MessageParser(object):
         contract.sub_category           = bytearray(fields[25]).decode()
         contract.time_zone_id           = bytearray(fields[26]).decode()
         contract.trading_hours          = bytearray(fields[27]).decode()
-
-        # Parse Regular Trading Hour Information
         contract.regular_trading_hours  = bytearray(fields[28]).decode()
+        contract.ev_rule                = bytearray(fields[29]).decode()
+        contract.ev_multiplier          = bytearray(fields[30]).decode()
+
+        ##########################################
+        # Parse Regular Trading Hour Information #
+        ##########################################
         if contract.regular_trading_hours:
             regular_trading_hours = {}
             daily_schedule = contract.regular_trading_hours.split(';')
             for date_hours in daily_schedule:
-                parts = date_hours.split(':')
-                regular_trading_hours[parts[0]] = parts[1:]
-            contract.regular_trading_hours = regular_trading_hours
-        contract.ev_rule                = bytearray(fields[29]).decode()
-        contract.ev_multiplier          = bytearray(fields[30]).decode()
+                parts = date_hours.split('-')
+                if len(parts) == 1:
+                    (trading_date, closed) = parts[0].split(':')
+                    regular_trading_hours[trading_date] = {'market_open':False}
+                elif len(parts) == 2:
+                    start_date, start_time = parts[0].split(':')
+                    end_date, end_time     = parts[1].split(':')
+                    regular_trading_hours[start_date] = {'market_open':True,
+                                                         'start_date':start_date    ,'start_time':start_time,
+                                                         'end_date':end_date        ,'end_time':end_time
+                                                         }
 
+            contract.regular_trading_hours = regular_trading_hours
+
+
+        #print(len(fields))
         #security_id_list_count          = int(fields[31])
-        #print("Security: {0}".format(security_id_list_count)) #TODO: Fix here down
+        #print("Security: {0}".format(security_id_list_count))
+        # #TODO: Fix here down
 
         """
         Not yet ported
