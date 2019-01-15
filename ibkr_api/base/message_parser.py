@@ -1317,12 +1317,19 @@ class MessageParser(object):
 
     @staticmethod
     def market_rule(fields):
-        message_id = int(fields[0])
-        market_rule_id = int(fields[1])
+        """
+        Parse the 'market_rule' message and return well formatted data
 
-        n_price_increments = int(fields[2])
-        field_index = 3
-        price_increments = []
+        :param fields:
+        :return:
+        """
+
+        message_id      = int(fields[0])
+        market_rule_id  = int(fields[1])
+
+        n_price_increments  = int(fields[2])
+        field_index         = 3
+        price_increments    = []
 
         if n_price_increments > 0:
             for _ in range(n_price_increments):
