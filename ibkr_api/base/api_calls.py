@@ -65,7 +65,7 @@ class ApiCalls(object):
         """
         fields = {
             'last_trade_date_or_contract_month' : ''    ,
-            'strike'                            : ''    ,
+            'strike'                            : 0.0   , #was empty string, I think correct default is 0.0
             'right'                             : ''    ,
             'multiplier'                        : ''
         }
@@ -1022,14 +1022,15 @@ class ApiCalls(object):
     @check_connection
     def request_market_rule(self, market_rule_id: int):
         """
-        Request Market Rule Information
+        Create the 'request_market_rule' Message
+        Send the message to the Bridge
 
         :param market_rule_id:
         :return:
         """
 
         message_id = Messages.outbound['request_market_rule']
-        fields = [message_id]
+        fields = [message_id, market_rule_id]
         self.conn.send_message(fields)
 
     @check_connection
