@@ -4,19 +4,19 @@ and returns it the format message_id, request_id, data
 
 data is usually a dictionary on a given object
 """
-from ibkr_api.base.constants import UNSET_DOUBLE
-from ibkr_api.classes.contracts.contract         import Contract
-from ibkr_api.classes.contracts.contract_details import ContractDetails
-from ibkr_api.classes.execution                  import Execution
-from ibkr_api.classes.option_chain               import OptionChain
-from ibkr_api.classes.order                      import Order
-from ibkr_api.classes.order_state                import OrderState
-
-from ibkr_api.classes.bar                        import Bar
-from ibkr_api.classes.enum.tick_type             import TickType
+from ibkr_api.base.constants                        import UNSET_DOUBLE
+from ibkr_api.classes.bar                           import Bar
+from ibkr_api.classes.contracts.contract            import Contract
+from ibkr_api.classes.contracts.contract_details    import ContractDetails
+from ibkr_api.classes.enum.tick_type                import TickType
+from ibkr_api.classes.execution                     import Execution
+from ibkr_api.classes.option_chain                  import OptionChain
+from ibkr_api.classes.order                         import Order
+from ibkr_api.classes.order_state                   import OrderState
 
 from dateutil   import parser as date_parser
-from datetime   import date
+from datetime   import date, datetime
+from    math    import  ceil
 import pandas   as pd
 import logging
 import xmltodict
@@ -37,23 +37,6 @@ class MessageParser(object):
             date_val = date_parser.parse(date_val)
         return date_val
 
-
-    @staticmethod
-    def commission_report(fields):
-        message_id = int(fields[0])
-        request_id = int(fields[1])
-
-        commission_report = {
-            'execute_id'            : bytearray(fields[2]).decode(),
-            'commission'            : float(fields[3]),
-            'currency'              : bytearray(fields[4]).decode(),
-            'realized_pnl'          : float(fields[5]),
-            'yield'                 : float(fields[6]),
-            'yield_redemption_date' : bytearray(fields[7]).decode()
-        }
-        return message_id, request_id, commission_report
-
-
     #TODO: Remove this function? not sure, probably
     @staticmethod
     def _parse_last_trade_or_contract_month(fields, contract: ContractDetails, is_bond: bool):
@@ -71,6 +54,21 @@ class MessageParser(object):
 
             if is_bond and len(field_parts) > 2:
                 contract.timeZoneId = field_parts[2]
+
+    @staticmethod
+    def commission_report(fields):
+        message_id = int(fields[0])
+        request_id = int(fields[1])
+
+        commission_report = {
+            'execute_id'            : bytearray(fields[2]).decode(),
+            'commission'            : float(fields[3]),
+            'currency'              : bytearray(fields[4]).decode(),
+            'realized_pnl'          : float(fields[5]),
+            'yield'                 : float(fields[6]),
+            'yield_redemption_date' : bytearray(fields[7]).decode()
+        }
+        return message_id, request_id, commission_report
 
     @staticmethod
     def contract_data(fields):
@@ -269,10 +267,21 @@ class MessageParser(object):
         :return:
         """
 
-        message_id      = int(fields[0])
-        request_id      = int(fields[1])
-        head_timestamp  = MessageParser._parse_ib_date(bytearray(fields[2]).decode())
-        return message_id, request_id, head_timestamp
+        message_id          = int(fields[0])
+        request_id          = int(fields[1])
+        head_time_stamp     = MessageParser._parse_ib_date(bytearray(fields[2]).decode())
+        data            = {
+            'time_stamp'   :   MessageParser._parse_ib_date(bytearray(fields[2]).decode())
+        }
+        current_time    = datetime.now()
+        time_diff       = current_time - data['time_stamp']
+        if time_diff.days < 365:
+            data['duration_string'] = "{0} D".format(time_diff.days)
+        else:
+            years = ceil(time_diff.days / 365.0)
+            data['duration_string']    = "{0} Y".format(years)
+
+        return message_id, request_id, data
 
     @staticmethod
     def historical_data(fields):
@@ -616,7 +625,7 @@ class MessageParser(object):
 
 
     @staticmethod
-    def open_order(fields):
+    def open_orders(fields):
 
         message_id      = int(fields[0])
         message_version = int(fields[1])
@@ -884,6 +893,18 @@ class MessageParser(object):
         order.dontUseAutoPriceForHedge = int(fields[field_index+14]) == 1
         order.isOmsContainer = int(fields[field_index+15]) == 1
             
+
+    @staticmethod
+    def open_orders_end(fields):
+        """
+        Process the open_orders_end message and return well formatted data
+
+        :param fields:
+        :return:
+        """
+        message_id = int(fields[0])
+        request_id  = int(fields[1])
+        return message_id, request_id, None
 
     @staticmethod
     def portfolio_value(fields):

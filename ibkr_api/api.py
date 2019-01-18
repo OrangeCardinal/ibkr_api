@@ -802,7 +802,7 @@ class IBKR_API(ApiCalls):
     def request_head_time_stamp(self,
                                 contract        : Contract,
                                 what_to_show    : str,
-                                use_rth         : int=0,
+                                only_use_rth         : int=0,
                                 format_date     : int=1
                                 ):
         """
@@ -810,12 +810,12 @@ class IBKR_API(ApiCalls):
 
         :param contract: Contract we want to get earliest time stamp for
         :param what_to_show: string or ``Show`` enum value
-        :param use_rth:
+        :param only_use_rth:
         :param format_date:
         :return:
         """
         request_id = self.get_local_request_id()
-        super().request_head_time_stamp(request_id, contract, what_to_show, use_rth, format_date)
+        super().request_head_time_stamp(request_id, contract, what_to_show, only_use_rth, format_date)
         # Process the response from the bridge
         data = self._process_response('head_time_stamp')
         return data
@@ -840,7 +840,7 @@ class IBKR_API(ApiCalls):
         return data
 
     def request_historical_ticks(self, request_id: int, contract: Contract, start_date_time: str,
-                                 end_date_time: str, number_of_ticks: int, what_to_show: str, use_rth: int,
+                                 end_date_time: str, number_of_ticks: int, what_to_show: str, only_use_rth: int,
                                  ignore_size: bool, miscOptions: list):
         """
         Calls request_historical_ticks and then waits for data or a relevant error
@@ -851,7 +851,7 @@ class IBKR_API(ApiCalls):
         :param end_date_time:
         :param number_of_ticks:
         :param what_to_show:
-        :param use_rth:
+        :param only_use_rth:
         :param ignore_size:
         :param miscOptions:
         :return:
@@ -860,7 +860,7 @@ class IBKR_API(ApiCalls):
         # Make the underlying API Call
         request_id = self.get_local_request_id()
         super().request_historical_ticks(request_id, contract, start_date_time, end_date_time, number_of_ticks,
-                                         what_to_show, use_rth, ignore_size, miscOptions)
+                                         what_to_show, only_use_rth, ignore_size, miscOptions)
 
         # Process the response from the bridge
         data = self._process_response('request_historical_ticks')
@@ -944,7 +944,8 @@ class IBKR_API(ApiCalls):
         # Process the response from the bridge
         super().request_open_orders()
 
-        data = self._process_response('open_orders')
+        messages_to_process = ['open_orders','open_orders_end']
+        data = self._process_response(messages_to_process)
         return data
 
     def request_positions_multi(self, request_id: int, account: str, model_code: str):
@@ -1000,13 +1001,13 @@ class IBKR_API(ApiCalls):
 
     @drop_message_id_and_request_id
     def request_historical_data(self, 
-                                contract            : Contract, 
-                                end_date_time       : str,
-                                duration            : str, 
-                                bar_size_setting    : str, 
-                                what_to_show        : str,
-                                use_rth             : int, 
-                                format_date         : int=1,
+                                contract            : Contract      ,
+                                end_date_time       : str           ,
+                                duration            : str           ,
+                                bar_size_setting    : str           ,
+                                what_to_show        : str           ,
+                                only_use_rth        : int           ,
+                                format_date         : int=1         ,
                                 chart_options       : list=[]
                                 ):
         """
@@ -1017,50 +1018,18 @@ class IBKR_API(ApiCalls):
         :param duration:
         :param bar_size_setting: Controls how large a bar is. Legal values are defined in the `BarSize` class
         :param what_to_show: Determines what data is returned by the Bridge. Legal values are in the `Show` class
-        :param use_rth:
+        :param only_use_rth:
         :param format_date:
-        :param keep_up_to_date:
         :param chart_options:
         :return:
         """
-
-
-        """Requests contracts' historical data. When requesting historical data, a
-        finishing time and date is required along with a duration string. The
-        resulting bars will be returned in EWrapper.historicalData()
-
-        request_id:int - The id of the request. Must be a unique value. When the
-            market data returns, it whatToShowill be identified by this tag. This is also
-            used when canceling the market data.
-        contract:Contract - This object contains a description of the contract for which
-            market data is being requested.
-        end_date_time:str - Defines a query end date and time at any point during the past 6 mos.
-            Valid values include any date/time within the past six months in the format:
-            yyyymmdd HH:mm:ss ttt
-
-            where "ttt" is the optional time zone.
-        durationStr:str - Set the query duration up to one week, using a time unit
-            of seconds, days or weeks. Valid values include any integer followed by a space
-            and then S (seconds), D (days) or W (week). If no unit is specified, seconds is used.
-        useRTH:int - Determines whether to return all data available during the requested time span,
-            or only data that falls within regular trading hours. Valid values include:
-
-            0 - all data is returned even where the market in question was outside of its
-            regular trading hours.
-            1 - only data within the regular trading hours is returned, even if the
-            requested time span falls partially or completely outside of the RTH.
-        formatDate: int - Determines the date format applied to returned bars. validd values include:
-
-            1 - dates applying to bars returned in the format: yyyymmdd{space}{space}hh:mm:dd
-            2 - dates are returned as a long integer specifying the number of seconds since
-                1/1/1970 GMT.
-        chartOptions:list - For internal use only. Use default value XYZ. """
         request_id = self.get_local_request_id()
+
         # As we are running in a synchronized mode, this should be set to False always
         keep_up_to_date = False
 
         super().request_historical_data(request_id, contract,end_date_time,duration, bar_size_setting, what_to_show,
-                                        use_rth, format_date, keep_up_to_date, chart_options)
+                                        only_use_rth, format_date, keep_up_to_date, chart_options)
         data = self._process_response('historical_data')
         return data
 
@@ -1212,7 +1181,7 @@ class IBKR_API(ApiCalls):
         return data
 
     def request_histogram_data(self, ticker_id: int, contract: Contract,
-                               use_rth: bool, time_period: str):
+                               only_use_rth: bool, time_period: str):
         # Process the response from the bridge
         data = self._process_response('')
         return data
