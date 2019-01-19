@@ -23,7 +23,7 @@ class Order(object):
         # order identifier
         self.order_id  = 0
         self.client_id = 0
-        self.permId   = 0
+        self.perm_id   = 0
 
         # main order fields
         self.action = ""
@@ -36,7 +36,7 @@ class Order(object):
         self.tif = ""                 # "Time in Force" - DAY, GTC, etc.
         self.active_start_time = ""   # for Good Till Cancelled (GTC) orders
         self.active_stop_time = ""    # for Good Till Cancelled (GTC) orders
-        self.ocaGroup = ""            # One cancels all group name
+        self.oca_group = ""            # One cancels all group name
         self.oca_type        = 0       # 1 = CANCEL_WITH_BLOCK, 2 = REDUCE_WITH_BLOCK, 3 = REDUCE_NON_BLOCK
         self.order_ref       = ""
         self.transmit       = True  # if false, order will be created but not transmited
@@ -65,30 +65,30 @@ class Order(object):
 
         # institutional (ie non-cleared) only
         self.designatedLocation    = "" #used only when shortSaleSlot=2
-        self.openClose             = "O"    # O=Open, C=Close
+        self.open_close             = "O"    # O=Open, C=Close
         self.origin                = CUSTOMER  # 0=Customer, 1=Firm
         self.shortSaleSlot         = 0    # type: int; 1 if you hold the shares, 2 if they will be delivered from elsewhere.  Only for Action=SSHORT
         self.exemptCode            = -1
 
         # SMART routing only
-        self.discretionaryAmt = 0
-        self.eTradeOnly       = True
+        self.discretionary_amt = 0
+        self.e_trade_only       = True
         self.firmQuoteOnly    = True
         self.nbboPriceCap     = UNSET_DOUBLE  # type: float
-        self.optOutSmartRouting = False
+        self.opt_out_smart_routing = False
 
         # BOX exchange orders only
         self.auctionStrategy = AUCTION_UNSET # type: int; AUCTION_MATCH, AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT
-        self.startingPrice   = UNSET_DOUBLE   # type: float
-        self.stockRefPrice   = UNSET_DOUBLE   # type: float
+        self.starting_price   = UNSET_DOUBLE   # type: float
+        self.stock_ref_price   = UNSET_DOUBLE   # type: float
         self.delta           = UNSET_DOUBLE   # type: float
 
         # pegged to stock and VOL orders only
-        self.stockRangeLower = UNSET_DOUBLE   # type: float
-        self.stockRangeUpper = UNSET_DOUBLE   # type: float
+        self.stock_range_lower = UNSET_DOUBLE   # type: float
+        self.stock_range_upper = UNSET_DOUBLE   # type: float
 
-        self.randomizePrice = False
-        self.randomizeSize = False
+        self.randomize_price = False
+        self.randomize_size = False
 
         # VOLATILITY ORDERS ONLY
         self.volatility                     = UNSET_DOUBLE  # type: float
@@ -98,54 +98,54 @@ class Order(object):
         self.delta_neutral_con_id           = 0
         self.delta_neutral_settling_firm    = ""
         self.delta_neutral_clearing_account = ""
-        self.deltaNeutralClearingIntent     = ""
-        self.deltaNeutralOpenClose          = ""
-        self.deltaNeutralShortSale          = False
-        self.deltaNeutralShortSaleSlot      = 0
-        self.deltaNeutralDesignatedLocation = ""
-        self.continuousUpdate               = False
-        self.referencePriceType             = UNSET_INTEGER  # type: int; 1=Average, 2 = BidOrAsk
+        self.delta_neutral_clearing_intent     = ""
+        self.delta_neutral_open_close          = ""
+        self.delta_neutral_short_sale          = False
+        self.delta_neutral_short_sale_slot      = 0
+        self.delta_neutral_designated_location = ""
+        self.continuous_update               = False
+        self.reference_price_type             = UNSET_INTEGER  # type: int; 1=Average, 2 = BidOrAsk
 
         # COMBO ORDERS ONLY
-        self.basisPoints     = UNSET_DOUBLE  # type: float; EFP orders only
-        self.basisPointsType = UNSET_INTEGER  # type: int;  EFP orders only
+        self.basis_points     = UNSET_DOUBLE  # type: float; EFP orders only
+        self.basis_points_type = UNSET_INTEGER  # type: int;  EFP orders only
 
         # SCALE ORDERS ONLY
-        self.scaleInitLevelSize       = UNSET_INTEGER  # type: int
-        self.scaleSubsLevelSize       = UNSET_INTEGER  # type: int
-        self.scalePriceIncrement      = UNSET_DOUBLE  # type: float
-        self.scalePriceAdjustValue    = UNSET_DOUBLE  # type: float
-        self.scalePriceAdjustInterval = UNSET_INTEGER  # type: int
-        self.scaleProfitOffset        = UNSET_DOUBLE  # type: float
-        self.scaleAutoReset           = False
-        self.scaleInitPosition        = UNSET_INTEGER   # type: int
-        self.scaleInitFillQty         = UNSET_INTEGER    # type: int
-        self.scaleRandomPercent       = False
+        self.scale_init_level_size       = UNSET_INTEGER  # type: int
+        self.scale_subs_level_size       = UNSET_INTEGER  # type: int
+        self.scale_price_increment      = UNSET_DOUBLE  # type: float
+        self.scale_price_adjust_value    = UNSET_DOUBLE  # type: float
+        self.scale_price_adjust_interval = UNSET_INTEGER  # type: int
+        self.scale_profit_offset        = UNSET_DOUBLE  # type: float
+        self.scale_auto_reset           = False
+        self.scale_init_position        = UNSET_INTEGER   # type: int
+        self.scale_init_fill_qty         = UNSET_INTEGER    # type: int
+        self.scale_random_percent       = False
         self.scaleTable = ""
 
         # HEDGE ORDERS
-        self.hedgeType             = "" # 'D' - delta, 'B' - beta, 'F' - FX, 'P' - pair
-        self.hedgeParam            = "" # 'beta=X' value for beta hedge, 'ratio=Y' for pair hedge
+        self.hedge_type             = "" # 'D' - delta, 'B' - beta, 'F' - FX, 'P' - pair
+        self.hedge_param            = "" # 'beta=X' value for beta hedge, 'ratio=Y' for pair hedge
 
         # Clearing info
         self.account               = "" # IB account
         self.settlingFirm          = ""
-        self.clearingAccount       = ""   #True beneficiary of the order
-        self.clearingIntent        = "" # "" (Default), "IB", "Away", "PTA" (PostTrade)
+        self.clearing_account       = ""   #True beneficiary of the order
+        self.clearing_intent        = "" # "" (Default), "IB", "Away", "PTA" (PostTrade)
 
         # ALGO ORDERS ONLY
         self.algorithmic_strategy          = ""
 
         self.algo_params            = None    #TagValueList
-        self.smartComboRoutingParams = None  #TagValueList
+        self.smart_combo_routing_params = None  #TagValueList
 
         self.algoId = ""
 
         # What-if
-        self.whatIf = False
+        self.what_if = False
 
         # Not Held
-        self.notHeld = False
+        self.not_held = False
         self.solicited = False
 
         # models
@@ -187,12 +187,12 @@ class Order(object):
         self.mifid2ExecutionTrader = ""
         self.mifid2ExecutionAlgo = ""
 
-        self.dontUseAutoPriceForHedge = False
+        self.dont_use_auto_price_for_hedge = False
 
-        self.isOmsContainer = False
+        self.is_oms_container = False
 
     def __str__(self):
-        s = "%s,%d,%s:" % (self.order_id, self.client_id, self.permId)
+        s = "%s,%d,%s:" % (self.order_id, self.client_id, self.perm_id)
 
         s += " %s %s %d@%f" % (
             self.order_type,
