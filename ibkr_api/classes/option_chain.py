@@ -27,3 +27,14 @@ class OptionChain(object):
                 desc += "\n"
 
         return desc
+
+
+    def atm_strike(self, price):
+        """
+        Returns the first expiration that is above the supplied price
+        :param price: Price ~ Usually the Underlying Stock's Current Price
+        :return: strike of the "At the Money" option
+        """
+        for strike in self.strikes:
+            if strike > price:
+                return strike
