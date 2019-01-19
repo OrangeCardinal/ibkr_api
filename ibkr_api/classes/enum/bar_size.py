@@ -6,6 +6,7 @@ class BarSize(Enum):
     # Access By Number #
     ####################
     ONE_HOUR        = '1 hour'
+    ONE_DAY         = '1 day'
     ONE_MINUTE      = '1 min'
     ONE_MONTH       = '1M'
     ONE_WEEK        = '1W'
