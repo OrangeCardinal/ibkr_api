@@ -162,12 +162,14 @@ class Messages(object):
         }
 
 
+
         @staticmethod
-        def parse_message(message: bytes):
+        def parse_message(raw_message: bytes):
             """ Parse message into a list of fields.
             The message is made of fields separated by NULL character"""
+            message = bytearray(raw_message).decode()
+            fields = message.split("\0")
 
-            fields = message.split(b"\0")
             # First field is always message id and as such can be converted to int here
             fields[0] = int(fields[0])
 
