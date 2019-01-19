@@ -397,20 +397,20 @@ class ApiCalls(object):
             if order.delta_neutral_con_id > 0 \
                     or order.delta_neutral_settling_firm \
                     or order.delta_neutral_clearing_account \
-                    or order.deltaNeutralClearingIntent:
+                    or order.delta_neutral_clearing_intent:
                 self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
                                             "  It does not support deltaNeutral parameters: ConId, SettlingFirm, ClearingAccount, ClearingIntent.")
                 return
 
         if self.server_version() < MIN_SERVER_VER_SCALE_ORDERS3:
-            if order.scalePriceIncrement > 0 and order.scalePriceIncrement != UNSET_DOUBLE:
-                if order.scalePriceAdjustValue != UNSET_DOUBLE \
-                        or order.scalePriceAdjustInterval != UNSET_INTEGER \
-                        or order.scaleProfitOffset != UNSET_DOUBLE \
-                        or order.scaleAutoReset \
-                        or order.scaleInitPosition != UNSET_INTEGER \
-                        or order.scaleInitFillQty != UNSET_INTEGER \
-                        or order.scaleRandomPercent:
+            if order.scale_price_increment > 0 and order.scale_price_increment != UNSET_DOUBLE:
+                if order.scale_price_adjust_value != UNSET_DOUBLE \
+                        or order.scale_price_adjust_interval != UNSET_INTEGER \
+                        or order.scale_profit_offset != UNSET_DOUBLE \
+                        or order.scale_auto_reset \
+                        or order.scale_init_position != UNSET_INTEGER \
+                        or order.scale_init_fill_qty != UNSET_INTEGER \
+                        or order.scale_random_percent:
                     self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
                                                 "  It does not support Scale order parameters: PriceAdjustValue, PriceAdjustInterval, " +
                                                 "ProfitOffset, AutoReset, InitPosition, InitFillQty and RandomPercent")
@@ -459,9 +459,9 @@ class ApiCalls(object):
 
         # send extended order fields
         fields += [order.tif            ,
-                   order.ocaGroup       ,
+                   order.oca_group       ,
                    order.account        ,
-                   order.openClose      ,
+                   order.open_close      ,
                    order.origin         ,
                    order.order_ref      ,
                    order.transmit       ,
@@ -500,10 +500,10 @@ class ApiCalls(object):
                     fields.append(orderComboLeg.price)
 
         if self.server_version() >= MIN_SERVER_VER_SMART_COMBO_ROUTING_PARAMS and contract.security_type == "BAG":
-            smartComboRoutingParamsCount = len(order.smartComboRoutingParams) if order.smartComboRoutingParams else 0
+            smartComboRoutingParamsCount = len(order.smart_combo_routing_params) if order.smart_combo_routing_params else 0
             fields.append(smartComboRoutingParamsCount)
             if smartComboRoutingParamsCount > 0:
-                for tagValue in order.smartComboRoutingParams:
+                for tagValue in order.smart_combo_routing_params:
                     fields += [tagValue.tag, tagValue.value]
 
         ######################################################################
@@ -520,7 +520,7 @@ class ApiCalls(object):
         #####################################################################
         # send deprecated sharesAllocation field
         fields += ["",
-                   order.discretionaryAmt,
+                   order.discretionary_amt,
                    order.good_after_time,
                    order.good_till_date,
 
@@ -545,16 +545,16 @@ class ApiCalls(object):
                    order.allOrNone,
                    order.min_qty,
                    order.percent_offset,
-                   order.eTradeOnly,
+                   order.e_trade_only,
                    order.firmQuoteOnly,
                    order.nbboPriceCap,
                    order.auctionStrategy,
                    # AUCTION_MATCH, AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT
-                   order.startingPrice,
-                   order.stockRefPrice,
+                   order.starting_price,
+                   order.stock_ref_price,
                    order.delta,
-                   order.stockRangeLower,
-                   order.stockRangeUpper,
+                   order.stock_range_lower,
+                   order.stock_range_upper,
 
                    order.override_percentage_constraints,
 
@@ -566,54 +566,54 @@ class ApiCalls(object):
 
         if order.delta_neutral_order_type:
             fields += [order.delta_neutral_con_id, order.delta_neutral_settling_firm, order.delta_neutral_clearing_account,
-                       order.deltaNeutralClearingIntent]
+                       order.delta_neutral_clearing_intent]
 
         if order.delta_neutral_order_type:
-            fields += [order.deltaNeutralOpenClose,
-                       order.deltaNeutralShortSale,
-                       order.deltaNeutralShortSaleSlot,
-                       order.deltaNeutralDesignatedLocation]
+            fields += [order.delta_neutral_open_close,
+                       order.delta_neutral_short_sale,
+                       order.delta_neutral_short_sale_slot,
+                       order.delta_neutral_designated_location]
 
-        fields += [order.continuousUpdate,
-                   order.referencePriceType,
+        fields += [order.continuous_update,
+                   order.reference_price_type,
                    order.trail_stop_price]
 
         fields.append(order.trailing_percent)
 
         # SCALE orders
-        fields += [order.scaleInitLevelSize, order.scaleSubsLevelSize]
+        fields += [order.scale_init_level_size, order.scale_subs_level_size]
 
 
-        fields.append(order.scalePriceIncrement)
+        fields.append(order.scale_price_increment)
 
         if self.server_version() >= MIN_SERVER_VER_SCALE_ORDERS3 \
-                and order.scalePriceIncrement != UNSET_DOUBLE \
-                and order.scalePriceIncrement > 0.0:
-            fields += [order.scalePriceAdjustValue,
-                       order.scalePriceAdjustInterval,
-                       order.scaleProfitOffset,
-                       order.scaleAutoReset,
-                       order.scaleInitPosition,
-                       order.scaleInitFillQty,
-                       order.scaleRandomPercent]
+                and order.scale_price_increment != UNSET_DOUBLE \
+                and order.scale_price_increment > 0.0:
+            fields += [order.scale_price_adjust_value,
+                       order.scale_price_adjust_interval,
+                       order.scale_profit_offset,
+                       order.scale_auto_reset,
+                       order.scale_init_position,
+                       order.scale_init_fill_qty,
+                       order.scale_random_percent]
 
 
         fields += [order.scaleTable, order.active_start_time, order.active_stop_time]
 
         # HEDGE orders
         if self.server_version() >= MIN_SERVER_VER_HEDGE_ORDERS:
-            fields.append(order.hedgeType)
-            if order.hedgeType:
-                fields.append(order.hedgeParam)
+            fields.append(order.hedge_type)
+            if order.hedge_type:
+                fields.append(order.hedge_param)
 
         if self.server_version() >= MIN_SERVER_VER_OPT_OUT_SMART_ROUTING:
-            fields.append(order.optOutSmartRouting)
+            fields.append(order.opt_out_smart_routing)
 
         if self.server_version() >= MIN_SERVER_VER_PTA_ORDERS:
-            fields += [order.clearingAccount, order.clearingIntent]
+            fields += [order.clearing_account, order.clearing_intent]
 
         if self.server_version() >= MIN_SERVER_VER_NOT_HELD:
-            fields.append(order.notHeld)
+            fields.append(order.not_held)
 
         if self.server_version() >= MIN_SERVER_VER_DELTA_NEUTRAL:
             if contract.delta_neutral_contract:
@@ -636,7 +636,7 @@ class ApiCalls(object):
 
         fields.append(order.algoId)
 
-        fields.append(order.whatIf)
+        fields.append(order.what_if)
 
         # send miscOptions parameter
 
@@ -650,7 +650,7 @@ class ApiCalls(object):
         fields.append(order.solicited)
 
 
-        fields.extend([order.randomizeSize, order.randomizePrice])
+        fields.extend([order.randomize_size, order.randomize_price])
 
 
         if order.order_type == "PEG BENCH":
@@ -678,8 +678,8 @@ class ApiCalls(object):
         fields.append(order.mifid2DecisionAlgo)
         fields.append(order.mifid2ExecutionTrader)
         fields.append(order.mifid2ExecutionAlgo)
-        fields.append(order.dontUseAutoPriceForHedge)
-        fields.append(order.isOmsContainer)
+        fields.append(order.dont_use_auto_price_for_hedge)
+        fields.append(order.is_oms_container)
 
         self.conn.send_message(fields)
 
