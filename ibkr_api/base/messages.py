@@ -173,7 +173,7 @@ class Messages(object):
             # First field is always message id and as such can be converted to int here
             fields[0] = int(fields[0])
 
-            return tuple(fields[0:-1])
+            return fields[0:-1]
 
         @staticmethod
         def get_inbound_action(message_id):
