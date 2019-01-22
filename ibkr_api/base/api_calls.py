@@ -665,7 +665,7 @@ class ApiCalls(object):
                     # TODO: make sure I ported logic in whatever happens 1 line below
                     # fields += cond.self.conn.make_message()
 
-                fields.extend([order.conditionsIgnoreRth, order.conditionsCancelOrder])
+                fields.extend([order.conditions_ignore_rth, order.conditions_cancel_order])
 
             fields.extend([order.adjusted_order_type, order.trigger_price, order.limit_price_offset, order.adjusted_stop_price,
                            order.adjusted_trailing_amount, order.adjusted_trailing_unit])
