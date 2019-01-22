@@ -35,9 +35,9 @@ class MessageParser(object):
         """
         Check if a value exists, and if so cast it to the correct type
 
-        :param raw_value:
-        :param conversion_type:
-        :return:
+        :param value: String value
+        :param conversion_type: Type of field we wish to treat this value as
+        :return: A value converted to the specified type
         """
         if value == '' and isinstance(0, conversion_type):
             value = UNSET_INTEGER
@@ -655,268 +655,257 @@ class MessageParser(object):
 
     @staticmethod
     def open_orders(fields):
-        optional_field = MessageParser._optional_field
+        fields_iterator     = iter(fields)
+        optional_field      = MessageParser._optional_field
 
-        order           = Order()
-        contract        = Contract()
+        order               = Order()
+        contract            = Contract()
 
-        message_id                                      = int(next(fields))
-        order.order_id                                  = int(next(fields))
-        contract.id                                     = int(next(fields))
-        contract.symbol                                 = next(fields)
-        contract.security_type                          = next(fields)
-        contract.last_trade_date_or_contract_month      = next(fields)
-        contract.strike                                 = float(next(fields))
-        contract.right                                  = next(fields)
-        contract.multiplier                             = next(fields)
-        contract.exchange                               = next(fields)
-        contract.currency                               = next(fields)
-        contract.local_symbol                           = next(fields)
-        contract.trading_class                          = next(fields)
+        # Fields 0 - 9
+        message_id                                          = int(next(fields_iterator))
 
-        # Parse Order Information
-        order.action                                    = fields[13]
-        order.total_quantity                            = float(fields[14])
-        order.order_type                                = fields[15]
-        order.limit_price                                  = float(fields[16])
-        order.aux_price                                  = fields[17]
-        order.tif                                       = fields[18]
-        order.oca_group                                  = fields[19]
+        order.order_id                                      = int(next(fields_iterator))
 
+        contract.id                                         = int(next(fields_iterator))
+        contract.symbol                                     = next(fields_iterator)
+        contract.security_type                              = next(fields_iterator)
+        contract.last_trade_date_or_contract_month          = next(fields_iterator)
+        contract.strike                                     = float(next(fields_iterator))
+        contract.right                                      = next(fields_iterator)
+        contract.multiplier                                 = next(fields_iterator)
+        contract.exchange                                   = next(fields_iterator)
+        contract.currency                                   = next(fields_iterator)
 
-        order.account                                   = fields[20]
-        order.open_close                                = fields[21]
-        order.origin                                    = int(fields[22])
-        order.order_ref                                 = fields[23]
-        order.client_id                                 = int(fields[24])
-        order.perm_id                                   = int(fields[25])
-        order.outside_rth                               = fields[26]
-        order.hidden                                    = fields[27]
-        order.discretionary_amt                         = fields[29] #float(fields[29]) #TODO: Fix here
+        # Fields 10 - 19
+        contract.local_symbol                               = next(fields_iterator)
+        contract.trading_class                              = next(fields_iterator)
 
-        order.good_after_time                           = fields[30]
-        _sharesAllocation                               = fields[31]  # deprecated ver 6 field
-        order.fa_group                                  = fields[32]
-        order.fa_method                                 = fields[33]
-        order.fa_percentage                             = fields[34]
-        order.fa_profile                                = fields[35]
-        order.model_code                                = fields[36]
-        order.good_till_date                            = fields[37]
-        order.rule80A                                   = fields[38]
-        order.percent_offset                            = fields[39] #float(fields[39]) #TODO: Fix here
+        order.action                                        = next(fields_iterator)
+        order.total_quantity                                = float(next(fields_iterator))
+        order.order_type                                    = next(fields_iterator)
+        order.limit_price                                   = float(next(fields_iterator))
+        order.aux_price                                     = next(fields_iterator)
+        order.tif                                           = next(fields_iterator)
+        order.oca_group                                     = next(fields_iterator)
+        order.account                                       = next(fields_iterator)
+        order.open_close                                    = next(fields_iterator)
 
-        order.settling_firm                             = fields[40]
-        order.short_sale_slot                           = fields[41]
-        order.designated_location                       = int(fields[42])
-        order.exempt_code                               = fields[43]
-        order.auction_strategy                          = optional_field(fields[44],int)
-        order.starting_price                            = optional_field(fields[45], float)
-        order.stock_ref_price                           = optional_field(fields[46], float)
-        order.delta                                     = optional_field(fields[47], float)
-        order.stock_range_lower                         = optional_field(fields[48], float)
-        order.stock_range_upper                         = optional_field(fields[49], float)
+        # Fields 20 - 29
+        order.origin                                    = int(next(fields_iterator))
+        order.order_ref                                 = next(fields_iterator)
+        order.client_id                                 = int(next(fields_iterator))
+        order.perm_id                                   = int(next(fields_iterator))
+        order.outside_rth                               = next(fields_iterator)
+        order.hidden                                    = next(fields_iterator)
+        order.discretionary_amt                         = next(fields_iterator) #float(fields[29]) #TODO: Fix here
 
-        order.display_size                               = float(fields[50])
-        order.block_order                               = int(fields[51]) == 1
-        order.sweep_to_fill                             = int(fields[52]) == 1
-        order.all_or_none                               = optional_field(fields[53], bool)
-        order.min_qty                                   = int(fields[54])
-        order.oca_type                                  = int(fields[55])
-        order.e_trade_only                              = int(fields[56]) == 1
-        order.firm_quote_only                           = optional_field(fields[57], bool)
-        order.nbbo_price_cap                            = float(fields[58])
-        order.parent_id                                 = int(fields[59])
+        order.good_after_time                           = next(fields_iterator)
+        _sharesAllocation                               = next(fields_iterator)  # deprecated ver 6 field
+        order.fa_group                                  = next(fields_iterator)
+        order.fa_method                                 = next(fields_iterator)
+        order.fa_percentage                             = next(fields_iterator)
+        order.fa_profile                                = next(fields_iterator)
+        order.model_code                                = next(fields_iterator)
+        order.good_till_date                            = next(fields_iterator)
+        order.rule80A                                   = next(fields_iterator)
+        order.percent_offset                            = next(fields_iterator) #float(fields[39]) #TODO: Fix here
+
+        order.settling_firm                             = next(fields_iterator)
+        order.short_sale_slot                           = next(fields_iterator)
+        order.designated_location                       = next(fields_iterator) #TODO: Should be int?
+        order.exempt_code                               = next(fields_iterator)
+        order.auction_strategy                          = optional_field(next(fields_iterator),int)
+        order.starting_price                            = optional_field(next(fields_iterator), float)
+        order.stock_ref_price                           = optional_field(next(fields_iterator), float)
+        order.delta                                     = optional_field(next(fields_iterator), float)
+        order.stock_range_lower                         = optional_field(next(fields_iterator), float)
+        order.stock_range_upper                         = optional_field(next(fields_iterator), float)
+
+        order.display_size                               = next(fields_iterator)
+        order.block_order                               = int(next(fields_iterator)) == 1
+        order.sweep_to_fill                             = int(next(fields_iterator)) == 1
+        order.all_or_none                               = optional_field(next(fields_iterator), bool)
+        order.min_qty                                   = next(fields_iterator)
+        order.oca_type                                  = int(next(fields_iterator))
+        order.e_trade_only                              = int(next(fields_iterator)) == 1
+        order.firm_quote_only                           = optional_field(next(fields_iterator), bool)
+        order.nbbo_price_cap                            = next(fields_iterator)
+        order.parent_id                                 = int(next(fields_iterator))
 
         print(fields[60:70])
-        order.trigger_method                            = optional_field(fields[60], int)
-        order.volatility                                = float(fields[61])
-        order.volatility_type                           = fields[62]
-        order.delta_neutral_order_type                  = fields[63]
-        order.delta_neutral_aux_price                   = float(fields[64])
+        order.trigger_method                            = optional_field(next(fields_iterator), int)
+        order.volatility                                = next(fields_iterator)
+        order.volatility_type                           = next(fields_iterator)
+        order.delta_neutral_order_type                  = next(fields_iterator)
+        order.delta_neutral_aux_price                   = next(fields_iterator)
 
-        field_index = 65
         if order.delta_neutral_order_type:
-            order.delta_neutral_con_id                  = int(fields[field_index])
-            order.delta_neutral_settling_firm           = fields[field_index+1]
-            order.delta_neutral_clearing_account        = fields[field_index+2]
-            order.delta_neutral_clearing_intent         = fields[field_index+3]
-            order.delta_neutral_open_close              = fields[field_index+4]
-            order.delta_neutral_short_sale              = int(fields[field_index+5])
-            order.delta_neutral_short_sale_slot         = int(fields[field_index+6])
-            order.delta_neutral_designated_location     = fields[field_index+7]
-            field_index += 8
+            order.delta_neutral_con_id                  = int(next(fields_iterator))
+            order.delta_neutral_settling_firm           = next(fields_iterator)
+            order.delta_neutral_clearing_account        = next(fields_iterator)
+            order.delta_neutral_clearing_intent         = next(fields_iterator)
+            order.delta_neutral_open_close              = next(fields_iterator)
+            order.delta_neutral_short_sale              = next(fields_iterator)
+            order.delta_neutral_short_sale_slot         = next(fields_iterator)
+            order.delta_neutral_designated_location     = next(fields_iterator)
 
-        order.continuous_update             = optional_field(fields[field_index],int)
-        order.reference_price_type          = optional_field(fields[field_index+1],int)
-        order.trail_stop_price              = optional_field(fields[field_index+2], float)
-        order.trailing_percent              = fields[field_index+3]
-        order.basis_points                  = float(fields[field_index+4])
-        order.basis_points_type             = int(fields[field_index+5])
-        contract.combo_legs_description     = fields[field_index+6]
-        combo_legs_count                    = int(fields[field_index+7])
-        field_index += 8
+
+        order.continuous_update             = optional_field(next(fields_iterator),int)
+        order.reference_price_type          = optional_field(next(fields_iterator),int)
+        order.trail_stop_price              = optional_field(next(fields_iterator), float)
+        order.trailing_percent              = next(fields_iterator)
+        order.basis_points                  = next(fields_iterator)
+        order.basis_points_type             = next(fields_iterator)
+        contract.combo_legs_description     = next(fields_iterator)
+        combo_legs_count                    = int(next(fields_iterator))
 
         # Process the contract's combo legs
         contract.combo_legs = []
         for _ in range(combo_legs_count):
             combo_leg = {
-                'contract_id'           : int(fields[field_index]),
-                'ratio'                 : int(fields[field_index+1]),
-                'action'                : fields[field_index+2],
-                'exchange'              : fields[field_index+3],
-                'open_close'            : int(fields[field_index+4]),
-                'shortSaleSlot'         : int(fields[field_index+5]),
-                'designatedLocation'    : fields[field_index+6],
-                'exemptCode'            : int(fields[field_index+7])
+                'contract_id'           : int(next(fields_iterator)),
+                'ratio'                 : int(next(fields_iterator)),
+                'action'                : next(fields_iterator),
+                'exchange'              : next(fields_iterator),
+                'open_close'            : int(next(fields_iterator)),
+                'shortSaleSlot'         : int(next(fields_iterator)),
+                'designatedLocation'    : next(fields_iterator),
+                'exemptCode'            : int(next(fields_iterator))
             }
-            field_index += 8
             contract.combo_legs.append(combo_leg)
 
         # Process the order's combo legs
-        order_combo_legs_count = int(fields[field_index])
+        order_combo_legs_count = int(next(fields_iterator))
         order.orderComboLegs = []
         for _ in range(order_combo_legs_count):
             order_combo_leg = {
-                'price' : float(fields[field_index])
+                'price' : float(next(fields_iterator))
             }
-            field_index += 1
             order.orderComboLegs.append(order_combo_leg)
 
         # Process the smart routing parameters
-        smart_combo_routing_params_count = int(fields[field_index])
+        smart_combo_routing_params_count = int(next(fields_iterator))
         order.smart_combo_routing_params = []
-        field_index += 1
         for _ in range(smart_combo_routing_params_count):
             tag_value = {
-                'tag'    : fields[field_index],
-                'value'  : fields[field_index+1]
+                'tag'    : next(fields_iterator),
+                'value'  : next(fields_iterator)
             }
-            field_index += 2
             order.smart_combo_routing_params.append(tag_value)
 
 
-        order.scale_init_level_size = optional_field(fields[field_index],int)
-        order.scale_subs_level_size = optional_field(fields[field_index + 1],int)
-        order.scale_price_increment = optional_field(fields[field_index + 2],float)
-        field_index += 3
+        order.scale_init_level_size = optional_field(next(fields_iterator),int)
+        order.scale_subs_level_size = optional_field(next(fields_iterator),int)
+        order.scale_price_increment = optional_field(next(fields_iterator),float)
 
-        print(type(order.scale_price_increment))
         # Set order scale data
         if order.scale_price_increment != UNSET_DOUBLE and order.scale_price_increment > 0.0:
-            order.scale_price_adjust_value      = float(fields[field_index])
-            order.scale_price_adjust_interval   = int(fields[field_index + 1])
-            order.scale_profit_offset           = float(fields[field_index + 2])
-            order.scale_auto_reset              = int(fields[field_index + 3]) == 1
-            order.scale_init_position           = int(fields[field_index + 4])
-            order.scale_init_fill_qty           = int(fields[field_index + 5])
-            order.scale_random_percent          = int(fields[field_index + 6]) == 1
-            field_index                    += 7
+            order.scale_price_adjust_value      = float(next(fields_iterator))
+            order.scale_price_adjust_interval   = int(next(fields_iterator))
+            order.scale_profit_offset           = float(next(fields_iterator))
+            order.scale_auto_reset              = int(next(fields_iterator)) == 1
+            order.scale_init_position           = int(next(fields_iterator))
+            order.scale_init_fill_qty           = int(next(fields_iterator))
+            order.scale_random_percent          = int(next(fields_iterator)) == 1
 
 
-        order.hedge_type = fields[field_index]
-        field_index += 1
+        order.hedge_type = next(fields_iterator)
         if order.hedge_type:
-            order.hedge_param = fields[field_index]
-            field_index += 1
+            order.hedge_param = next(fields_iterator)
 
-        order.opt_out_smart_routing         = optional_field(fields[field_index],bool)
-        order.clearing_account              = fields[field_index + 1]  # ver 19 field
-        order.clearing_intent               = fields[field_index + 2]  # ver 19 field
-        order.not_held                      = int(fields[field_index + 3]) == 1
-        field_index                += 4
+        order.opt_out_smart_routing         = optional_field(next(fields_iterator),bool)
+        order.clearing_account              = next(fields_iterator)
+        order.clearing_intent               = next(fields_iterator)
+        order.not_held                      = int(next(fields_iterator)) == 1
+
 
         # Process the delta neutral contract
-        delta_neutral_contract_present = optional_field(fields[field_index],bool)
-        field_index += 1
+        delta_neutral_contract_present = optional_field(next(fields_iterator),bool)
+
         if delta_neutral_contract_present:
             contract.delta_neutral_contract             = Contract()
-            contract.delta_neutral_contract.contract_id = int(fields[field_index])
-            contract.delta_neutral_contract.delta       = float(fields[field_index + 1])
-            contract.delta_neutral_contract.price       = float(fields[field_index + 2])
-            field_index += 3
+            contract.delta_neutral_contract.contract_id = int(next(fields_iterator))
+            contract.delta_neutral_contract.delta       = float(next(fields_iterator))
+            contract.delta_neutral_contract.price       = float(next(fields_iterator))
 
 
-        order.algorithmic_strategy  = fields[field_index]
-        field_index += 1
+
+        order.algorithmic_strategy  = next(fields_iterator)
+
         algo_params_count           = 0
         if order.algorithmic_strategy:
-            algo_params_count = int(fields[field_index])
-            field_index += 1
+            algo_params_count = int(next(fields_iterator))
 
         order.algorithmic_parameters = []
 
         for _ in range(algo_params_count):
             tag_value = {
-                'tag'   : fields[field_index],
-                'value' : fields[field_index+1]
+                'tag'   : next(fields_iterator),
+                'value' : next(fields_iterator)
             }
-            field_index += 2
             order.algorithmic_parameters.append(tag_value)
 
         order_state                                     = OrderState()
-        order.solicited                                 = optional_field(fields[field_index],bool)
-        order.what_if                                   = optional_field(fields[field_index + 1], bool)
-        order_state.status                              = fields[field_index+2]
-        order_state.init_margin_before                  = fields[field_index + 3]
-        order_state.maintenance_margin_before           = fields[field_index + 4]
-        order_state.equity_with_loan_before             = fields[field_index + 5]
-        order_state.init_margin_change                  = fields[field_index + 6]
-        order_state.maintenance_margin_change           = fields[field_index + 7]
-        order_state.equity_with_loan_change             = fields[field_index + 8]
+        order.solicited                                 = optional_field(next(fields_iterator),bool)
+        order.what_if                                   = optional_field(next(fields_iterator), bool)
+        order_state.status                              = next(fields_iterator)
+        order_state.init_margin_before                  = next(fields_iterator)
+        order_state.maintenance_margin_before           = next(fields_iterator)
+        order_state.equity_with_loan_before             = next(fields_iterator)
+        order_state.init_margin_change                  = next(fields_iterator)
+        order_state.maintenance_margin_change           = next(fields_iterator)
+        order_state.equity_with_loan_change             = next(fields_iterator)
 
-        order_state.initial_margin_after                = fields[field_index + 9]
-        order_state.maintenance_margin_after            = fields[field_index + 10]
-        order_state.equityWithLoanAfter                 = fields[field_index+11]
+        order_state.initial_margin_after                = next(fields_iterator)
+        order_state.maintenance_margin_after            = next(fields_iterator)
+        order_state.equityWithLoanAfter                 = next(fields_iterator)
 
-        order_state.commission                          = float(fields[field_index+12])
-        order_state.min_commission                      = float(fields[field_index + 13])
-        order_state.max_commission                      = float(fields[field_index + 14])
-        order_state.commission_currency                 = fields[field_index + 15]
-        order_state.warning_text                        = fields[field_index + 16]
+        order_state.commission                          = next(fields_iterator)
+        order_state.min_commission                      = next(fields_iterator)
+        order_state.max_commission                      = next(fields_iterator)
+        order_state.commission_currency                 = next(fields_iterator)
+        order_state.warning_text                        = next(fields_iterator)
 
-        order.randomize_size                            = int(fields[field_index + 17]) == 1
-        order.randomize_price                           = int(fields[field_index + 18]) == 1
-        field_index += 19
-
+        order.randomize_size                            = int(next(fields_iterator)) == 1
+        order.randomize_price                           = int(next(fields_iterator)) == 1
 
         conditions_size = 0
         if order.order_type == "PEG BENCH":
-            order.reference_contract_id          = int(fields[field_index])
-            order.is_pegged_change_amount_decrease = int(fields[field_index + 1]) == 1
-            order.pegged_change_amount           = float(fields[field_index + 2])
-            order.reference_change_amount        = float(fields[field_index + 3])
-            order.reference_exchange_id          = fields[field_index + 4]
+            order.reference_contract_id          = int(next(fields_iterator))
+            order.is_pegged_change_amount_decrease = int(next(fields_iterator)) == 1
+            order.pegged_change_amount           = float(next(fields_iterator))
+            order.reference_change_amount        = float(next(fields_iterator))
+            order.reference_exchange_id          = next(fields_iterator)
 
-            conditions_size = int(fields[field_index+5])
-            field_index += 6
+            conditions_size = int(next(fields_iterator))
 
         order.conditions = []
         for _ in range(conditions_size):
-            conditionType = int(fields[field_index])
-            field_index += 1
+            conditionType = int(next(fields_iterator))
             #condition = order_condition.Create(conditionType)
             #condition.decode(fields)
             #order.conditions.append(condition)
 
-        order.conditionsIgnoreRth = int(fields[field_index]) == 1
-        order.conditionsCancelOrder = int(fields[field_index+1]) == 1
+        order.conditions_ignore_rth = int(next(fields_iterator)) == 1
+        order.conditions_cancel_order = next(fields_iterator)
 
-        order.adjusted_order_type       = fields[field_index + 2]
-        order.trigger_price             = float(fields[field_index + 3])
-        order.trail_stop_price          = float(fields[field_index + 4])
-        order.limit_price_offset        = float(fields[field_index + 5])
-        order.adjusted_stop_price       = float(fields[field_index + 6])
-        order.adjusted_stop_limit_price = float(fields[field_index + 7])
-        order.adjusted_trailing_amount  = float(fields[field_index + 8])
-        order.adjustable_trailing_unit  = int(fields[field_index + 9])
-        name                            = fields[field_index+10]
-        value                           = fields[field_index+11]
-        displayName                     = fields[field_index+12]
+        order.adjusted_order_type       = next(fields_iterator)
+        order.trigger_price             = next(fields_iterator)
+        order.trail_stop_price          = float(next(fields_iterator))
+        order.limit_price_offset        = float(next(fields_iterator))
+        order.adjusted_stop_price       = float(next(fields_iterator))
+        order.adjusted_stop_limit_price = float(next(fields_iterator))
+        order.adjusted_trailing_amount  = float(next(fields_iterator))
+        order.adjustable_trailing_unit  = next(fields_iterator)
+        name                            = next(fields_iterator)
+        value                           = next(fields_iterator)
+        display_name                     = next(fields_iterator)
         #order.softDollarTier = SoftDollarTier(name, value, displayName)
 
-        order.cash_qty                      = float(fields[field_index + 13])
-        order.dont_use_auto_price_for_hedge = int(fields[field_index + 14]) == 1
-        order.is_oms_container              = int(fields[field_index + 15]) == 1
+        order.cash_qty                      = float(next(fields_iterator))
+        order.dont_use_auto_price_for_hedge = int(next(fields_iterator)) == 1
+        #order.is_oms_container              = int(next(fields_iterator)) == 1
+        return message_id, None, order
 
 
     @staticmethod
