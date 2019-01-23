@@ -26,31 +26,32 @@ class Order(object):
         self.perm_id   = 0
 
         # main order fields
-        self.action = ""
-        self.total_quantity = 0
+        self.action             = ""
+        self.total_quantity     = 0
         self.order_type = ""
         self.limit_price      = UNSET_DOUBLE
         self.aux_price      = UNSET_DOUBLE
 
         # extended order fields
-        self.tif = ""                 # "Time in Force" - DAY, GTC, etc.
-        self.active_start_time = ""   # for Good Till Cancelled (GTC) orders
-        self.active_stop_time = ""    # for Good Till Cancelled (GTC) orders
-        self.oca_group = ""            # One cancels all group name
-        self.oca_type        = 0       # 1 = CANCEL_WITH_BLOCK, 2 = REDUCE_WITH_BLOCK, 3 = REDUCE_NON_BLOCK
-        self.order_ref       = ""
-        self.transmit       = True  # if false, order will be created but not transmited
-        self.parent_id       = 0     # Parent order Id, to associate Auto STP or TRAIL orders with the original order.
-        self.block_order     = False
-        self.sweep_to_fill    = False
-        self.display_size    = 0
-        self.trigger_method  = 0     # 0=Default, 1=Double_Bid_Ask, 2=Last, 3=Double_Last, 4=Bid_Ask, 7=Last_or_Bid_Ask, 8=Mid-point
+        self.contract               = None # Contract object (if any) associated with the order (
+        self.time_in_force          = ""   # "Time in Force" - DAY, GTC, etc.
+        self.active_start_time      = ""   # for Good Till Cancelled (GTC) orders
+        self.active_stop_time       = ""   # for Good Till Cancelled (GTC) orders
+        self.oca_group              = ""   # One cancels all group name
+        self.oca_type               = 0    # 1 = CANCEL_WITH_BLOCK, 2 = REDUCE_WITH_BLOCK, 3 = REDUCE_NON_BLOCK
+        self.order_ref              = ""
+        self.transmit               = True  # if false, order will be created but not transmited
+        self.parent_id              = 0     # Parent order Id, to associate Auto STP or TRAIL orders with the original order.
+        self.block_order            = False
+        self.sweep_to_fill          = False
+        self.display_size           = 0
+        self.trigger_method         = 0     # 0=Default, 1=Double_Bid_Ask, 2=Last, 3=Double_Last, 4=Bid_Ask, 7=Last_or_Bid_Ask, 8=Mid-point
         self.outside_rth     = False
         self.hidden            = False
         self.good_after_time   = ""   # Format: 20060505 08:00:00 {time zone}
         self.good_till_date    = ""   # Format: 20060505 08:00:00 {time zone}
         self.rule80A           = ""   # Individual = 'I', Agency = 'A', AgentOtherMember = 'W', IndividualPTIA = 'J', AgencyPTIA = 'U', AgentOtherMemberPTIA = 'M', IndividualPT = 'K', AgencyPT = 'Y', AgentOtherMemberPT = 'N'
-        self.allOrNone         = False
+        self.all_or_none         = False
         self.min_qty         = UNSET_INTEGER  #type: int
         self.percent_offset  = UNSET_DOUBLE  # type: float; REL orders only
         self.override_percentage_constraints = False
@@ -64,17 +65,17 @@ class Order(object):
         self.financial_advisers_percentage         = ""
 
         # institutional (ie non-cleared) only
-        self.designatedLocation    = "" #used only when shortSaleSlot=2
+        self.designatedLocation    = "" #used only when short_sale_slot=2
         self.open_close             = "O"    # O=Open, C=Close
         self.origin                = CUSTOMER  # 0=Customer, 1=Firm
-        self.shortSaleSlot         = 0    # type: int; 1 if you hold the shares, 2 if they will be delivered from elsewhere.  Only for Action=SSHORT
-        self.exemptCode            = -1
+        self.short_sale_slot         = 0    # type: int; 1 if you hold the shares, 2 if they will be delivered from elsewhere.  Only for Action=SSHORT
+        self.exempt_code            = -1
 
         # SMART routing only
         self.discretionary_amt = 0
         self.e_trade_only       = True
-        self.firmQuoteOnly    = True
-        self.nbboPriceCap     = UNSET_DOUBLE  # type: float
+        self.firm_quote_only    = True
+        self.nbbo_price_cap     = UNSET_DOUBLE  # type: float
         self.opt_out_smart_routing = False
 
         # BOX exchange orders only
@@ -90,7 +91,7 @@ class Order(object):
         self.randomize_price = False
         self.randomize_size = False
 
-        # VOLATILITY ORDERS ONLY
+        # Volatility Order Related Atributes (#TODO: Create VolOrder class)
         self.volatility                     = UNSET_DOUBLE  # type: float
         self.volatility_type                = UNSET_INTEGER  # type: int   # 1=daily, 2=annual
         self.delta_neutral_order_type       = ""
@@ -121,7 +122,7 @@ class Order(object):
         self.scale_init_position        = UNSET_INTEGER   # type: int
         self.scale_init_fill_qty         = UNSET_INTEGER    # type: int
         self.scale_random_percent       = False
-        self.scaleTable = ""
+        self.scale_table = ""
 
         # HEDGE ORDERS
         self.hedge_type             = "" # 'D' - delta, 'B' - beta, 'F' - FX, 'P' - pair
@@ -136,7 +137,7 @@ class Order(object):
         # ALGO ORDERS ONLY
         self.algorithmic_strategy          = ""
 
-        self.algo_params            = None    #TagValueList
+        self.algorithm_parameters            = None    #TagValueList
         self.smart_combo_routing_params = None  #TagValueList
 
         self.algoId = ""
@@ -153,7 +154,7 @@ class Order(object):
 
         # order combo legs
 
-        self.orderComboLegs = None  # OrderComboLegListSPtr
+        self.order_combo_legs = None  # OrderComboLegListSPtr
 
         self.orderMiscOptions = None  # TagValueList
 
@@ -173,8 +174,8 @@ class Order(object):
         self.limit_price_offset        = UNSET_DOUBLE
 
         self.conditions            = []  # std::vector<std::shared_ptr<OrderCondition>>
-        self.conditionsCancelOrder = False
-        self.conditionsIgnoreRth   = False
+        self.conditions_cancel_order = False
+        self.conditions_ignore_rth   = False
 
         # ext operator
         self.extOperator = ""
@@ -191,27 +192,34 @@ class Order(object):
 
         self.is_oms_container = False
 
-    def __str__(self):
-        s = "%s,%d,%s:" % (self.order_id, self.client_id, self.perm_id)
+    def __str__(self, display_contract=True):
+        """
+        Produce a human readable description of the Order
+        :return:
+        """
+        desc  = "Order\n"
+        desc += "-----\n"
+        desc += "Order ID: {0}\n".format(self.order_id)
+        desc += "Client ID: {0}\n".format(self.client_id)
+        desc += "Perm ID: {0}\n\n".format(self.perm_id)
+        desc += "Order Type: {0}\n".format(self.order_type)
+        desc += "Action: {0}\n".format(self.action)
+        desc += "Total Quantity: {0}\n".format(self.total_quantity)
+        desc += "Limit Price: {0}\n".format(self.limit_price)
+        desc += "Time in Force: {0}\n".format(self.time_in_force)
 
-        s += " %s %s %d@%f" % (
-            self.order_type,
-            self.action,
-            self.total_quantity,
-            self.limit_price)
+        if display_contract and self.contract != None:
+            desc += self.contract.__str__('Order - Contract Info')
 
-        s += " %s" % self.tif
-
-        if self.orderComboLegs:
-            s += " CMB("
-            for leg in self.orderComboLegs:
-                s += str(leg) + ","
-            s += ")"
+        if self.order_combo_legs:
+            desc += " CMB("
+            for leg in self.order_combo_legs:
+                desc += str(leg) + ","
+            desc += ")"
 
         if self.conditions:
-            s += " COND("
+            desc += " COND("
             for cond in self.conditions:
-                s += str(cond) + ","
-            s += ")"
-
-        return s
+                desc += str(cond) + ","
+            desc += ")"
+        return desc
