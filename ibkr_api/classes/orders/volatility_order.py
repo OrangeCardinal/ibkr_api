@@ -4,10 +4,10 @@ class VolatilityOrder(Order):
     def __init__(self):
         super().__init__()
 
-        self.volatility                         = UNSET_DOUBLE  # type: float
+        self.volatility                         = UNSET_DOUBLE
         self.volatility_type                    = UNSET_INTEGER  # type: int   # 1=daily, 2=annual
         self.delta_neutral_order_type           = ""
-        self.delta_neutral_aux_price            = UNSET_DOUBLE  # type: float
+        self.delta_neutral_aux_price            = UNSET_DOUBLE
         self.delta_neutral_con_id               = 0
         self.delta_neutral_settling_firm        = ""
         self.delta_neutral_clearing_account     = ""
