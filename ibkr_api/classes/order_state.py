@@ -16,5 +16,5 @@ class OrderState(object):
         self.commission = 0.0
         self.min_commission = 0.0
         self.max_commission = 0.0
-        self.commissionCurrency = ""
-        self.warningText = ""
+        self.commission_currency = ""
+        self.warning_text = ""
