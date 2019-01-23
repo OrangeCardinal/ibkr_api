@@ -92,7 +92,7 @@ class Messages(object):
             'request_open_orders'                               : 5  ,
             'request_account_data'                              : 6  ,
             'request_executions'                                : 7  ,
-            'request_ids'                                       : 8  ,
+            'request_order_ids'                                 : 8  ,
             'request_contract_data'                             : 9  ,
             'request_market_depth'                              : 10 ,
             'cancel_market_depth'                               : 11 ,
