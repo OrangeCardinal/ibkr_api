@@ -71,6 +71,15 @@ class IBKR_API(ApiCalls):
         super().__init__()
         super().connect(host, port, client_id)
 
+        #TODO: Better process the initial market data farm type messages
+        #Get the initial info messages and display them
+        #info_messages = self._process_response('info_message')
+        #print(info_messages)
+        #for info_msg in list(info_messages):
+        #    logger.info(info_msg)
+
+
+
     def _process_response(self, inbound_message_name, end_on_codes=[]):
         """
 
@@ -98,8 +107,9 @@ class IBKR_API(ApiCalls):
 
         request_start = datetime.datetime.now()
         while not data_received:
-            messages = self.conn.receive_messages()
-            for msg in messages:
+            new_messages        = self.conn.receive_messages()
+            messages_to_process = new_messages + self.unprocessed_messages
+            for msg in messages_to_process:
                 if msg['id'] in inbound_message_ids:
                     func            = getattr(message_parser, msg['action'])
                     data            = func(msg['fields'])
@@ -519,7 +529,7 @@ class IBKR_API(ApiCalls):
         messages_to_process = ['position_data','position_end']
         raw_position_data   = self._process_response(messages_to_process)
 
-        # Strip out the message_ids and request_ids
+        # Strip out the message_ids and request_order_ids
         position_data = []
         for raw_data in raw_position_data:
             if raw_data[2]:
@@ -592,19 +602,20 @@ class IBKR_API(ApiCalls):
         return data
 
     # Not alphabetic
-    def place_order(self, order_id: int, contract: Contract, order: Order):
-        """Call this function to place an order. The order status will
-        be returned by the orderStatus event.
+    def place_order(self, order_id: int, order: Order):
+        """
+        Place an Order to be executed
 
-        order_id:int - The order id. You must specify a unique value. When the
-            order START_APItus returns, it will be identified by this tag.
-            This tag is also used when canceling the order.
-        contract:Contract - This structure contains a description of the
-            contract which is being traded.
-        order:Order - This structure contains the details of tradedhe order.
-            Note: Each client MUST connect with a unique clientId."""
+        :param order_id: Unique Identifier for the Order
+        :param order: Order to be placed
+        :return: Status Information for the order
+        """
+        # Make the Underlying API Call
+        super().place_order(order_id, order.contract, order)
+
+
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('order_status')
         return data
 
     def request_account_updates_multi(self,
@@ -705,11 +716,28 @@ class IBKR_API(ApiCalls):
 
         Note:  No association is made between the returned orders and the requesting client.
         """
-        # Process the response from the bridge
+        # Make the underlying API Call
         super().request_all_open_orders()
+
+        # Get all Open Orders and build a dictionary keyed on perm_id
         messages_to_process = ['open_orders','open_orders_end']
-        data = self._process_response(messages_to_process)
-        return data
+        open_order_data = self._process_response(messages_to_process)
+        open_orders = {}
+
+        for order_data in open_order_data:
+            order = order_data[2]
+            if order:
+                open_orders[order.perm_id] = order
+
+
+        # Update with order status data
+        order_statuses = self._process_response('order_status')
+        for order_status in list(order_statuses):
+            order = open_orders[order_status['perm_id']]
+            order.update_order_status(order_status)
+            open_orders[order_status['perm_id']] = order
+
+        return open_orders.values()
 
     def request_auto_open_orders(self, auto_bind: bool):
         """Call this function to request that newly created TWS orders
@@ -779,7 +807,7 @@ class IBKR_API(ApiCalls):
         messages_to_process = ['execution_data','execution_data_end']
         full_execution_data = self._process_response(messages_to_process)
 
-        # Strip out the message_ids and request_ids
+        # Strip out the message_ids and request_order_ids
         execution_data = []
         for raw_data in full_execution_data:
             if raw_data[2]:
@@ -1101,18 +1129,18 @@ class IBKR_API(ApiCalls):
         data = self._process_response('')
         return data
 
-    def request_ids(self, num_ids: int):
-        """Call this function to request from TWS the next valid ID that
-        can be used when placing an order.  After calling this function, the
-        nextValidId() event will be triggered, and the id returned is that next
-        valid ID. That ID will reflect any auto binding that has occurred (which
-        generates new IDs and increments the next valid ID therein).
+    @drop_message_id_and_request_id
+    def request_order_id(self):
+        """
+        Request the next valid order id that can be used
 
-        num_ids:int - deprecated"""
-        super().request_ids(num_ids)
+        :return: Order ID
+        """
+
+        super().request_order_ids()
 
         # Process the response from the bridge
-        data = self._process_response('')
+        data = self._process_response('next_valid_id')
         return data
 
     def request_market_depth(self,
