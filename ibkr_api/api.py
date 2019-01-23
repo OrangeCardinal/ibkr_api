@@ -21,7 +21,7 @@ from ibkr_api.base.messages                 import Messages
 from ibkr_api.base.message_parser           import MessageParser
 
 from ibkr_api.classes.contracts.contract    import Contract
-from ibkr_api.classes.order                 import Order
+from ibkr_api.classes.orders.order import Order
 from ibkr_api.classes.scanner               import Scanner
 
 logger = logging.getLogger(__name__)
@@ -698,16 +698,17 @@ class IBKR_API(ApiCalls):
         data = self._process_response('')
         return data
 
+    @drop_message_id_and_request_id
     def request_all_open_orders(self):
-        """Call this function to request the open orders placed from all
-        clients and also from TWS. Each open order will be fed back through the
-        openOrder() and orderStatus() functions on the EWrapper.
+        """
+        Returns all open orders regardless of whether they were created in the API or TWS directly
 
-        Note:  No association is made between the returned orders and the
-        requesting client."""
+        Note:  No association is made between the returned orders and the requesting client.
+        """
         # Process the response from the bridge
         super().request_all_open_orders()
-        data = self._process_response('')
+        messages_to_process = ['open_orders','open_orders_end']
+        data = self._process_response(messages_to_process)
         return data
 
     def request_auto_open_orders(self, auto_bind: bool):
@@ -1329,7 +1330,7 @@ class IBKR_API(ApiCalls):
         return data
 
     def verify_and_auth_request(self, api_name: str, api_version: str,
-                                opaqueIsvKey: str):
+                                opaque_is_vkey: str):
         """For IB's internal purpose. Allows to provide means of verification
         between the TWS and third party programs."""
         # Process the response from the bridge
