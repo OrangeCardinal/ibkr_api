@@ -1,6 +1,8 @@
 from ibkr_api.base.constants import UNSET_INTEGER, UNSET_DOUBLE
 from ibkr_api.classes.soft_dollar_tier import SoftDollarTier
 
+import logging
+
 # enum Origin
 (CUSTOMER, FIRM, UNKNOWN) = range(3)
 
@@ -8,6 +10,7 @@ from ibkr_api.classes.soft_dollar_tier import SoftDollarTier
 (AUCTION_UNSET, AUCTION_MATCH,
  AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT) = range(4)
 
+logger = logging.getLogger(__name__)
 
 class OrderComboLeg(object):
     def __init__(self):
@@ -20,12 +23,24 @@ class OrderComboLeg(object):
 class Order(object):
     def __init__(self,**kwargs):
         self.softDollarTier = SoftDollarTier("", "", "")
-        # order identifier
+
+        # Various Identifier
         self.order_id  = 0
         self.client_id = 0
         self.perm_id   = 0
 
+        # Order Status Information - Updated via order_status messages
+        self.status                 = None
+        self.filled                 = None
+        self.remaining              = None
+        self.average_fill_price     = None
+        self.last_fill_price        = None
+        self.why_held               = None
+        self.market_cap_price       = None
+
+
         # main order fields
+        self.status                 = None
         self.action                 = ""
         self.total_quantity         = 0
         self.order_type             = ""
@@ -182,24 +197,58 @@ class Order(object):
             if hasattr(self,key):
                 setattr(self,key,val)
 
+
+    def update_order_status(self, order_status):
+        """
+        Updates the instance with the order status information supplied by order_status
+
+        :param order_status:
+        :return: True when order was updated, False if the order_status is ignored
+        """
+
+        # Do nothing if the perm_ids do not match
+        if self.perm_id != order_status['perm_id']:
+            logger.warning("This order's perm_id does not match the perm_id in the order_status data")
+            return False
+
+        # If this order has a given attribute, then update it's value
+        for key, val in order_status.items():
+            if hasattr(self,key):
+                setattr(self,key,val)
+
+        return True
+
+
     def __str__(self, display_contract=True):
         """
         Produce a human readable description of the Order
         :return:
         """
         desc  = "Order\n"
-        desc += "-----\n"
+        desc += "=====\n"
+        desc += "Specification\n"
+        desc += "-------------\n"
         desc += "Order ID: {0}\n".format(self.order_id)
         desc += "Client ID: {0}\n".format(self.client_id)
-        desc += "Perm ID: {0}\n\n".format(self.perm_id)
+        desc += "Perm ID: {0}\n".format(self.perm_id)
         desc += "Order Type: {0}\n".format(self.order_type)
         desc += "Action: {0}\n".format(self.action)
         desc += "Total Quantity: {0}\n".format(self.total_quantity)
         desc += "Limit Price: {0}\n".format(self.limit_price)
         desc += "Time in Force: {0}\n".format(self.time_in_force)
 
+        desc += "\nCurrent Status\n"
+        desc += "--------------\n"
+        desc += "Status: {0}\n".format(self.status)
+        desc += "Filled: {0}\n".format(self.filled)
+        desc += "Remaining: {0}\n".format(self.remaining)
+        desc += "Average Fill Price: {0}\n".format(self.average_fill_price)
+        desc += "Last Fill Price: {0}\n".format(self.last_fill_price)
+        desc += "Why Held: {0}\n".format(self.why_held)
+        desc += "Market Cap Price: {0}\n".format(self.market_cap_price)
+
         if display_contract and self.contract != None:
-            desc += self.contract.__str__('Order - Contract Info')
+            desc += self.contract.__str__('Contract Info')
 
         if self.order_combo_legs:
             desc += " CMB("
