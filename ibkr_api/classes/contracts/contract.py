@@ -47,14 +47,14 @@ class Contract(object):
                 setattr(self,attribute, value)
 
 
-    def __str__(self):
+    def __str__(self, title="Contract"):
         """
         Produces a human readable representation of a Contract
         :return:
         """
-        desc =  "\nContract\n"
+        desc =  "\n{0}\n".format(title)
         desc +=  "--------\n"
-        desc += "ID: {0}\n".format(self.id)
+        desc += "Contract ID: {0}\n".format(self.id)
         desc += "Symbol: {0}\n".format(self.symbol)
         desc += "Security Type: {0}\n".format(self.security_type)
         desc += "Strike: {0}\n".format(self.strike)
@@ -67,12 +67,13 @@ class Contract(object):
             desc += "\nRegular Trading Hours\n"
             desc += "---------------------\n"
             for day in self.regular_trading_hours.keys():
-                hours = self.regular_trading_hours[day]
-                if len(hours) == 2:
-                    hours = "{0} - {1}".format(hours[0], hours[1])
+                info = self.regular_trading_hours[day]
+                if info['market_open']:
+                    desc += "{0}:{1} - {2}:{3}\n".format(info['start_date'],info['start_time'],
+                                                       info['end_date'],info['end_time'])
                 else:
-                    hours = hours[0]
-                desc += "{0}: {1}\n".format(day, hours)
+                    desc += "{0}: Closed\n".format(day)
+
         """
         if self.combo_legs:
             for leg in self.combo_legs:
