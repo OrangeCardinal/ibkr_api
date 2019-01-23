@@ -8,7 +8,7 @@ from ibkr_api.base.messages import Messages
 from ibkr_api.base.message_parser import MessageParser
 
 from ibkr_api.classes.contracts.contract import Contract
-from ibkr_api.classes.order import Order
+from ibkr_api.classes.orders.order import Order
 from ibkr_api.classes.scanner import Scanner
 
 from enum import Enum
@@ -458,7 +458,7 @@ class ApiCalls(object):
         fields.append(self.conn.make_field_handle_empty(order.aux_price))
 
         # send extended order fields
-        fields += [order.tif            ,
+        fields += [order.time_in_force            ,
                    order.oca_group       ,
                    order.account        ,
                    order.open_close      ,
@@ -491,11 +491,11 @@ class ApiCalls(object):
 
         # Send order combo legs for BAG requests
         if self.server_version() >= MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE and contract.security_type == "BAG":
-            orderComboLegsCount = len(order.orderComboLegs) if order.orderComboLegs else 0
+            orderComboLegsCount = len(order.order_combo_legs) if order.order_combo_legs else 0
             fields.append(orderComboLegsCount)
 
             if orderComboLegsCount:
-                for orderComboLeg in order.orderComboLegs:
+                for orderComboLeg in order.order_combo_legs:
                     assert orderComboLeg
                     fields.append(orderComboLeg.price)
 
@@ -533,21 +533,21 @@ class ApiCalls(object):
 
 
         # institutional Short Sale Slot Data
-        fields += [ order.shortSaleSlot,         # 0 for retail, 1 or 2 for institutions
-                    order.designatedLocation,    # populate only when shortSaleSlot = 2.
-                    order.exemptCode]
+        fields += [order.short_sale_slot,  # 0 for retail, 1 or 2 for institutions
+                   order.designatedLocation,  # populate only when short_sale_slot = 2.
+                   order.exempt_code]
 
 
         fields.append(order.oca_type)
 
         fields += [order.rule80A,
                    order.settlingFirm,
-                   order.allOrNone,
+                   order.all_or_none,
                    order.min_qty,
                    order.percent_offset,
                    order.e_trade_only,
-                   order.firmQuoteOnly,
-                   order.nbboPriceCap,
+                   order.firm_quote_only,
+                   order.nbbo_price_cap,
                    order.auctionStrategy,
                    # AUCTION_MATCH, AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT
                    order.starting_price,
@@ -598,7 +598,7 @@ class ApiCalls(object):
                        order.scale_random_percent]
 
 
-        fields += [order.scaleTable, order.active_start_time, order.active_stop_time]
+        fields += [order.scale_table, order.active_start_time, order.active_stop_time]
 
         # HEDGE orders
         if self.server_version() >= MIN_SERVER_VER_HEDGE_ORDERS:
@@ -627,10 +627,10 @@ class ApiCalls(object):
 
         fields.append(order.algorithmic_strategy)
         if order.algorithmic_strategy:
-            algoParamsCount = len(order.algo_params) if order.algo_params else 0
+            algoParamsCount = len(order.algorithm_parameters) if order.algorithm_parameters else 0
             fields.append(algoParamsCount)
             if algoParamsCount > 0:
-                for algoParam in order.algo_params:
+                for algoParam in order.algorithm_parameters:
                     fields += [algoParam.tag, algoParam.value]
 
 
@@ -1831,7 +1831,7 @@ class ApiCalls(object):
 
     @check_connection
     def verify_and_auth_request(self, api_name: str, api_version: str,
-                                opaqueIsvKey: str):
+                                opaque_is_vkey: str):
         """For IB's internal purpose. Allows to provide means of verification
         between the TWS and third party programs."""
 
@@ -1842,7 +1842,7 @@ class ApiCalls(object):
 
         message_version = 1
         message_id = Messages.outbound['verify_and_auth_request']
-        fields = [message_id, message_version, api_name, api_version, opaqueIsvKey]
+        fields = [message_id, message_version, api_name, api_version, opaque_is_vkey]
         self.conn.send_message(fields)
 
     @check_connection
