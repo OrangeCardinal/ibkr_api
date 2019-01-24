@@ -4,8 +4,11 @@ IBKR_API
 IBKR_API provides an interface that hides the inherent complexity of an event driven asynchronous
 This page has several snippets for common tasks that you may want to do with this API.
 
+
+
+
 Initial Setup
------
+-------------
 .. code-block:: python
 
     from ibkr_api.api import IBKR_API
@@ -35,8 +38,6 @@ Find All Contracts that Match 'TSLA'
         print(c)
         for deriv_sec_type in c.derivative_security_types:
             print(deriv_sec_type)
-
-
 
 Display Account Positions
 -------------------------
