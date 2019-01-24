@@ -58,7 +58,6 @@ class BridgeConnection:
         except socket.error as e:
             logger.error(Errors.connect_fail()['message'])
             self.status = DISCONNECTED
-            #raise e   #TODO: Decide if its appropriate to throw this or not
 
         self.socket.settimeout(1)   #non-blocking
 
@@ -112,7 +111,7 @@ class BridgeConnection:
         # Check that we are connected
         if not self.is_connected():
             logger.debug("receive_message attempted while not connected.")
-            return b""
+            return []
 
 
         # Read data from the socket
