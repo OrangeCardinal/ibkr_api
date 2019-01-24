@@ -7,15 +7,20 @@ portion of the system has
 
 Directory Structure
 -------------------
-+-----------+---------------------------------------------------------------------------------------------------------+
-| Directory | Description                                                                                             |
-+===========+=========================================================================================================+
-| base/      | The core application internals. Unless you are developing for the API this code this code won't be used |
-+-----------+---------------------------------------------------------------------------------------------------------+
-|classes/contracts  | Various types of Contract objects such as Stock, Option, Put, Call, etc                         |
-+-----------+---------------------------------------------------------------------------------------------------------+
+The table below describes various important directories within this API and their intended purpose
 
-There are three primary interfaces to use. For basic usage the *IBKR_API* class is your best bet. This class hides the
++-----------+-----------------------------------------------------------------------------------------------------------------+
+| Directory | Description                                                                                                     |
++===================+=========================================================================================================+
+| base              | The core application internals. Unless you are developing for the API this code this code won't be used |
++-------------------+---------------------------------------------------------------------------------------------------------+
+|classes contracts  | Various types of Contract objects such as Stock, Option, Put, Call, etc                                 |
++-------------------+---------------------------------------------------------------------------------------------------------+
+
+
+Interfaces
+----------
+There are three primary interfaces to use. For basic usage the `IBKR_API` class is your best bet. This class hides the
 complexity of the underlying asynchronous interface provided by the application Bridge (TWS or the IB Gateway) and gives
 you a straight forward way to query data.
 
