@@ -3,7 +3,7 @@ import logging
 
 from ibkr_api.base.bridge_connection import BridgeConnection
 from ibkr_api.base.constants import *
-from ibkr_api.base.errors import NOT_CONNECTED, UPDATE_TWS, Errors, BAD_MESSAGE
+from ibkr_api.base.errors import NOT_CONNECTED, Errors, BAD_MESSAGE
 from ibkr_api.base.messages import Messages
 from ibkr_api.base.message_parser import MessageParser
 
@@ -382,68 +382,47 @@ class ApiCalls(object):
 
     @check_connection
     def place_order(self, order_id: int, contract: Contract, order: Order):
-        """Call this function to place an order. The order status will
-        be returned by the orderStatus event.
+        """
+        Create the place_order message
+        Send the message to the Bridge Application(TWS/IBGateway)
 
-        order_id:int - The order id. You must specify a unique value. When the
-            order START_APItus returns, it will be identified by this tag.
-            This tag is also used when canceling the order.
-        contract:Contract - This structure contains a description of the
-            contract which is being traded.
-        order:Order - This structure contains the details of tradedhe order.
-            Note: Each client MUST connect with a unique client_id."""
+        :param order_id:
+        :param contract:
+        :param order:
+        :return:
+        """
 
-        if self.server_version() < MIN_SERVER_VER_DELTA_NEUTRAL_CONID:
-            if order.delta_neutral_con_id > 0 \
-                    or order.delta_neutral_settling_firm \
-                    or order.delta_neutral_clearing_account \
-                    or order.delta_neutral_clearing_intent:
-                self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                            "  It does not support deltaNeutral parameters: ConId, SettlingFirm, ClearingAccount, ClearingIntent.")
-                return
+        # Gather the fields needed for the message
+        message_id                          = Messages.outbound['place_order']
+        last_trade_date_or_contract_month   = getattr(contract ,'last_trade_date_or_contract_month' , '')
+        strike                              = getattr(contract ,'strike'                            , '')
+        right                               = getattr(contract ,'right'                             , '')
+        multiplier                          = getattr(contract ,'multiplier'                        , '')
 
-        if self.server_version() < MIN_SERVER_VER_SCALE_ORDERS3:
-            if order.scale_price_increment > 0 and order.scale_price_increment != UNSET_DOUBLE:
-                if order.scale_price_adjust_value != UNSET_DOUBLE \
-                        or order.scale_price_adjust_interval != UNSET_INTEGER \
-                        or order.scale_profit_offset != UNSET_DOUBLE \
-                        or order.scale_auto_reset \
-                        or order.scale_init_position != UNSET_INTEGER \
-                        or order.scale_init_fill_qty != UNSET_INTEGER \
-                        or order.scale_random_percent:
-                    self.response_handler.error(order_id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
-                                                "  It does not support Scale order parameters: PriceAdjustValue, PriceAdjustInterval, " +
-                                                "ProfitOffset, AutoReset, InitPosition, InitFillQty and RandomPercent")
-                    return
+        volatility                          = getattr(order ,   'volatility'                , '')
+        volatility_type                     = getattr(order ,   'volatility_type'           , '')
+        delta_neutral_order_type            = getattr(order ,   'delta_neutral_order_type'  , '')
+        delta_neutral_aux_price             = getattr(order ,   'delta_neutral_aux_price'   , '')
+        continuous_update                   = getattr(order ,   ''                          , '')
+        reference_price_type                = getattr(order ,   'reference_price_type'      , '')
+        fields      = [message_id, order_id, contract.id]
+        print(order_id)
+        #if self.server_version() < MIN_SERVER_VER_ORDER_CONTAINER:
+        #    message_version = 27 if (self.server_version() < MIN_SERVER_VER_NOT_HELD) else 45
+        #    fields.append(message_version)
 
 
 
 
-
-
-        # Create the list of fields to send, then send the message
-        message_id = Messages.outbound['place_order']
-        fields = [message_id]
-
-        if self.server_version() < MIN_SERVER_VER_ORDER_CONTAINER:
-            message_version = 27 if (self.server_version() < MIN_SERVER_VER_NOT_HELD) else 45
-            fields.append(message_version)
-
-        fields.append(order_id)
-
-        # send contract fields
-        if self.server_version() >= MIN_SERVER_VER_PLACE_ORDER_CONID:
-            fields.append(contract.id)
-
-        fields += [contract.symbol,
-                   contract.security_type,
-                   contract.last_trade_date_or_contract_month,
-                   contract.strike,
-                   contract.right,
-                   contract.multiplier,
-                   contract.exchange,
-                   contract.primary_exchange,
-                   contract.currency,
+        fields += [contract.symbol                      ,
+                   contract.security_type               ,
+                   last_trade_date_or_contract_month    ,
+                   strike                               ,
+                   right                                ,
+                   multiplier                           ,
+                   contract.exchange                    ,
+                   contract.primary_exchange            ,
+                   contract.currency                    ,
                    contract.local_symbol]
 
 
@@ -454,23 +433,23 @@ class ApiCalls(object):
         fields.append(order.total_quantity)
 
         fields.append(order.order_type)
-        fields.append(self.conn.make_field_handle_empty(order.limit_price))
-        fields.append(self.conn.make_field_handle_empty(order.aux_price))
+        fields.append(order.limit_price)
+        fields.append(order.aux_price)
 
         # send extended order fields
-        fields += [order.time_in_force            ,
-                   order.oca_group       ,
-                   order.account        ,
-                   order.open_close      ,
-                   order.origin         ,
-                   order.order_ref      ,
-                   order.transmit       ,
-                   order.parent_id      ,
-                   order.block_order    ,
-                   order.sweep_to_fill  ,
-                   order.display_size   ,
-                   order.trigger_method ,
-                   order.outside_rth    ,
+        fields += [order.time_in_force      ,
+                   order.oca_group          ,
+                   order.account            ,
+                   order.open_close         ,
+                   order.origin             ,
+                   order.order_ref          ,
+                   order.transmit           ,
+                   order.parent_id          ,
+                   order.block_order        ,
+                   order.sweep_to_fill      ,
+                   order.display_size       ,
+                   order.trigger_method     ,
+                   order.outside_rth        ,
                    order.hidden]
 
         # Send combo legs for BAG requests (srv v8 and above)
@@ -491,10 +470,10 @@ class ApiCalls(object):
 
         # Send order combo legs for BAG requests
         if self.server_version() >= MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE and contract.security_type == "BAG":
-            orderComboLegsCount = len(order.order_combo_legs) if order.order_combo_legs else 0
-            fields.append(orderComboLegsCount)
+            order_combo_legs_count = len(order.order_combo_legs) if order.order_combo_legs else 0
+            fields.append(order_combo_legs_count)
 
-            if orderComboLegsCount:
+            if order_combo_legs_count:
                 for orderComboLeg in order.order_combo_legs:
                     assert orderComboLeg
                     fields.append(orderComboLeg.price)
@@ -534,14 +513,14 @@ class ApiCalls(object):
 
         # institutional Short Sale Slot Data
         fields += [order.short_sale_slot,  # 0 for retail, 1 or 2 for institutions
-                   order.designatedLocation,  # populate only when short_sale_slot = 2.
+                   order.designated_location,  # populate only when short_sale_slot = 2.
                    order.exempt_code]
 
 
         fields.append(order.oca_type)
 
         fields += [order.rule80A,
-                   order.settlingFirm,
+                   order.settling_firm,
                    order.all_or_none,
                    order.min_qty,
                    order.percent_offset,
@@ -558,27 +537,25 @@ class ApiCalls(object):
 
                    order.override_percentage_constraints,
 
-                   # Volatility orders
-                   order.volatility,
-                   order.volatility_type,
-                   order.delta_neutral_order_type,
-                   order.delta_neutral_aux_price]
+                   volatility,
+                   volatility_type,
+                   delta_neutral_order_type,
+                   delta_neutral_aux_price]
 
-        if order.delta_neutral_order_type:
-            fields += [order.delta_neutral_con_id, order.delta_neutral_settling_firm, order.delta_neutral_clearing_account,
-                       order.delta_neutral_clearing_intent]
-
-        if order.delta_neutral_order_type:
-            fields += [order.delta_neutral_open_close,
-                       order.delta_neutral_short_sale,
-                       order.delta_neutral_short_sale_slot,
+        if hasattr(order,'delta_neutral_order_type'):
+            fields += [order.delta_neutral_con_id               ,
+                       order.delta_neutral_settling_firm        ,
+                       order.delta_neutral_clearing_account     ,
+                       order.delta_neutral_clearing_intent      ,
+                       order.delta_neutral_open_close           ,
+                       order.delta_neutral_short_sale           ,
+                       order.delta_neutral_short_sale_slot      ,
                        order.delta_neutral_designated_location]
 
-        fields += [order.continuous_update,
-                   order.reference_price_type,
-                   order.trail_stop_price]
-
-        fields.append(order.trailing_percent)
+        fields += [continuous_update            ,
+                   reference_price_type         ,
+                   order.trail_stop_price       ,
+                   order.trailing_percent]
 
         # SCALE orders
         fields += [order.scale_init_level_size, order.scale_subs_level_size]
@@ -627,9 +604,9 @@ class ApiCalls(object):
 
         fields.append(order.algorithmic_strategy)
         if order.algorithmic_strategy:
-            algoParamsCount = len(order.algorithm_parameters) if order.algorithm_parameters else 0
-            fields.append(algoParamsCount)
-            if algoParamsCount > 0:
+            algo_params_count = len(order.algorithm_parameters) if order.algorithm_parameters else 0
+            fields.append(algo_params_count)
+            if algo_params_count > 0:
                 for algoParam in order.algorithm_parameters:
                     fields += [algoParam.tag, algoParam.value]
 
@@ -641,8 +618,8 @@ class ApiCalls(object):
         # send miscOptions parameter
 
         miscOptionsStr = ""
-        if order.orderMiscOptions:
-            for tagValue in order.orderMiscOptions:
+        if order.order_misc_options:
+            for tagValue in order.order_misc_options:
                 miscOptionsStr += str(tagValue)
         fields.append(miscOptionsStr)
 
@@ -681,6 +658,7 @@ class ApiCalls(object):
         fields.append(order.dont_use_auto_price_for_hedge)
         fields.append(order.is_oms_container)
 
+        print(fields)
         self.conn.send_message(fields)
 
     @check_connection
@@ -719,12 +697,12 @@ class ApiCalls(object):
 
     @check_connection
     def request_account_updates_multi(self, request_id: int, account: str, model_code: str,
-                                      ledgerAndNLV: bool):
+                                      ledger_and_nlv: bool):
         """Requests account updates for account and/or model."""
 
         message_version         = 1
         message_id              = Messages.outbound['request_account_updates_multi']
-        fields                  = [message_id, message_version, request_id, account, model_code, ledgerAndNLV]
+        fields                  = [message_id, message_version, request_id, account, model_code, ledger_and_nlv]
         self.conn.send_message(fields)
 
     @check_connection
@@ -954,7 +932,7 @@ class ApiCalls(object):
             if historicalNewsOptions:
                 for tagValue in historicalNewsOptions:
                     func_options += str(tagValue)
-            fields.appened(func_options)
+            fields.append(func_options)
 
         self.conn.send_message(fields)
 
@@ -1090,13 +1068,13 @@ class ApiCalls(object):
         self.conn.send_message(fields)
 
     @check_connection
-    def set_server_log_level(self, logLevel: int):
+    def set_server_log_level(self, log_level: int):
         """The default detail level is ERROR. For more details, see API
         Logging."""
 
         message_version = 1
         message_id = Messages.outbound['set_server_log_level']
-        fields = [message_id, message_version, logLevel]
+        fields = [message_id, message_version, log_level]
         self.conn.send_message(fields)
 
     @check_connection
@@ -1461,21 +1439,19 @@ class ApiCalls(object):
 
         return self.connection_time
 
-    def request_ids(self, num_ids: int):
-        """Call this function to request from TWS the next valid ID that
-        can be used when placing an order.  After calling this function, the
-        nextValidId() event will be triggered, and the id returned is that next
-        valid ID. That ID will reflect any autobinding that has occurred (which
-        generates new IDs and increments the next valid ID therein).
 
-        num_ids:int - deprecated"""
+    @check_connection
+    def request_order_ids(self):
+        """
+        Construct the request_order_ids message
+        Send the message to the Bridge application
 
-        if not self.conn.is_connected():
-            self.response_handler.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
-            return
+        :return:
+        """
 
+        num_ids         = 1 # Deprecated field that is still expected but ignored in the message
         message_version = 1
-        message_id = Messages.outbound['request_ids']
+        message_id      = Messages.outbound['request_order_ids']
         fields = [message_id, message_version, num_ids]
         self.conn.send_message(fields)
 
