@@ -5,11 +5,10 @@
 
 IBKR_API
 ========
-*Supporting Greed Monsters since 2019*
+Supporting Greed Monsters since 2019
 
 .. toctree::
    :maxdepth: 1
-   :caption: Overview
 
    overview/architecture
    overview/installation
