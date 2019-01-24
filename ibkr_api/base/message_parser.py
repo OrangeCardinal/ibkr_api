@@ -12,7 +12,7 @@ from ibkr_api.classes.contracts.contract_details    import ContractDetails
 from ibkr_api.classes.enum.tick_type                import TickType
 from ibkr_api.classes.execution                     import Execution
 from ibkr_api.classes.option_chain                  import OptionChain
-from ibkr_api.classes.order                         import Order
+from ibkr_api.classes.orders.order                  import Order
 from ibkr_api.classes.order_state                   import OrderState
 
 from dateutil   import parser as date_parser
@@ -660,6 +660,7 @@ class MessageParser(object):
 
         order               = Order()
         contract            = Contract()
+        order_state                                     = OrderState()
 
         # Fields 0 - 9
         message_id                                          = int(next(fields_iterator))
@@ -679,13 +680,14 @@ class MessageParser(object):
         # Fields 10 - 19
         contract.local_symbol                               = next(fields_iterator)
         contract.trading_class                              = next(fields_iterator)
+        order.contract                                      = contract
 
         order.action                                        = next(fields_iterator)
         order.total_quantity                                = float(next(fields_iterator))
         order.order_type                                    = next(fields_iterator)
         order.limit_price                                   = float(next(fields_iterator))
         order.aux_price                                     = next(fields_iterator)
-        order.tif                                           = next(fields_iterator)
+        order.time_in_force                                           = next(fields_iterator)
         order.oca_group                                     = next(fields_iterator)
         order.account                                       = next(fields_iterator)
         order.open_close                                    = next(fields_iterator)
@@ -768,20 +770,20 @@ class MessageParser(object):
                 'action'                : next(fields_iterator),
                 'exchange'              : next(fields_iterator),
                 'open_close'            : int(next(fields_iterator)),
-                'shortSaleSlot'         : int(next(fields_iterator)),
-                'designatedLocation'    : next(fields_iterator),
-                'exemptCode'            : int(next(fields_iterator))
+                'short_sale_slot'         : int(next(fields_iterator)),
+                'designated_location'    : next(fields_iterator),
+                'exempt_code'            : int(next(fields_iterator))
             }
             contract.combo_legs.append(combo_leg)
 
         # Process the order's combo legs
         order_combo_legs_count = int(next(fields_iterator))
-        order.orderComboLegs = []
+        order.order_combo_legs = []
         for _ in range(order_combo_legs_count):
             order_combo_leg = {
                 'price' : float(next(fields_iterator))
             }
-            order.orderComboLegs.append(order_combo_leg)
+            order.order_combo_legs.append(order_combo_leg)
 
         # Process the smart routing parameters
         smart_combo_routing_params_count = int(next(fields_iterator))
@@ -904,7 +906,7 @@ class MessageParser(object):
 
         order.cash_qty                      = float(next(fields_iterator))
         order.dont_use_auto_price_for_hedge = int(next(fields_iterator)) == 1
-        #order.is_oms_container              = int(next(fields_iterator)) == 1
+        #order.is_oms_container              = int(next(fields_iterator)) == 1 #TODO: debug why this got cut off
         return message_id, None, order
 
 
