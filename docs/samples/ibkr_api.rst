@@ -72,3 +72,14 @@ Get the Last Year of Daily Prices for XOM
     print("XOM Daily Closes")
     for bar in bar_data:
         print("{0}: {1}".format(bar.date, bar.close))
+
+
+Get all open orders
+-------------------
+.. code-block:: python
+
+   open_orders = ibkr.request_all_open_orders()
+   for open_order in open_orders:
+    print(open_order)
+
+
