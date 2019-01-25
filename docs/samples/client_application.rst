@@ -37,11 +37,12 @@ Getting All Linked Accounts (aka 'Family Codes')
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 To get linked account data, add the line below to either your application's *initialize* or *act* method
 
-+++++++++++++++++++++++++++++++++++++++++++++++++
-| self.request_family_codes()                   |
-================================================|
-|family_codes | Normal response from the bridge |
-+-------------+---------------------------------+
+=============  ===============================
+self.request_family_codes()
+----------------------------------------------
+Method         Description
+=============  ===============================
+family_codes   Normal response from the bridge
 
 
 .. code-block:: python
