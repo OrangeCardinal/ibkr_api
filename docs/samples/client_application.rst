@@ -38,9 +38,9 @@ Getting All Linked Accounts (aka 'Family Codes')
 To get linked account data, add the line below to either your application's *initialize* or *act* method
 
 =============  ===============================
-self.request_family_codes()
+self.request_family_codes
 ----------------------------------------------
-Method         Description
+Response       Description
 =============  ===============================
 family_codes   Normal response from the bridge
 
