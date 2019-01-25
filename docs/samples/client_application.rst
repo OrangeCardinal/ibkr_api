@@ -25,3 +25,26 @@ stopped by calling cancel_scanner_subscription with the same request id that was
 .. code-block:: python
 
     self.cancel_scanner_subscription(request_id)
+
+
+
+General Data
+------------
+This section describes some of the other functionality not already covered above
+
+
+Getting All Linked Accounts (aka 'Family Codes')
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+To get linked account data, add the line below to either your application's *initialize* or *act* method
+
++++++++++++++++++++++++++++++++++++++++++++++++++
+| self.request_family_codes()                   |
+================================================|
+|family_codes | Normal response from the bridge |
++-------------+---------------------------------+
+
+
+.. code-block:: python
+
+    self.request_family_codes()
+
