@@ -1,14 +1,12 @@
-from ibkr_api.base.constants import UNSET_INTEGER, UNSET_DOUBLE
-from ibkr_api.classes.soft_dollar_tier import SoftDollarTier
+from ibkr_api.base.constants            import UNSET_INTEGER, UNSET_DOUBLE
+from ibkr_api.classes.enum.order_status import OrderStatus
+from ibkr_api.classes.enum.auction_strategy import AuctionStrategy
+from ibkr_api.classes.soft_dollar_tier  import SoftDollarTier
 
 import logging
 
 # enum Origin
 (CUSTOMER, FIRM, UNKNOWN) = range(3)
-
-# enum AuctionStrategy
-(AUCTION_UNSET, AUCTION_MATCH,
- AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT) = range(4)
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +22,13 @@ class Order(object):
     def __init__(self,**kwargs):
         self.softDollarTier = SoftDollarTier("", "", "")
 
-        # Various Identifier
+        # Various Identifiers
         self.order_id  = 0
         self.client_id = 0
         self.perm_id   = 0
 
         # Order Status Information - Updated via order_status messages
-        self.status                 = None
+        self.status                 = OrderStatus.NOT_SUBMITTED.value
         self.filled                 = None
         self.remaining              = None
         self.average_fill_price     = None
@@ -39,13 +37,13 @@ class Order(object):
         self.market_cap_price       = None
 
 
-        # main order fields
+        # Main Order Information
         self.status                 = None
         self.action                 = ""
         self.total_quantity         = 0
         self.order_type             = ""
         self.limit_price            = UNSET_DOUBLE
-        self.aux_price              = UNSET_DOUBLE
+        #self.aux_price              = None TODO: Move to Order Types where necessary, not a core attribute
 
         # extended order fields
         self.contract               = None # Contract object (if any) associated with the order (
@@ -61,17 +59,15 @@ class Order(object):
         self.sweep_to_fill          = False
         self.display_size           = 0
         self.trigger_method         = 0     # 0=Default, 1=Double_Bid_Ask, 2=Last, 3=Double_Last, 4=Bid_Ask, 7=Last_or_Bid_Ask, 8=Mid-point
-        self.outside_rth            = False
-        self.hidden                 = False
-        self.good_after_time        = ""   # Format: 20060505 08:00:00 {time zone}
-        self.good_till_date         = ""   # Format: 20060505 08:00:00 {time zone}
-        self.rule80A                = ""   # Individual = 'I', Agency = 'A', AgentOtherMember = 'W', IndividualPTIA = 'J', AgencyPTIA = 'U', AgentOtherMemberPTIA = 'M', IndividualPT = 'K', AgencyPT = 'Y', AgentOtherMemberPT = 'N'
-        self.all_or_none            = False
-        self.min_qty                = UNSET_INTEGER  #type: int
-        self.percent_offset                     = UNSET_DOUBLE  # type: float; REL orders only
+        self.outside_rth                        = False
+        self.hidden                             = False
+        self.good_after_time                    = ""   # Format: 20060505 08:00:00 {time zone}
+        self.good_till_date                     = ""   # Format: 20060505 08:00:00 {time zone}
+        self.rule80A                            = ""   # Individual = 'I', Agency = 'A', AgentOtherMember = 'W', IndividualPTIA = 'J', AgencyPTIA = 'U', AgentOtherMemberPTIA = 'M', IndividualPT = 'K', AgencyPT = 'Y', AgentOtherMemberPT = 'N'
+        self.all_or_none                        = False
+        self.min_qty                            = ""  #type: int
+        self.percent_offset                     = ""  # type: float; REL orders only
         self.override_percentage_constraints    = False
-        self.trail_stop_price                   = UNSET_DOUBLE  # type: float
-        self.trailing_percent                   = UNSET_DOUBLE # type: float; TRAILLIMIT orders only
 
         # Only used by financial advisers
         self.financial_advisers_group              = ""
@@ -90,18 +86,18 @@ class Order(object):
         self.discretionary_amt              = 0
         self.e_trade_only                   = True
         self.firm_quote_only                = True
-        self.nbbo_price_cap                 = UNSET_DOUBLE  # type: float
+        self.nbbo_price_cap                 = ""  # type: float
         self.opt_out_smart_routing          = False
 
         # BOX exchange orders only
-        self.auctionStrategy                = AUCTION_UNSET # type: int; AUCTION_MATCH, AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT
-        self.starting_price                 = UNSET_DOUBLE   # type: float
-        self.stock_ref_price                = UNSET_DOUBLE   # type: float
-        self.delta                          = UNSET_DOUBLE   # type: float
+        self.auctionStrategy                = AuctionStrategy.AUCTION_UNSET.value
+        self.starting_price                 = ""                # type: float
+        self.stock_ref_price                = ""                # type: float
+        self.delta                          = UNSET_DOUBLE      # type: float
 
         # pegged to stock and VOL orders only
-        self.stock_range_lower              = UNSET_DOUBLE   # type: float
-        self.stock_range_upper              = UNSET_DOUBLE   # type: float
+        self.stock_range_lower              = ""   # type: float
+        self.stock_range_upper              = ""   # type: float
 
         self.randomize_price                = False
         self.randomize_size                 = False
@@ -109,19 +105,6 @@ class Order(object):
         # COMBO ORDERS ONLY
         self.basis_points                   = UNSET_DOUBLE  # type: float; EFP orders only
         self.basis_points_type              = UNSET_INTEGER  # type: int;  EFP orders only
-
-        # SCALE ORDERS ONLY
-        self.scale_init_level_size          = UNSET_INTEGER
-        self.scale_subs_level_size          = UNSET_INTEGER
-        self.scale_price_increment          = UNSET_DOUBLE
-        self.scale_price_adjust_value       = UNSET_DOUBLE
-        self.scale_price_adjust_interval    = UNSET_INTEGER
-        self.scale_profit_offset            = UNSET_DOUBLE
-        self.scale_auto_reset               = False
-        self.scale_init_position            = UNSET_INTEGER
-        self.scale_init_fill_qty            = UNSET_INTEGER
-        self.scale_random_percent           = False
-        self.scale_table = ""
 
         # HEDGE ORDERS
         self.hedge_type                     = "" # 'D' - delta, 'B' - beta, 'F' - FX, 'P' - pair
