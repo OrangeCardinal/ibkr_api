@@ -2,8 +2,9 @@ from enum import IntEnum
 
 class AuctionStrategy(IntEnum):
     """
-    Order.auction_strategy values (used only for BOX orders)
+    auction_strategy values for a given Order
     """
-    MATCH           = 1
-    IMPROVEMENT     = 2
-    TRANSPARENT     = 3
+    AUCTION_UNSET       =   0
+    AUCTION_MATCH       =   1
+    AUCTION_IMPROVEMENT =   2
+    AUCTION_TRANSPARENT =   3
