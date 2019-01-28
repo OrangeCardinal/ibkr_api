@@ -48,7 +48,7 @@ class Order(object):
         # extended order fields
         self.contract               = None # Contract object (if any) associated with the order (
         self.time_in_force          = ""   # "Time in Force" - DAY, GTC, etc.
-        self.active_start_time      = ""   # for Good Till Cancelled (GTC) orders
+        self.active_start_time      = 0   # for Good Till Cancelled (GTC) orders
         self.active_stop_time       = ""   # for Good Till Cancelled (GTC) orders
         self.oca_group              = ""   # One cancels all group name
         self.oca_type               = 0    # 1 = CANCEL_WITH_BLOCK, 2 = REDUCE_WITH_BLOCK, 3 = REDUCE_NON_BLOCK
@@ -93,14 +93,14 @@ class Order(object):
         self.auctionStrategy                = AuctionStrategy.AUCTION_UNSET.value
         self.starting_price                 = ""                # type: float
         self.stock_ref_price                = ""                # type: float
-        self.delta                          = UNSET_DOUBLE      # type: float
+        self.delta                          = ""                # type: float
 
         # pegged to stock and VOL orders only
         self.stock_range_lower              = ""   # type: float
         self.stock_range_upper              = ""   # type: float
 
-        self.randomize_price                = False
-        self.randomize_size                 = False
+        self.randomize_price                = UNSET_DOUBLE
+        self.randomize_size                 = UNSET_DOUBLE
 
         # COMBO ORDERS ONLY
         self.basis_points                   = UNSET_DOUBLE  # type: float; EFP orders only
@@ -114,22 +114,22 @@ class Order(object):
         self.account                        = "" # IB account
         self.settling_firm                   = ""
         self.clearing_account               = ""   #True beneficiary of the order
-        self.clearing_intent                = "" # "" (Default), "IB", "Away", "PTA" (PostTrade)
+        self.clearing_intent                = 0 # "" (Default), "IB", "Away", "PTA" (PostTrade)
 
         # ALGO ORDERS ONLY
-        self.algorithmic_strategy           = ""
+        self.algorithmic_strategy           = 0
 
         self.algorithm_parameters           = None    #TagValueList
         self.smart_combo_routing_params     = None  #TagValueList
 
-        self.algoId = ""
+        self.algo_id = ""
 
         # What-if
-        self.what_if = False
+        self.what_if = UNSET_DOUBLE
 
         # Not Held
         self.not_held = False
-        self.solicited = False
+        self.solicited = UNSET_DOUBLE
 
         # models
         self.modelCode = ""
@@ -160,20 +160,31 @@ class Order(object):
         self.conditions_ignore_rth   = False
 
         # ext operator
-        self.extOperator = ""
+        self.ext_operator = False
 
         # native cash quantity
-        self.cash_qty = UNSET_DOUBLE
+        self.cash_qty                       = ""
 
-        self.mifid2DecisionMaker = ""
-        self.mifid2DecisionAlgo = ""
-        self.mifid2ExecutionTrader = ""
-        self.mifid2ExecutionAlgo = ""
+        self.mifid2DecisionMaker            = UNSET_DOUBLE
+        self.mifid2DecisionAlgo             = ""
+        self.mifid2ExecutionTrader          = ""
+        self.mifid2ExecutionAlgo            = ""
 
-        self.dont_use_auto_price_for_hedge = False
+        self.dont_use_auto_price_for_hedge = ""
 
-        self.is_oms_container = False
+        self.is_oms_container               = 0
 
+        self.scale_init_level_size          = "" #UNSET_INTEGER
+        self.scale_subs_level_size          = "" #UNSET_INTEGER
+        self.scale_price_increment          = ""
+        self.scale_price_adjust_value       = ""
+        self.scale_price_adjust_interval    = "" #UNSET_INTEGER
+        self.scale_profit_offset            = ""
+        self.scale_auto_reset               = ""
+        self.scale_init_position            = 0 #UNSET_INTEGER
+        self.scale_init_fill_qty            = "" #UNSET_INTEGER
+        self.scale_random_percent           = ""
+        self.scale_table = 0
 
         # Set any attributes that were supplied via keyword arguments
         for key, val in kwargs.items():
@@ -230,7 +241,7 @@ class Order(object):
         desc += "Why Held: {0}\n".format(self.why_held)
         desc += "Market Cap Price: {0}\n".format(self.market_cap_price)
 
-        if display_contract and self.contract != None:
+        if display_contract and self.contract is not None:
             desc += self.contract.__str__('Contract Info')
 
         if self.order_combo_legs:
