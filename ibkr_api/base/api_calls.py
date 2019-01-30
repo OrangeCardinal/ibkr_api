@@ -394,63 +394,60 @@ class ApiCalls(object):
 
         # Gather the fields needed for the message
         message_id                          = Messages.outbound['place_order']
+        message_version                     = 45
         last_trade_date_or_contract_month   = getattr(contract ,'last_trade_date_or_contract_month' , '')
-        strike                              = getattr(contract ,'strike'                            , '')
+        strike                              = getattr(contract ,'strike'                            , 0.0)
         right                               = getattr(contract ,'right'                             , '')
         multiplier                          = getattr(contract ,'multiplier'                        , '')
 
-        volatility                          = getattr(order ,   'volatility'                , '')
-        volatility_type                     = getattr(order ,   'volatility_type'           , '')
-        delta_neutral_order_type            = getattr(order ,   'delta_neutral_order_type'  , '')
-        delta_neutral_aux_price             = getattr(order ,   'delta_neutral_aux_price'   , '')
-        continuous_update                   = getattr(order ,   ''                          , '')
-        reference_price_type                = getattr(order ,   'reference_price_type'      , '')
-        fields      = [message_id, order_id, contract.id]
-        print(order_id)
-        #if self.server_version() < MIN_SERVER_VER_ORDER_CONTAINER:
-        #    message_version = 27 if (self.server_version() < MIN_SERVER_VER_NOT_HELD) else 45
-        #    fields.append(message_version)
+        aux_price                           = getattr(order ,   'aux_price'                 ,   '')
+        volatility                          = getattr(order ,   'volatility'                ,   '')
+        volatility_type                     = getattr(order ,   'volatility_type'           ,   '')
+        delta_neutral_order_type            = getattr(order ,   'delta_neutral_order_type'  ,   '')
+        delta_neutral_aux_price             = getattr(order ,   'delta_neutral_aux_price'   ,   '')
+        continuous_update                   = getattr(order ,   'continuous_update'         ,   0)
+        reference_price_type                = getattr(order ,   'reference_price_type'      ,   '')
+        trail_stop_price                    = getattr(order ,   'trail_stop_price'          ,   '')
+        trailing_percent                    = getattr(order ,   'trailing_percent'          ,   '')
+        scale_init_level_size               = getattr(order ,   'scale_init_level_size'     ,   '')
+        scale_subs_level_size               = getattr(order ,   'scale_subs_level_size'     ,   '')
+        scale_price_increment               = getattr(order ,   'scale_price_increment'     ,   '')
+        scale_table                         = getattr(order ,   'scale_table'               ,   '')
 
-
-
-
-        fields += [contract.symbol                      ,
-                   contract.security_type               ,
-                   last_trade_date_or_contract_month    ,
-                   strike                               ,
-                   right                                ,
-                   multiplier                           ,
-                   contract.exchange                    ,
-                   contract.primary_exchange            ,
-                   contract.currency                    ,
-                   contract.local_symbol]
-
-
-        fields.append(contract.trading_class)
-        fields += [contract.security_id_type, contract.security_id]
-        # send main order fields
-        fields.append(order.action)
-        fields.append(order.total_quantity)
-
-        fields.append(order.order_type)
-        fields.append(order.limit_price)
-        fields.append(order.aux_price)
-
-        # send extended order fields
-        fields += [order.time_in_force      ,
-                   order.oca_group          ,
-                   order.account            ,
-                   order.open_close         ,
-                   order.origin             ,
-                   order.order_ref          ,
-                   order.transmit           ,
-                   order.parent_id          ,
-                   order.block_order        ,
-                   order.sweep_to_fill      ,
-                   order.display_size       ,
-                   order.trigger_method     ,
-                   order.outside_rth        ,
-                   order.hidden]
+        fields      = [message_id, message_version, order_id, contract.id]
+        fields +=   [
+                    contract.symbol                     ,
+                    contract.security_type              ,
+                    last_trade_date_or_contract_month   ,
+                    strike                              ,
+                    right                               ,
+                    multiplier                          ,
+                    contract.exchange                   ,
+                    contract.primary_exchange           ,
+                    contract.currency                   ,
+                    contract.local_symbol               ,
+                    contract.trading_class              ,
+                    contract.security_id_type           ,
+                    contract.security_id                ,
+                    order.action                        ,
+                    order.total_quantity                ,
+                    order.order_type                    ,
+                    order.limit_price                   ,
+                    aux_price                           ,
+                    order.time_in_force                 ,
+                    order.oca_group                     ,
+                    order.account                       ,
+                    order.open_close                    ,
+                    order.origin                        ,
+                    order.order_ref                     ,
+                    order.transmit                      ,
+                    order.parent_id                     ,
+                    order.block_order                   ,
+                    order.sweep_to_fill                 ,
+                    order.display_size                  ,
+                    order.trigger_method                ,
+                    order.outside_rth                   ,
+                    order.hidden]
 
         # Send combo legs for BAG requests (srv v8 and above)
         if contract.security_type == "BAG":
@@ -469,7 +466,7 @@ class ApiCalls(object):
                                combo_leg.exemptCode]
 
         # Send order combo legs for BAG requests
-        if self.server_version() >= MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE and contract.security_type == "BAG":
+        if contract.security_type == "BAG":
             order_combo_legs_count = len(order.order_combo_legs) if order.order_combo_legs else 0
             fields.append(order_combo_legs_count)
 
@@ -478,7 +475,7 @@ class ApiCalls(object):
                     assert orderComboLeg
                     fields.append(orderComboLeg.price)
 
-        if self.server_version() >= MIN_SERVER_VER_SMART_COMBO_ROUTING_PARAMS and contract.security_type == "BAG":
+        if contract.security_type == "BAG":
             smartComboRoutingParamsCount = len(order.smart_combo_routing_params) if order.smart_combo_routing_params else 0
             fields.append(smartComboRoutingParamsCount)
             if smartComboRoutingParamsCount > 0:
@@ -515,7 +512,6 @@ class ApiCalls(object):
         fields += [order.short_sale_slot,  # 0 for retail, 1 or 2 for institutions
                    order.designated_location,  # populate only when short_sale_slot = 2.
                    order.exempt_code]
-
 
         fields.append(order.oca_type)
 
@@ -554,18 +550,15 @@ class ApiCalls(object):
 
         fields += [continuous_update            ,
                    reference_price_type         ,
-                   order.trail_stop_price       ,
-                   order.trailing_percent]
+                   trail_stop_price             ,
+                   trailing_percent             ,
+                   scale_init_level_size        ,
+                   scale_subs_level_size        ,
+                   scale_price_increment]
 
-        # SCALE orders
-        fields += [order.scale_init_level_size, order.scale_subs_level_size]
-
-
-        fields.append(order.scale_price_increment)
-
-        if self.server_version() >= MIN_SERVER_VER_SCALE_ORDERS3 \
-                and order.scale_price_increment != UNSET_DOUBLE \
-                and order.scale_price_increment > 0.0:
+        #TODO: Fix conditional here
+        #if order.scale_price_increment != UNSET_DOUBLE and scale_price_increment > 0.0:
+        if hasattr(order,'scale_price_increment'):
             fields += [order.scale_price_adjust_value,
                        order.scale_price_adjust_interval,
                        order.scale_profit_offset,
@@ -575,31 +568,27 @@ class ApiCalls(object):
                        order.scale_random_percent]
 
 
-        fields += [order.scale_table, order.active_start_time, order.active_stop_time]
+        fields += [scale_table, order.active_start_time, order.active_stop_time]
 
         # HEDGE orders
-        if self.server_version() >= MIN_SERVER_VER_HEDGE_ORDERS:
-            fields.append(order.hedge_type)
-            if order.hedge_type:
-                fields.append(order.hedge_param)
+        fields.append(order.hedge_type)
+        if order.hedge_type:
+            fields.append(order.hedge_param)
 
-        if self.server_version() >= MIN_SERVER_VER_OPT_OUT_SMART_ROUTING:
-            fields.append(order.opt_out_smart_routing)
 
-        if self.server_version() >= MIN_SERVER_VER_PTA_ORDERS:
-            fields += [order.clearing_account, order.clearing_intent]
+        fields += [order.opt_out_smart_routing  ,
+                   order.clearing_account       ,
+                   order.clearing_intent        ,
+                   order.not_held]
 
-        if self.server_version() >= MIN_SERVER_VER_NOT_HELD:
-            fields.append(order.not_held)
 
-        if self.server_version() >= MIN_SERVER_VER_DELTA_NEUTRAL:
-            if contract.delta_neutral_contract:
-                fields += [True,
-                           contract.delta_neutral_contract.conId,
-                           contract.delta_neutral_contract.delta,
-                           contract.delta_neutral_contract.price]
-            else:
-                fields.append(False)
+        if contract.delta_neutral_contract:
+            fields += [True,
+                       contract.delta_neutral_contract.conId,
+                       contract.delta_neutral_contract.delta,
+                       contract.delta_neutral_contract.price]
+        else:
+            fields.append(False)
 
 
         fields.append(order.algorithmic_strategy)
@@ -611,13 +600,11 @@ class ApiCalls(object):
                     fields += [algoParam.tag, algoParam.value]
 
 
-        fields.append(order.algoId)
-
+        fields.append(order.algo_id)
         fields.append(order.what_if)
 
         # send miscOptions parameter
-
-        miscOptionsStr = ""
+        miscOptionsStr = UNSET_DOUBLE
         if order.order_misc_options:
             for tagValue in order.order_misc_options:
                 miscOptionsStr += str(tagValue)
@@ -648,7 +635,7 @@ class ApiCalls(object):
                            order.adjusted_trailing_amount, order.adjusted_trailing_unit])
 
 
-        fields.append(order.extOperator)
+        fields.append(order.ext_operator)
         fields.extend([order.softDollarTier.name, order.softDollarTier.val])
         fields.append(order.cash_qty)
         fields.append(order.mifid2DecisionMaker)
@@ -659,6 +646,7 @@ class ApiCalls(object):
         fields.append(order.is_oms_container)
 
         print(fields)
+        print(len(fields))
         self.conn.send_message(fields)
 
     @check_connection
