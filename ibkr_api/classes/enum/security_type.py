@@ -1,5 +1,5 @@
 from enum import Enum
-class SecurityTypes(Enum):
+class SecurityType(Enum):
     CASH                        = 'CASH'
     STOCK                       = 'STK'
     FUTURES                     = 'FUT'
