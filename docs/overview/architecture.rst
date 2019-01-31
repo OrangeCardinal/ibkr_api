@@ -3,7 +3,9 @@ IBKR_API Architecture
 =====================
 The IBKR_API is NOT some wrapper on top of the existing twsapi python API, but rather a complete redesign of the codebase.
 The new codebase was written with the following ideas in mind. One, a 'design by contract' approach was used, where each
-portion of the system has clearly defined responsibilities. The other governing principle was to keep the code 'DRY'.
+portion of the system has clearly defined responsibilities. For the most part these responsibilities are explicitly listed
+in their respective docstrings. The other governing principle was to keep the code 'DRY' and to avoid 'speculative generality'.
+The codebase you see is the result of this philosophy.
 
 Directory Structure
 -------------------
@@ -12,7 +14,7 @@ The table below describes various important directories within this API and thei
 +-----------------------+--------------------------------------------------------------------------------------------------------------------+
 | Directory             | Description                                                                                                        |
 +=======================+====================================================================================================================+
-| base                  | The core application internals. Unless you are developing for the API this code this code won't be called directly |
+| base                  | The core application internals. Unless you are developing the API this code this code won't be called directly     |
 +-----------------------+--------------------------------------------------------------------------------------------------------------------+
 |classes/contracts      | Various types of Contract objects such as Stock, Option, Put, Call, etc                                            |
 +-----------------------+--------------------------------------------------------------------------------------------------------------------+
