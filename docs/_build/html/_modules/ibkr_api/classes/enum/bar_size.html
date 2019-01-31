@@ -33,20 +33,57 @@
             
   <h1>Source code for ibkr_api.classes.enum.bar_size</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">Enum</span>
+<span class="c1">#Legal ones are: 3 hours, 4 hours, 8 hours, 1 day</span>
 
 <div class="viewcode-block" id="BarSize"><a class="viewcode-back" href="../../../../source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize">[docs]</a><span class="k">class</span> <span class="nc">BarSize</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="n">SECONDS_1</span> <span class="o">=</span> <span class="s2">&quot;1 sec&quot;</span>
-    <span class="n">SECONDS_5</span> <span class="o">=</span> <span class="s2">&quot;5 secs&quot;</span>
-    <span class="n">SECONDS_15</span> <span class="o">=</span> <span class="s2">&quot;15 secs&quot;</span>
-    <span class="n">SECONDS_30</span> <span class="o">=</span> <span class="s2">&quot;30 secs&quot;</span>
-    <span class="n">MINUTES_1</span> <span class="o">=</span> <span class="s2">&quot;1 min&quot;</span>
-    <span class="n">MINUTES_2</span> <span class="o">=</span> <span class="s2">&quot;2 mins&quot;</span>
-    <span class="n">MINUTES_3</span> <span class="o">=</span> <span class="s2">&quot;3 mins&quot;</span>
-    <span class="n">MINUTES_5</span> <span class="o">=</span> <span class="s2">&quot;5 mins&quot;</span>
-    <span class="n">MINUTES_15</span> <span class="o">=</span> <span class="s2">&quot;15 mins&quot;</span>
-    <span class="n">MINUTES_30</span> <span class="o">=</span> <span class="s2">&quot;30 mins&quot;</span>
-    <span class="n">HOUR_1</span>  <span class="o">=</span> <span class="s2">&quot;1 hour&quot;</span>
-    <span class="n">DAY_1</span>   <span class="o">=</span> <span class="s2">&quot;1 day&quot;</span></div>
+    <span class="c1">####################</span>
+    <span class="c1"># Access By Number #</span>
+    <span class="c1">####################</span>
+    <span class="n">ONE_HOUR</span>        <span class="o">=</span> <span class="s1">&#39;1 hour&#39;</span>
+    <span class="n">ONE_DAY</span>         <span class="o">=</span> <span class="s1">&#39;1 day&#39;</span>
+    <span class="n">ONE_MINUTE</span>      <span class="o">=</span> <span class="s1">&#39;1 min&#39;</span>
+    <span class="n">ONE_MONTH</span>       <span class="o">=</span> <span class="s1">&#39;1M&#39;</span>
+    <span class="n">ONE_WEEK</span>        <span class="o">=</span> <span class="s1">&#39;1W&#39;</span>
+    <span class="n">ONE_SECOND</span>      <span class="o">=</span> <span class="s1">&#39;1 sec&#39;</span>
+    <span class="n">TWO_HOUR</span>        <span class="o">=</span> <span class="s1">&#39;2 hours&#39;</span>
+    <span class="n">TWO_MINUTES</span>     <span class="o">=</span> <span class="s1">&#39;2 mins&#39;</span>
+    <span class="n">THREE_MINUTES</span>   <span class="o">=</span> <span class="s1">&#39;3 mins&#39;</span>
+    <span class="n">FOUR_HOURS</span>      <span class="o">=</span> <span class="s1">&#39;4 hours&#39;</span>
+    <span class="n">FIVE_MINUTES</span>    <span class="o">=</span> <span class="s1">&#39;5 mins&#39;</span>
+    <span class="n">FIVE_SECONDS</span>    <span class="o">=</span> <span class="s1">&#39;5 secs&#39;</span>
+    <span class="n">EIGHT_HOURS</span>     <span class="o">=</span> <span class="s1">&#39;8 hours&#39;</span>
+    <span class="n">TEN_MINUTES</span>     <span class="o">=</span> <span class="s1">&#39;10 mins&#39;</span>
+    <span class="n">TEN_SECONDS</span>     <span class="o">=</span> <span class="s1">&#39;10 secs&#39;</span>
+    <span class="n">FIFTEEN_MINUTES</span> <span class="o">=</span> <span class="s1">&#39;15 mins&#39;</span>
+    <span class="n">FIFTEEN_SECONDS</span> <span class="o">=</span> <span class="s1">&#39;15 secs&#39;</span>
+    <span class="n">TWENTY_MINUTES</span>  <span class="o">=</span> <span class="s1">&#39;20 mins&#39;</span>
+    <span class="n">THIRTY_MINUTES</span>  <span class="o">=</span> <span class="s1">&#39;30 mins&#39;</span>
+    <span class="n">THIRTY_SECONDS</span>  <span class="o">=</span> <span class="s1">&#39;30 secs&#39;</span>
+
+    <span class="c1">######################</span>
+    <span class="c1"># Access by Duration #</span>
+    <span class="c1">######################</span>
+    <span class="n">SECONDS_1</span>   <span class="o">=</span> <span class="s1">&#39;1 sec&#39;</span>
+    <span class="n">SECONDS_5</span>   <span class="o">=</span> <span class="s1">&#39;5 secs&#39;</span>
+    <span class="n">SECONDS_10</span>  <span class="o">=</span> <span class="s1">&#39;10 secs&#39;</span>
+    <span class="n">SECONDS_15</span>  <span class="o">=</span> <span class="s1">&#39;15 secs&#39;</span>
+    <span class="n">SECONDS_30</span>  <span class="o">=</span> <span class="s1">&#39;30 secs&#39;</span>
+    <span class="n">MINUTES_1</span>   <span class="o">=</span> <span class="s1">&#39;1 min&#39;</span>
+    <span class="n">MINUTES_2</span>   <span class="o">=</span> <span class="s1">&#39;2 mins&#39;</span>
+    <span class="n">MINUTES_3</span>   <span class="o">=</span> <span class="s1">&#39;3 mins&#39;</span>
+    <span class="n">MINUTES_5</span>   <span class="o">=</span> <span class="s1">&#39;5 mins&#39;</span>
+    <span class="n">MINUTES_10</span>  <span class="o">=</span> <span class="s1">&#39;10 mins&#39;</span>
+    <span class="n">MINUTES_15</span>  <span class="o">=</span> <span class="s1">&#39;15 mins&#39;</span>
+    <span class="n">MINUTES_20</span>  <span class="o">=</span> <span class="s1">&#39;20 mins&#39;</span>
+    <span class="n">MINUTES_30</span>  <span class="o">=</span> <span class="s1">&#39;30 mins&#39;</span>
+    <span class="n">MONTH_1</span>     <span class="o">=</span> <span class="s1">&#39;1M&#39;</span>
+    <span class="n">HOUR_1</span>      <span class="o">=</span> <span class="s1">&#39;1 hour&#39;</span>
+    <span class="n">HOUR_2</span>      <span class="o">=</span> <span class="s1">&#39;2 hours&#39;</span>
+    <span class="n">HOUR_3</span>      <span class="o">=</span> <span class="s1">&#39;3 hours&#39;</span>
+    <span class="n">HOUR_4</span>      <span class="o">=</span> <span class="s1">&#39;4 hours&#39;</span>
+    <span class="n">HOUR_8</span>      <span class="o">=</span> <span class="s1">&#39;8 hours&#39;</span>
+    <span class="n">DAY_1</span>       <span class="o">=</span> <span class="s1">&#39;1 day&#39;</span>
+    <span class="n">WEEK_1</span>      <span class="o">=</span> <span class="s1">&#39;1W&#39;</span></div>
 </pre></div>
 
           </div>
@@ -65,14 +102,14 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Overview</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../overview/architecture.html">IBKR_API Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../overview/installation.html">Installation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../overview/quick_start.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../overview/quick_start.html#request-handlers">Request Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../overview/faq.html">F.A.Q</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../samples/client_application.html">Client Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../overview/contributors.html">Contributing To This Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../samples/ibkr_api.html">IBKR_API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../samples/client_application.html">ClientApplication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../source/modules.html">ibkr_api</a></li>
 </ul>
 

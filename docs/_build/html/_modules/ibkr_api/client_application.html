@@ -32,48 +32,66 @@
           <div class="body" role="main">
             
   <h1>Source code for ibkr_api.client_application</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">ibkr_api.base.api_calls</span> <span class="k">import</span> <span class="n">ApiCalls</span>
-<span class="kn">from</span> <span class="nn">ibkr_api.base.message_parser</span> <span class="k">import</span> <span class="n">MessageParser</span>
+<span></span><span class="kn">from</span> <span class="nn">ibkr_api.minimal_client_application</span>    <span class="k">import</span> <span class="n">MinimalClientApplication</span>
+<span class="kn">from</span> <span class="nn">ibkr_api.base.message_parser</span>           <span class="k">import</span> <span class="n">MessageParser</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">time</span>
-
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-<div class="viewcode-block" id="ClientApplication"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication">[docs]</a><span class="k">class</span> <span class="nc">ClientApplication</span><span class="p">(</span><span class="n">ApiCalls</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">response_handler</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">request_handler</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="ClientApplication"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication">[docs]</a><span class="k">class</span> <span class="nc">ClientApplication</span><span class="p">(</span><span class="n">MinimalClientApplication</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">debug_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Base class for users to extend in the creation of asynchronous event driven applications</span>
 
 <span class="sd">        :param host: Host of the Bridge Connection</span>
 <span class="sd">        :param port: Port of the Bridge Connection</span>
-<span class="sd">        :param response_handler: User Supplied Response Handler</span>
-<span class="sd">        :param request_handler:</span>
+<span class="sd">        :param debug_mode: If True, warnings will be generated for non existing functions</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># TODO: Handle keyboard input in a non blocking manner</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">still_running</span>      <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Controls when the event loop</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">messages_received</span>  <span class="o">=</span> <span class="p">[]</span>    <span class="c1"># List of all messages received (not sure if needed)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">keyboard_input</span>     <span class="o">=</span> <span class="p">[]</span>    <span class="c1"># Keyboard Input</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">message_parser</span>     <span class="o">=</span> <span class="n">MessageParser</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span>          <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">debug_mode</span>         <span class="o">=</span> <span class="kc">True</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span><span class="p">)</span>
 
+    <span class="c1">#################################################################################</span>
+    <span class="c1"># Functions that receive inbound messages from the Bridge Connection (TWS/IBGW) #</span>
+    <span class="c1">#################################################################################</span>
 <div class="viewcode-block" id="ClientApplication.info_message"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.info_message">[docs]</a>    <span class="k">def</span> <span class="nf">info_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">info</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="ClientApplication.initialize"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Called one time before the main event processing loop is entered.</span>
+<span class="sd">        Called when an info_message is received by the bridge.</span>
+<span class="sd">        This function is meant to be overridden</span>
+
+<span class="sd">        :param message_id:</span>
+<span class="sd">        :param request_id:</span>
+<span class="sd">        :param info:</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+        <span class="n">ticker_id</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;ticker_id&#39;</span><span class="p">]</span>
+        <span class="n">code</span>      <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">]</span>
+        <span class="n">text</span>      <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span>
 
-<div class="viewcode-block" id="ClientApplication.managed_accounts"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.managed_accounts">[docs]</a>    <span class="k">def</span> <span class="nf">managed_accounts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">account</span><span class="p">):</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Message Id: </span><span class="si">{0}</span><span class="s2">, Request ID: </span><span class="si">{1}</span><span class="s2">, Account: </span><span class="si">{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">account</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Message Id: </span><span class="si">{0}</span><span class="s2"> </span>
+<span class="s2">        Request ID: </span><span class="si">{1}</span><span class="s2"></span>
+<span class="s2">        Ticker ID : </span><span class="si">{2}</span><span class="s2"></span>
+<span class="s2">        Code      : </span><span class="si">{3}</span><span class="s2"></span>
+<span class="s2">        Text      : </span><span class="si">{4}</span><span class="s2"></span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">ticker_id</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="ClientApplication.family_codes"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.family_codes">[docs]</a>    <span class="k">def</span> <span class="nf">family_codes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">account_data</span><span class="p">):</span>
+        <span class="n">account_id</span> <span class="o">=</span> <span class="n">account_data</span><span class="p">[</span><span class="s1">&#39;account_id&#39;</span><span class="p">]</span>
+        <span class="n">family_code</span> <span class="o">=</span> <span class="n">account_data</span><span class="p">[</span><span class="s1">&#39;family_code&#39;</span><span class="p">]</span>
+
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Account ID: </span><span class="si">{0}</span><span class="s2"> Family Code: </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">account_id</span><span class="p">,</span> <span class="n">family_code</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ClientApplication.managed_accounts"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.managed_accounts">[docs]</a>    <span class="k">def</span> <span class="nf">managed_accounts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">account</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Message ID: </span><span class="si">{0}</span><span class="s2">, Request ID: </span><span class="si">{1}</span><span class="s2">, Account: </span><span class="si">{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">account</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ClientApplication.market_data_type"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.market_data_type">[docs]</a>    <span class="k">def</span> <span class="nf">market_data_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;(Market Data Type) Message ID: </span><span class="si">{0}</span><span class="s2">, Request ID: </span><span class="si">{1}</span><span class="s2">, Account: </span><span class="si">{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ClientApplication.position_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.position_data">[docs]</a>    <span class="k">def</span> <span class="nf">position_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span><span class="n">position_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -89,60 +107,17 @@
 <div class="viewcode-block" id="ClientApplication.scanner_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.scanner_data">[docs]</a>    <span class="k">def</span> <span class="nf">scanner_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">scanner_data</span><span class="p">):</span>
         <span class="k">pass</span></div>
 
-    <span class="c1">##################################################</span>
-    <span class="c1"># Functions Related to the Event Processing Loop #</span>
-    <span class="c1">##################################################</span>
-<div class="viewcode-block" id="ClientApplication.act"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.act">[docs]</a>    <span class="k">def</span> <span class="nf">act</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Action if any your application should do at the end of each event loop</span>
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+<div class="viewcode-block" id="ClientApplication.tick_price"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.tick_price">[docs]</a>    <span class="k">def</span> <span class="nf">tick_price</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;(Tick Price) Message ID: </span><span class="si">{0}</span><span class="s2">, Request ID: </span><span class="si">{1}</span><span class="s2">, Data: </span><span class="si">{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ClientApplication.run"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Primary event loop of the application</span>
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#timeStart = time.time()</span>
-        <span class="c1">#timeOut = 20</span>
-        <span class="c1"># TODO: Handle keyboard input in a non blocking manner</span>
-        <span class="c1"># keyboard_reader = KeyboardReader()</span>
-        <span class="c1"># keyboard_reader.start()</span>
+<div class="viewcode-block" id="ClientApplication.tick_request_params"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.tick_request_params">[docs]</a>    <span class="k">def</span> <span class="nf">tick_request_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;(Tick Request Params) Message ID: </span><span class="si">{0}</span><span class="s2">, Request ID: </span><span class="si">{1}</span><span class="s2">, Data: </span><span class="si">{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
-
-        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">still_running</span><span class="p">:</span>
-            <span class="n">messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">receive_messages</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">messages</span><span class="p">:</span>
-                    <span class="c1"># Call the correct function in the message parser to parse and return the data</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> message received&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]))</span>
-                    <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">message_parser</span><span class="p">,</span> <span class="n">message</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">])</span>
-                    <span class="n">data</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">])</span>
-
-                    <span class="c1"># Call the response handler as needed</span>
-                    <span class="c1"># If we are in development also send a warning that a handler doesnt exist</span>
-                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]):</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Calling method &#39;</span><span class="si">{0}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]))</span>
-                        <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">])</span>
-                        <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">)</span>
-                    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_mode</span><span class="p">:</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The function &#39;</span><span class="si">{0}</span><span class="s2">&#39; does not exist.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]))</span>
-
-            <span class="c1"># Invoke any user defined behaviour at this point.</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">()</span>
-            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Application has been shut down.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="mi">0</span></div>
-
-<div class="viewcode-block" id="ClientApplication.stop"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.stop">[docs]</a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Stops the primary event loop, allowing the application to</span>
-<span class="sd">        :return:</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Shutdown requested&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">still_running</span> <span class="o">=</span> <span class="kc">False</span></div></div>
+<div class="viewcode-block" id="ClientApplication.tick_size"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.client_application.ClientApplication.tick_size">[docs]</a>    <span class="k">def</span> <span class="nf">tick_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">tick_data</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;(Tick Size) Message ID: </span><span class="si">{0}</span><span class="s2">, Request ID: </span><span class="si">{1}</span><span class="s2">, Data: </span><span class="si">{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">tick_data</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div></div>
 </pre></div>
 
           </div>
@@ -161,14 +136,14 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Overview</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview/architecture.html">IBKR_API Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../overview/installation.html">Installation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../overview/quick_start.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../overview/quick_start.html#request-handlers">Request Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../overview/faq.html">F.A.Q</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../samples/client_application.html">Client Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../overview/contributors.html">Contributing To This Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../samples/ibkr_api.html">IBKR_API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../samples/client_application.html">ClientApplication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../source/modules.html">ibkr_api</a></li>
 </ul>
 

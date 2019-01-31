@@ -81,14 +81,14 @@
                 <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">attribute</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Contract&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Produces a human readable representation of a Contract</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">desc</span> <span class="o">=</span>  <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Contract</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">desc</span> <span class="o">=</span>  <span class="s2">&quot;</span><span class="se">\n</span><span class="si">{0}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
         <span class="n">desc</span> <span class="o">+=</span>  <span class="s2">&quot;--------</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="n">desc</span> <span class="o">+=</span> <span class="s2">&quot;ID: </span><span class="si">{0}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="n">desc</span> <span class="o">+=</span> <span class="s2">&quot;Contract ID: </span><span class="si">{0}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
         <span class="n">desc</span> <span class="o">+=</span> <span class="s2">&quot;Symbol: </span><span class="si">{0}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">)</span>
         <span class="n">desc</span> <span class="o">+=</span> <span class="s2">&quot;Security Type: </span><span class="si">{0}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">security_type</span><span class="p">)</span>
         <span class="n">desc</span> <span class="o">+=</span> <span class="s2">&quot;Strike: </span><span class="si">{0}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strike</span><span class="p">)</span>
@@ -101,12 +101,13 @@
             <span class="n">desc</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Regular Trading Hours</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="n">desc</span> <span class="o">+=</span> <span class="s2">&quot;---------------------</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">regular_trading_hours</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">hours</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regular_trading_hours</span><span class="p">[</span><span class="n">day</span><span class="p">]</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hours</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="n">hours</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> - </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hours</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">hours</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regular_trading_hours</span><span class="p">[</span><span class="n">day</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;market_open&#39;</span><span class="p">]:</span>
+                    <span class="n">desc</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">:</span><span class="si">{1}</span><span class="s2"> - </span><span class="si">{2}</span><span class="s2">:</span><span class="si">{3}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;start_date&#39;</span><span class="p">],</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">],</span>
+                                                       <span class="n">info</span><span class="p">[</span><span class="s1">&#39;end_date&#39;</span><span class="p">],</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;end_time&#39;</span><span class="p">])</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">hours</span> <span class="o">=</span> <span class="n">hours</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">desc</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">: </span><span class="si">{1}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">day</span><span class="p">,</span> <span class="n">hours</span><span class="p">)</span>
+                    <span class="n">desc</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">: Closed</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">day</span><span class="p">)</span>
+
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        if self.combo_legs:</span>
 <span class="sd">            for leg in self.combo_legs:</span>
@@ -134,14 +135,14 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Overview</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../overview/architecture.html">IBKR_API Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../overview/installation.html">Installation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../overview/quick_start.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../overview/quick_start.html#request-handlers">Request Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../overview/faq.html">F.A.Q</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../samples/client_application.html">Client Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../overview/contributors.html">Contributing To This Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../samples/ibkr_api.html">IBKR_API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../samples/client_application.html">ClientApplication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../source/modules.html">ibkr_api</a></li>
 </ul>
 

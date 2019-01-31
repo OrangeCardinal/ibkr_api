@@ -46,7 +46,7 @@
             <span class="s1">&#39;tick_size&#39;</span>                                     <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
             <span class="s1">&#39;order_status&#39;</span>                                  <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
             <span class="s1">&#39;info_message&#39;</span>                                  <span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-            <span class="s1">&#39;open_order&#39;</span>                                    <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="s1">&#39;open_orders&#39;</span>                                   <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
             <span class="s1">&#39;account_value&#39;</span>                                 <span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
             <span class="s1">&#39;portfolio_value&#39;</span>                               <span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
             <span class="s1">&#39;account_update_time&#39;</span>                           <span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
@@ -70,7 +70,7 @@
             <span class="s1">&#39;real_time_bars&#39;</span>                                <span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
             <span class="s1">&#39;fundamental_data&#39;</span>                              <span class="p">:</span> <span class="mi">51</span><span class="p">,</span>
             <span class="s1">&#39;contract_data_end&#39;</span>                             <span class="p">:</span> <span class="mi">52</span><span class="p">,</span>
-            <span class="s1">&#39;open_order_end&#39;</span>                                <span class="p">:</span> <span class="mi">53</span><span class="p">,</span>
+            <span class="s1">&#39;open_orders_end&#39;</span>                               <span class="p">:</span> <span class="mi">53</span><span class="p">,</span>
             <span class="s1">&#39;account_download_end&#39;</span>                          <span class="p">:</span> <span class="mi">54</span><span class="p">,</span>
             <span class="s1">&#39;execution_data_end&#39;</span>                            <span class="p">:</span> <span class="mi">55</span><span class="p">,</span>
             <span class="s1">&#39;delta_neutral_validation&#39;</span>                      <span class="p">:</span> <span class="mi">56</span><span class="p">,</span>
@@ -104,7 +104,7 @@
             <span class="s1">&#39;news_providers&#39;</span>                                <span class="p">:</span> <span class="mi">85</span><span class="p">,</span>
             <span class="s1">&#39;historical_news&#39;</span>                               <span class="p">:</span> <span class="mi">86</span><span class="p">,</span>
             <span class="s1">&#39;historical_news_end&#39;</span>                           <span class="p">:</span> <span class="mi">87</span><span class="p">,</span>
-            <span class="s1">&#39;head_timestamp&#39;</span>                                <span class="p">:</span> <span class="mi">88</span><span class="p">,</span>
+            <span class="s1">&#39;head_time_stamp&#39;</span>                               <span class="p">:</span> <span class="mi">88</span><span class="p">,</span>
             <span class="s1">&#39;histogram_data&#39;</span>                                <span class="p">:</span> <span class="mi">89</span><span class="p">,</span>
             <span class="s1">&#39;historical_data_update&#39;</span>                        <span class="p">:</span> <span class="mi">90</span><span class="p">,</span>
             <span class="s1">&#39;reroute_market_data_req&#39;</span>                       <span class="p">:</span> <span class="mi">91</span><span class="p">,</span>
@@ -126,7 +126,7 @@
             <span class="s1">&#39;request_open_orders&#39;</span>                               <span class="p">:</span> <span class="mi">5</span>  <span class="p">,</span>
             <span class="s1">&#39;request_account_data&#39;</span>                              <span class="p">:</span> <span class="mi">6</span>  <span class="p">,</span>
             <span class="s1">&#39;request_executions&#39;</span>                                <span class="p">:</span> <span class="mi">7</span>  <span class="p">,</span>
-            <span class="s1">&#39;request_ids&#39;</span>                                       <span class="p">:</span> <span class="mi">8</span>  <span class="p">,</span>
+            <span class="s1">&#39;request_order_ids&#39;</span>                                 <span class="p">:</span> <span class="mi">8</span>  <span class="p">,</span>
             <span class="s1">&#39;request_contract_data&#39;</span>                             <span class="p">:</span> <span class="mi">9</span>  <span class="p">,</span>
             <span class="s1">&#39;request_market_depth&#39;</span>                              <span class="p">:</span> <span class="mi">10</span> <span class="p">,</span>
             <span class="s1">&#39;cancel_market_depth&#39;</span>                               <span class="p">:</span> <span class="mi">11</span> <span class="p">,</span>
@@ -149,7 +149,7 @@
             <span class="s1">&#39;cancel_real_time_bars&#39;</span>                             <span class="p">:</span> <span class="mi">51</span> <span class="p">,</span>
             <span class="s1">&#39;request_fundamental_data&#39;</span>                          <span class="p">:</span> <span class="mi">52</span> <span class="p">,</span>
             <span class="s1">&#39;cancel_fundamental_data&#39;</span>                           <span class="p">:</span> <span class="mi">53</span> <span class="p">,</span>
-            <span class="s1">&#39;request_calc_implied_volatility&#39;</span>                   <span class="p">:</span> <span class="mi">54</span> <span class="p">,</span>
+            <span class="s1">&#39;calculate_implied_volatility&#39;</span>                      <span class="p">:</span> <span class="mi">54</span> <span class="p">,</span>
             <span class="s1">&#39;request_calc_option_price&#39;</span>                         <span class="p">:</span> <span class="mi">55</span> <span class="p">,</span>
             <span class="s1">&#39;cancel_calculate_implied_volatility&#39;</span>               <span class="p">:</span> <span class="mi">56</span> <span class="p">,</span>
             <span class="s1">&#39;cancel_calc_option_price&#39;</span>                          <span class="p">:</span> <span class="mi">57</span> <span class="p">,</span>
@@ -181,10 +181,10 @@
             <span class="s1">&#39;request_news_article&#39;</span>                              <span class="p">:</span> <span class="mi">84</span> <span class="p">,</span>
             <span class="s1">&#39;request_news_providers&#39;</span>                            <span class="p">:</span> <span class="mi">85</span> <span class="p">,</span>
             <span class="s1">&#39;request_historical_news&#39;</span>                           <span class="p">:</span> <span class="mi">86</span> <span class="p">,</span>
-            <span class="s1">&#39;request_head_timestamp&#39;</span>                            <span class="p">:</span> <span class="mi">87</span> <span class="p">,</span>
+            <span class="s1">&#39;request_head_time_stamp&#39;</span>                           <span class="p">:</span> <span class="mi">87</span> <span class="p">,</span>
             <span class="s1">&#39;request_histogram_data&#39;</span>                            <span class="p">:</span> <span class="mi">88</span> <span class="p">,</span>
             <span class="s1">&#39;cancel_histogram_data&#39;</span>                             <span class="p">:</span> <span class="mi">89</span> <span class="p">,</span>
-            <span class="s1">&#39;cancel_head_timestamp&#39;</span>                             <span class="p">:</span> <span class="mi">90</span> <span class="p">,</span>
+            <span class="s1">&#39;cancel_head_time_stamp&#39;</span>                            <span class="p">:</span> <span class="mi">90</span> <span class="p">,</span>
             <span class="s1">&#39;request_market_rule&#39;</span>                               <span class="p">:</span> <span class="mi">91</span> <span class="p">,</span>
             <span class="s1">&#39;request_pnl&#39;</span>                                       <span class="p">:</span> <span class="mi">92</span> <span class="p">,</span>
             <span class="s1">&#39;cancel_pnl&#39;</span>                                        <span class="p">:</span> <span class="mi">93</span> <span class="p">,</span>
@@ -196,13 +196,18 @@
         <span class="p">}</span>
 
 
+
 <div class="viewcode-block" id="Messages.parse_message"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.messages.Messages.parse_message">[docs]</a>        <span class="nd">@staticmethod</span>
-        <span class="k">def</span> <span class="nf">parse_message</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">parse_message</span><span class="p">(</span><span class="n">raw_message</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot; Parse message into a list of fields.</span>
 <span class="sd">            The message is made of fields separated by NULL character&quot;&quot;&quot;</span>
-            <span class="n">fields</span>      <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\0</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>   <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
+            <span class="n">message</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="n">raw_message</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+            <span class="n">fields</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\0</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># First field is always message id and as such can be converted to int here</span>
+            <span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="k">return</span> <span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Messages.get_inbound_action"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.messages.Messages.get_inbound_action">[docs]</a>        <span class="nd">@staticmethod</span>
         <span class="k">def</span> <span class="nf">get_inbound_action</span><span class="p">(</span><span class="n">message_id</span><span class="p">):</span>
@@ -227,14 +232,14 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Overview</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/architecture.html">IBKR_API Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/installation.html">Installation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/quick_start.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../overview/quick_start.html#request-handlers">Request Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/faq.html">F.A.Q</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../samples/client_application.html">Client Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview/contributors.html">Contributing To This Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../samples/ibkr_api.html">IBKR_API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../samples/client_application.html">ClientApplication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../source/modules.html">ibkr_api</a></li>
 </ul>
 

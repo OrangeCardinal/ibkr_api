@@ -50,14 +50,27 @@ Call the underlying API call
 Call any user defined request_handler function as needed</p>
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.calculate_implied_volatility">
-<code class="descname">calculate_implied_volatility</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>option_price: float</em>, <em>underlying_price: float</em>, <em>implVolOptions: list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.calculate_implied_volatility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.calculate_implied_volatility" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call this function to calculate volatility for a supplied
-option price and underlying price. Result will be delivered
-via EWrapper.tickOptionComputation()</p>
-<p>request_id:int -  The request id.
-contract:Contract -  Describes the contract.
-option_price:double - The price of the option.
-underlying_price:double - Price of the underlying.</p>
+<code class="descname">calculate_implied_volatility</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>option_price: float</em>, <em>underlying_price: float</em>, <em>implied_vol_options: list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.calculate_implied_volatility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.calculate_implied_volatility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a ‘calculate_implied_volatility’ message
+Sends Message to Bridge</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request_id</strong> – Unique Identifier for this Request</li>
+<li><strong>contract</strong> – Option which we want to calculate the Implied Volatility of</li>
+<li><strong>option_price</strong> – Option Price</li>
+<li><strong>underlying_price</strong> – Underlying Price</li>
+<li><strong>implied_vol_options</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -274,18 +287,25 @@ exercise. If you have override set to “yes” the natural action would</p>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.place_order">
-<code class="descname">place_order</code><span class="sig-paren">(</span><em>order_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>order: ibkr_api.classes.order.Order</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.place_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.place_order" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call this function to place an order. The order status will
-be returned by the orderStatus event.</p>
-<dl class="docutils">
-<dt>order_id:int - The order id. You must specify a unique value. When the</dt>
-<dd>order START_APItus returns, it will be identified by this tag.
-This tag is also used when canceling the order.</dd>
-<dt>contract:Contract - This structure contains a description of the</dt>
-<dd>contract which is being traded.</dd>
-<dt>order:Order - This structure contains the details of tradedhe order.</dt>
-<dd>Note: Each client MUST connect with a unique client_id.</dd>
-</dl>
+<code class="descname">place_order</code><span class="sig-paren">(</span><em>order_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>order: ibkr_api.classes.orders.order.Order</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.place_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.place_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the place_order message
+Send the message to the Bridge Application(TWS/IBGateway)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>order_id</strong> – Identifier for the Order</li>
+<li><strong>contract</strong> – Contract Object used for info like symbol, strike, multiplier, expiration,</li>
+<li><strong>order</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -317,7 +337,7 @@ API. Note that this can also be done manually in TWS itself.</p>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request__real_time_bars">
-<code class="descname">request__real_time_bars</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>barSize: int</em>, <em>whatToShow: str</em>, <em>useRTH: bool</em>, <em>realTimeBarsOptions: list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request__real_time_bars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request__real_time_bars" title="Permalink to this definition">¶</a></dt>
+<code class="descname">request__real_time_bars</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>bar_size: int</em>, <em>what_to_show: str</em>, <em>use_rth: bool</em>, <em>realTimeBarsOptions: list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request__real_time_bars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request__real_time_bars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call the reqRealTimeBars() function to start receiving real time bar
 results through the realtimeBar() EWrapper function.</p>
 <dl class="docutils">
@@ -326,15 +346,15 @@ results through the realtimeBar() EWrapper function.</p>
 used when canceling the request.</dd>
 <dt>contract:Contract - This object contains a description of the contract</dt>
 <dd>for which real time bars are being requested</dd>
-<dt>barSize:int - Currently only 5 second bars are supported, if any other</dt>
+<dt>bar_size:int - Currently only 5 second bars are supported, if any other</dt>
 <dd>value is used, an exception will be thrown.</dd>
-<dt>whatToShow:str - Determines the nature of the data extracted. Valid</dt>
+<dt>what_to_show:str - Determines the nature of the data extracted. Valid</dt>
 <dd>values include:
 TRADES
 BID
 ASK
 MIDPOINT</dd>
-<dt>useRTH:bool - Regular Trading Hours only. Valid values include:</dt>
+<dt>use_rth:bool - Regular Trading Hours only. Valid values include:</dt>
 <dd><dl class="first last docutils">
 <dt>0 = all data available during the time span requested is returned,</dt>
 <dd>including time intervals when the market in question was
@@ -428,7 +448,7 @@ receiving this information.</dd>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_account_updates_multi">
-<code class="descname">request_account_updates_multi</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>account: str</em>, <em>model_code: str</em>, <em>ledgerAndNLV: bool</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_account_updates_multi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_account_updates_multi" title="Permalink to this definition">¶</a></dt>
+<code class="descname">request_account_updates_multi</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>account: str</em>, <em>model_code: str</em>, <em>ledger_and_nlv: bool</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_account_updates_multi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_account_updates_multi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Requests account updates for account and/or model.</p>
 </dd></dl>
 
@@ -458,15 +478,23 @@ made.</p>
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_contract_data">
 <code class="descname">request_contract_data</code><span class="sig-paren">(</span><em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>request_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_contract_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_contract_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call this function to download all details for a particular
-underlying. The contract details will be received via the contractDetails()
-function on the EWrapper.</p>
-<dl class="docutils">
-<dt>request_id:int - The ID of the data request. Ensures that responses are</dt>
-<dd>make_fieldatched to requests if several requests are in process.</dd>
-<dt>contract:Contract - The summary description of the contract being looked</dt>
-<dd>up.</dd>
-</dl>
+<dd><p>Creates a request_contract_data message
+Sends the message to the Bridge</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>contract</strong> – Contract to get data about</li>
+<li><strong>request_id</strong> – Unique Identifier for this Request</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -498,7 +526,9 @@ reports are returned.</dd>
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_family_codes">
 <code class="descname">request_family_codes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_family_codes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_family_codes" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get Information on Related Accounts (aka “Family Codes”)
+:return:</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_financial_advisor">
@@ -553,75 +583,61 @@ was initiated in the API, it also gets canceled.</p>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_head_time_stamp">
-<code class="descname">request_head_time_stamp</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>whatToShow: str</em>, <em>useRTH: int</em>, <em>formatDate: int</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_head_time_stamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_head_time_stamp" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">request_head_time_stamp</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>what_to_show: str</em>, <em>use_rth: int</em>, <em>format_date: int</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_head_time_stamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_head_time_stamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a ‘request_head_timestamp’ message and sends the message to the bridge</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request_id</strong> – </li>
+<li><strong>contract</strong> – </li>
+<li><strong>what_to_show</strong> – </li>
+<li><strong>use_rth</strong> – </li>
+<li><strong>format_date</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_histogram_data">
-<code class="descname">request_histogram_data</code><span class="sig-paren">(</span><em>ticker_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>useRTH: bool</em>, <em>time_period: str</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_histogram_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_histogram_data" title="Permalink to this definition">¶</a></dt>
+<code class="descname">request_histogram_data</code><span class="sig-paren">(</span><em>ticker_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>use_real_time_hours: bool</em>, <em>time_period: str</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_histogram_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_histogram_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_historical_data">
-<code class="descname">request_historical_data</code><span class="sig-paren">(</span><em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>end_date_time: str</em>, <em>duration: str</em>, <em>bar_size_setting: str</em>, <em>what_to_show: str</em>, <em>use_rth: int</em>, <em>format_date: int</em>, <em>keep_up_to_date: bool</em>, <em>chart_options: list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_historical_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_historical_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Requests contracts’ historical data. When requesting historical data, a
-finishing time and date is required along with a duration string. The
-resulting bars will be returned in EWrapper.historicalData()</p>
-<dl class="docutils">
-<dt>request_id:int - The id of the request. Must be a unique value. When the</dt>
-<dd>market data returns, it whatToShowill be identified by this tag. This is also
-used when canceling the market data.</dd>
-<dt>contract:Contract - This object contains a description of the contract for which</dt>
-<dd>market data is being requested.</dd>
-<dt>end_date_time:str - Defines a query end date and time at any point during the past 6 mos.</dt>
-<dd><p class="first">Valid values include any date/time within the past six months in the format:
-yyyymmdd HH:mm:ss ttt</p>
-<p class="last">where “ttt” is the optional time zone.</p>
-</dd>
-<dt>durationStr:str - Set the query duration up to one week, using a time unit</dt>
-<dd>of seconds, days or weeks. Valid values include any integer followed by a space
-and then S (seconds), D (days) or W (week). If no unit is specified, seconds is used.</dd>
-<dt>barSizeSetting:str - Specifies the size of the bars that will be returned (within IB/TWS listimits).</dt>
-<dd>Valid values include:
-1 sec
-5 secs
-15 secs
-30 secs
-1 min
-2 mins
-3 mins
-5 mins
-15 mins
-30 mins
-1 hour
-1 day</dd>
-</dl>
-<p>whatToShow:str - Determines the nature of data beinging extracted. Valid values include:</p>
-<blockquote>
-<div>TRADES
-MIDPOINT
-BID
-ASK
-BID_ASK
-HISTORICAL_VOLATILITY
-OPTION_IMPLIED_VOLATILITY</div></blockquote>
-<dl class="docutils">
-<dt>useRTH:int - Determines whether to return all data available during the requested time span,</dt>
-<dd><p class="first">or only data that falls within regular trading hours. Valid values include:</p>
-<p class="last">0 - all data is returned even where the market in question was outside of its
-regular trading hours.
-1 - only data within the regular trading hours is returned, even if the
-requested time span falls partially or completely outside of the RTH.</p>
-</dd>
-</dl>
-<p>formatDate: int - Determines the date format applied to returned bars. validd values include:</p>
-<blockquote>
-<div><p>1 - dates applying to bars returned in the format: yyyymmdd{space}{space}hh:mm:dd
-2 - dates are returned as a long integer specifying the number of seconds since</p>
-<blockquote>
-<div>1/1/1970 GMT.</div></blockquote>
-</div></blockquote>
-<p>chartOptions:list - For internal use only. Use default value XYZ.</p>
+<code class="descname">request_historical_data</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>end_date_time: str</em>, <em>duration: str</em>, <em>bar_size_setting</em>, <em>what_to_show</em>, <em>use_rth: int</em>, <em>format_date: int</em>, <em>keep_up_to_date: bool</em>, <em>chart_options: list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_historical_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_historical_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the ‘historical_data’ message
+Send the message to the Bridge</p>
+<p>Related</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>contract</strong> – </li>
+<li><strong>end_date_time</strong> – </li>
+<li><strong>duration</strong> – </li>
+<li><strong>bar_size_setting</strong> – string or <cite>BarSize</cite></li>
+<li><strong>what_to_show</strong> – String or <cite>Show</cite> enum</li>
+<li><strong>use_rth</strong> – </li>
+<li><strong>format_date</strong> – </li>
+<li><strong>keep_up_to_date</strong> – </li>
+<li><strong>chart_options</strong> – Not sure what this is yet</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -631,19 +647,8 @@ requested time span falls partially or completely outside of the RTH.</p>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_historical_ticks">
-<code class="descname">request_historical_ticks</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>startDateTime: str</em>, <em>end_date_time: str</em>, <em>number_of_ticks: int</em>, <em>whatToShow: str</em>, <em>useRth: int</em>, <em>ignoreSize: bool</em>, <em>miscOptions: list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_historical_ticks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_historical_ticks" title="Permalink to this definition">¶</a></dt>
+<code class="descname">request_historical_ticks</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>start_date_time: str</em>, <em>end_date_time: str</em>, <em>number_of_ticks: int</em>, <em>what_to_show: str</em>, <em>useRth: int</em>, <em>ignore_size: bool</em>, <em>misc_options: list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_historical_ticks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_historical_ticks" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="method">
-<dt id="ibkr_api.base.api_calls.ApiCalls.request_ids">
-<code class="descname">request_ids</code><span class="sig-paren">(</span><em>num_ids: int</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_ids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_ids" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call this function to request from TWS the next valid ID that
-can be used when placing an order.  After calling this function, the
-nextValidId() event will be triggered, and the id returned is that next
-valid ID. That ID will reflect any autobinding that has occurred (which
-generates new IDs and increments the next valid ID therein).</p>
-<p>num_ids:int - deprecated</p>
-</dd></dl>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_managed_accounts">
@@ -656,27 +661,27 @@ will be returned by the managedAccounts() function on the EWrapper.</p>
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_market_data">
 <code class="descname">request_market_data</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>generic_tick_list: str</em>, <em>snapshot: bool</em>, <em>regulatory_snapshot: bool</em>, <em>market_data_options: list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_market_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_market_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call this function to request market data. The market data
-will be returned by the tickPrice and tickSize events.</p>
-<dl class="docutils">
-<dt>request_id: int - The ticker id. Must be a unique value. When the</dt>
-<dd>market data returns, it will be identified by this tag. This is
-also used when canceling the market data.</dd>
-<dt>contract:Contract - This structure contains a description of the</dt>
-<dd>Contractt for which market data is being requested.</dd>
-<dt>genericTickList:str - A commma delimited list of generic tick types.</dt>
-<dd>Tick types can be found in the Generic Tick Types page.
-Prefixing w/ ‘mdoff’ indicates that top market data shouldn’t tick.
-You can specify the news source by postfixing w/ ‘:&lt;source&gt;.
-Example: “mdoff,292:FLY+BRF”</dd>
-<dt>snapshot:bool - Check to return a single snapshot of Market data and</dt>
-<dd>have the market data subscription cancel. Do not enter any
-genericTicklist values if you use snapshots.</dd>
-<dt>regulatorySnapshot: bool - With the US Value Snapshot Bundle for stocks,</dt>
-<dd>regulatory snapshots are available for 0.01 USD each.</dd>
-<dt>mktDataOptions:list - For internal use only.</dt>
-<dd>Use default value XYZ.</dd>
-</dl>
+<dd><p>tick_price
+tick_size</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request_id</strong> – </li>
+<li><strong>contract</strong> – </li>
+<li><strong>generic_tick_list</strong> – </li>
+<li><strong>snapshot</strong> – </li>
+<li><strong>regulatory_snapshot</strong> – </li>
+<li><strong>market_data_options</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -735,7 +740,8 @@ market_depth_options:list - For internal use only. Use default value</p>
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_market_rule">
 <code class="descname">request_market_rule</code><span class="sig-paren">(</span><em>market_rule_id: int</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_market_rule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_market_rule" title="Permalink to this definition">¶</a></dt>
-<dd><p>Request Market Rule Information</p>
+<dd><p>Create the ‘request_market_rule’ Message
+Send the message to the Bridge</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -817,6 +823,21 @@ API and TWS sessions.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="ibkr_api.base.api_calls.ApiCalls.request_order_ids">
+<code class="descname">request_order_ids</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_order_ids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_order_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the request_order_ids message
+Send the message to the Bridge application</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_pnl">
 <code class="descname">request_pnl</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>account: str</em>, <em>model_code: str</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_pnl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_pnl" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -859,12 +880,12 @@ scannerSubscription:Scanner - This structure contains</p>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_security_definition_option_parameters">
-<code class="descname">request_security_definition_option_parameters</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>underlying_symbol: str</em>, <em>futFopExchange: str</em>, <em>underlyingSecType: str</em>, <em>underlying_contract_id: int</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_security_definition_option_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_security_definition_option_parameters" title="Permalink to this definition">¶</a></dt>
+<code class="descname">request_security_definition_option_parameters</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>underlying_symbol: str</em>, <em>futFopExchange: str</em>, <em>underlying_security_type: str</em>, <em>underlying_contract_id: int</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_security_definition_option_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_security_definition_option_parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Requests security definition option parameters for viewing a
 contract’s option chain request_id the ID chosen for the request
 underlying_symbol futFopExchange The exchange on which the returned
 options are trading. Can be set to the empty string “” for all
-exchanges. underlyingSecType The type of the underlying security,
+exchanges. underlying_security_type The type of the underlying security,
 i.e. STK underlying_contract_id the contract ID of the underlying security.
 Response comes via EWrapper.securityDefinitionOptionParameter()</p>
 </dd></dl>
@@ -877,14 +898,14 @@ Response comes via EWrapper.securityDefinitionOptionParameter()</p>
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_soft_dollar_tiers">
 <code class="descname">request_soft_dollar_tiers</code><span class="sig-paren">(</span><em>request_id: int</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_soft_dollar_tiers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_soft_dollar_tiers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Requests pre-defined Soft Dollar Tiers. This is only supported for
-registered professional advisors and hedge and mutual funds who have
+<dd><p>Requests pre-defined Soft Dollar Tiers.
+This is only supported for registered professional advisers, hedge funds, and mutual funds who have
 configured Soft Dollar Tiers in Account Management.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.request_tick_by_tick_data">
-<code class="descname">request_tick_by_tick_data</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>tick_type: str</em>, <em>number_of_ticks: int</em>, <em>ignoreSize: bool</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_tick_by_tick_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_tick_by_tick_data" title="Permalink to this definition">¶</a></dt>
+<code class="descname">request_tick_by_tick_data</code><span class="sig-paren">(</span><em>request_id: int</em>, <em>contract: ibkr_api.classes.contracts.contract.Contract</em>, <em>tick_type: str</em>, <em>number_of_ticks: int</em>, <em>ignore_size: bool</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.request_tick_by_tick_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.request_tick_by_tick_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -896,7 +917,7 @@ application is connected.</p>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.set_server_log_level">
-<code class="descname">set_server_log_level</code><span class="sig-paren">(</span><em>logLevel: int</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.set_server_log_level"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.set_server_log_level" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_server_log_level</code><span class="sig-paren">(</span><em>log_level: int</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.set_server_log_level"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.set_server_log_level" title="Permalink to this definition">¶</a></dt>
 <dd><p>The default detail level is ERROR. For more details, see API
 Logging.</p>
 </dd></dl>
@@ -953,7 +974,7 @@ between the TWS and third party programs.</p>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.verify_and_auth_request">
-<code class="descname">verify_and_auth_request</code><span class="sig-paren">(</span><em>api_name: str</em>, <em>api_version: str</em>, <em>opaqueIsvKey: str</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.verify_and_auth_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.verify_and_auth_request" title="Permalink to this definition">¶</a></dt>
+<code class="descname">verify_and_auth_request</code><span class="sig-paren">(</span><em>api_name: str</em>, <em>api_version: str</em>, <em>opaque_is_vkey: str</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.verify_and_auth_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.verify_and_auth_request" title="Permalink to this definition">¶</a></dt>
 <dd><p>For IB’s internal purpose. Allows to provide means of verification
 between the TWS and third party programs.</p>
 </dd></dl>
@@ -967,7 +988,7 @@ between the TWS and third party programs.</p>
 
 <dl class="method">
 <dt id="ibkr_api.base.api_calls.ApiCalls.verify_request">
-<code class="descname">verify_request</code><span class="sig-paren">(</span><em>apiName: str</em>, <em>api_version: str</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.verify_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.verify_request" title="Permalink to this definition">¶</a></dt>
+<code class="descname">verify_request</code><span class="sig-paren">(</span><em>api_name: str</em>, <em>api_version: str</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/api_calls.html#ApiCalls.verify_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.api_calls.ApiCalls.verify_request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Allows for an application to request what the correct message should be for a given api/version.</p>
 </dd></dl>
 
@@ -1121,6 +1142,22 @@ and returns it the format message_id, request_id, data</p>
 </dd></dl>
 
 <dl class="staticmethod">
+<dt id="ibkr_api.base.message_parser.MessageParser.contract_data_end">
+<em class="property">static </em><code class="descname">contract_data_end</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.contract_data_end"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.contract_data_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the contract_data_end message and return well formatted data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fields</strong> – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
 <dt id="ibkr_api.base.message_parser.MessageParser.current_time">
 <em class="property">static </em><code class="descname">current_time</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.current_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.current_time" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse data from the current_time response message</p>
@@ -1171,6 +1208,22 @@ and returns it the format message_id, request_id, data</p>
 </dd></dl>
 
 <dl class="staticmethod">
+<dt id="ibkr_api.base.message_parser.MessageParser.head_time_stamp">
+<em class="property">static </em><code class="descname">head_time_stamp</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.head_time_stamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.head_time_stamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the head_time_stamp message and return well formatted data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fields</strong> – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
 <dt id="ibkr_api.base.message_parser.MessageParser.histogram_data">
 <em class="property">static </em><code class="descname">histogram_data</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.histogram_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.histogram_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1203,7 +1256,21 @@ and returns it the format message_id, request_id, data</p>
 <dl class="staticmethod">
 <dt id="ibkr_api.base.message_parser.MessageParser.historical_news_end">
 <em class="property">static </em><code class="descname">historical_news_end</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.historical_news_end"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.historical_news_end" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fields</strong> – Bridge Message Fields</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">message_id -</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">request_id - The initial request’s request_id</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">has_more - More data is available</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="ibkr_api.base.message_parser.MessageParser.historical_ticks">
@@ -1252,12 +1319,26 @@ and returns it the format message_id, request_id, data</p>
 <dl class="staticmethod">
 <dt id="ibkr_api.base.message_parser.MessageParser.market_depth_l2">
 <em class="property">static </em><code class="descname">market_depth_l2</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.market_depth_l2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.market_depth_l2" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Parses the market_depth_l2 message from the Bridge
+:param fields:
+:return:</p>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="ibkr_api.base.message_parser.MessageParser.market_rule">
 <em class="property">static </em><code class="descname">market_rule</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.market_rule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.market_rule" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Parse the ‘market_rule’ message and return well formatted data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fields</strong> – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="ibkr_api.base.message_parser.MessageParser.news_articles">
@@ -1279,9 +1360,40 @@ Contains the next request id that can be used
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="ibkr_api.base.message_parser.MessageParser.open_order">
-<em class="property">static </em><code class="descname">open_order</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.open_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.open_order" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="ibkr_api.base.message_parser.MessageParser.open_orders">
+<em class="property">static </em><code class="descname">open_orders</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.open_orders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.open_orders" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses the open_orders message and returns well formatted data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fields</strong> – Message Fields</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">message_id</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None (No Request ID is returned with this type of message)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Order</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="ibkr_api.base.message_parser.MessageParser.open_orders_end">
+<em class="property">static </em><code class="descname">open_orders_end</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.open_orders_end"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.open_orders_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process the open_orders_end message and return well formatted data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fields</strong> – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="ibkr_api.base.message_parser.MessageParser.order_bound">
@@ -1386,12 +1498,36 @@ Contains the next request id that can be used
 <dl class="staticmethod">
 <dt id="ibkr_api.base.message_parser.MessageParser.security_definition_option_parameter_end">
 <em class="property">static </em><code class="descname">security_definition_option_parameter_end</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.security_definition_option_parameter_end"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.security_definition_option_parameter_end" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Parse the security_definition_option_parameter_end message and return well formatted data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fields</strong> – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">message_id, request_id, None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="ibkr_api.base.message_parser.MessageParser.smart_components">
 <em class="property">static </em><code class="descname">smart_components</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.smart_components"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.smart_components" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Parse smart_components messages and return well formatted data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fields</strong> – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">bit_number      - ????
+exchange        - Name of the Exchange
+exchange_letter - the one letter code for the given exchange</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="ibkr_api.base.message_parser.MessageParser.soft_dollar_tiers">
@@ -1421,11 +1557,37 @@ Contains the next request id that can be used
 <dl class="staticmethod">
 <dt id="ibkr_api.base.message_parser.MessageParser.tick_price">
 <em class="property">static </em><code class="descname">tick_price</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.tick_price"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.tick_price" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Process tick_price messages received from the Bridge (TWS/IB Gateway)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fields</strong> – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="ibkr_api.base.message_parser.MessageParser.tick_req">
 <em class="property">static </em><code class="descname">tick_req</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.tick_req"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.tick_req" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="ibkr_api.base.message_parser.MessageParser.tick_request_params">
+<em class="property">static </em><code class="descname">tick_request_params</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.tick_request_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.tick_request_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="ibkr_api.base.message_parser.MessageParser.tick_size">
+<em class="property">static </em><code class="descname">tick_size</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.tick_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.tick_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="ibkr_api.base.message_parser.MessageParser.tick_string">
+<em class="property">static </em><code class="descname">tick_string</code><span class="sig-paren">(</span><em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/message_parser.html#MessageParser.tick_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.message_parser.MessageParser.tick_string" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1472,17 +1634,17 @@ Contains the next request id that can be used
 
 <dl class="attribute">
 <dt id="ibkr_api.base.messages.Messages.inbound">
-<code class="descname">inbound</code><em class="property"> = {'account_download_end': 54, 'account_summary': 63, 'account_summary_end': 64, 'account_update_multi': 73, 'account_update_multi_end': 74, 'account_update_time': 8, 'account_value': 6, 'bond_contract_data': 18, 'commission_report': 59, 'contract_data': 10, 'contract_data_end': 52, 'current_time': 49, 'delta_neutral_validation': 56, 'display_group_list': 67, 'display_group_updated': 68, 'execution_data': 11, 'execution_data_end': 55, 'family_codes': 78, 'fundamental_data': 51, 'head_timestamp': 88, 'histogram_data': 89, 'historical_data': 17, 'historical_data_update': 90, 'historical_news': 86, 'historical_news_end': 87, 'historical_ticks': 96, 'historical_ticks_bid_ask': 97, 'historical_ticks_last': 98, 'info_message': 4, 'managed_accounts': 15, 'market_data_type': 58, 'market_depth': 12, 'market_depth_l2': 13, 'market_rule': 93, 'mkt_depth_exchanges': 80, 'news_article': 83, 'news_bulletins': 14, 'news_providers': 85, 'next_valid_id': 9, 'open_order': 5, 'open_order_end': 53, 'order_bound': 100, 'order_status': 3, 'pnl': 94, 'pnl_single': 95, 'portfolio_value': 7, 'position_data': 61, 'position_end': 62, 'position_multi': 71, 'position_multi_end': 72, 'real_time_bars': 50, 'receive_fa': 16, 'reroute_market_data_req': 91, 'reroute_market_depth_req': 92, 'scanner_data': 20, 'scanner_parameters': 19, 'security_definition_option_parameter': 75, 'security_definition_option_parameter_end': 76, 'smart_components': 82, 'soft_dollar_tiers': 77, 'symbol_samples': 79, 'tick_by_tick': 99, 'tick_efp': 47, 'tick_generic': 45, 'tick_news': 84, 'tick_option_computation': 21, 'tick_price': 1, 'tick_request_params': 81, 'tick_size': 2, 'tick_snapshot_end': 57, 'tick_string': 46, 'verify_and_auth_completed': 70, 'verify_and_auth_message_api': 69, 'verify_completed': 66, 'verify_message_api': 65}</em><a class="headerlink" href="#ibkr_api.base.messages.Messages.inbound" title="Permalink to this definition">¶</a></dt>
+<code class="descname">inbound</code><em class="property"> = {'account_download_end': 54, 'account_summary': 63, 'account_summary_end': 64, 'account_update_multi': 73, 'account_update_multi_end': 74, 'account_update_time': 8, 'account_value': 6, 'bond_contract_data': 18, 'commission_report': 59, 'contract_data': 10, 'contract_data_end': 52, 'current_time': 49, 'delta_neutral_validation': 56, 'display_group_list': 67, 'display_group_updated': 68, 'execution_data': 11, 'execution_data_end': 55, 'family_codes': 78, 'fundamental_data': 51, 'head_time_stamp': 88, 'histogram_data': 89, 'historical_data': 17, 'historical_data_update': 90, 'historical_news': 86, 'historical_news_end': 87, 'historical_ticks': 96, 'historical_ticks_bid_ask': 97, 'historical_ticks_last': 98, 'info_message': 4, 'managed_accounts': 15, 'market_data_type': 58, 'market_depth': 12, 'market_depth_l2': 13, 'market_rule': 93, 'mkt_depth_exchanges': 80, 'news_article': 83, 'news_bulletins': 14, 'news_providers': 85, 'next_valid_id': 9, 'open_orders': 5, 'open_orders_end': 53, 'order_bound': 100, 'order_status': 3, 'pnl': 94, 'pnl_single': 95, 'portfolio_value': 7, 'position_data': 61, 'position_end': 62, 'position_multi': 71, 'position_multi_end': 72, 'real_time_bars': 50, 'receive_fa': 16, 'reroute_market_data_req': 91, 'reroute_market_depth_req': 92, 'scanner_data': 20, 'scanner_parameters': 19, 'security_definition_option_parameter': 75, 'security_definition_option_parameter_end': 76, 'smart_components': 82, 'soft_dollar_tiers': 77, 'symbol_samples': 79, 'tick_by_tick': 99, 'tick_efp': 47, 'tick_generic': 45, 'tick_news': 84, 'tick_option_computation': 21, 'tick_price': 1, 'tick_request_params': 81, 'tick_size': 2, 'tick_snapshot_end': 57, 'tick_string': 46, 'verify_and_auth_completed': 70, 'verify_and_auth_message_api': 69, 'verify_completed': 66, 'verify_message_api': 65}</em><a class="headerlink" href="#ibkr_api.base.messages.Messages.inbound" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ibkr_api.base.messages.Messages.outbound">
-<code class="descname">outbound</code><em class="property"> = {'cancel_account_summary': 63, 'cancel_account_updates_multi': 77, 'cancel_calc_option_price': 57, 'cancel_calculate_implied_volatility': 56, 'cancel_fundamental_data': 53, 'cancel_head_timestamp': 90, 'cancel_histogram_data': 89, 'cancel_historical_data': 25, 'cancel_market_data': 2, 'cancel_market_depth': 11, 'cancel_news_bulletins': 13, 'cancel_order': 4, 'cancel_pnl': 93, 'cancel_pnl_single': 95, 'cancel_positions': 64, 'cancel_positions_multi': 75, 'cancel_real_time_bars': 51, 'cancel_scanner_subscription': 23, 'cancel_tick_by_tick_data': 98, 'exercise_options': 21, 'place_order': 3, 'query_display_groups': 67, 'replace_financial_advisor': 19, 'request_account_data': 6, 'request_account_summary': 62, 'request_account_updates_multi': 76, 'request_all_open_orders': 16, 'request_auto_open_orders': 15, 'request_calc_implied_volatility': 54, 'request_calc_option_price': 55, 'request_contract_data': 9, 'request_current_time': 49, 'request_executions': 7, 'request_fa': 18, 'request_family_codes': 80, 'request_fundamental_data': 52, 'request_global_cancel': 58, 'request_head_timestamp': 87, 'request_histogram_data': 88, 'request_historical_data': 20, 'request_historical_news': 86, 'request_historical_ticks': 96, 'request_ids': 8, 'request_managed_accounts': 17, 'request_market_data': 1, 'request_market_data_type': 59, 'request_market_depth': 10, 'request_market_depth_exchanges': 82, 'request_market_rule': 91, 'request_matching_symbols': 81, 'request_news_article': 84, 'request_news_bulletins': 12, 'request_news_providers': 85, 'request_open_orders': 5, 'request_pnl': 92, 'request_pnl_single': 94, 'request_positions': 61, 'request_positions_multi': 74, 'request_real_time_bars': 50, 'request_scanner_parameters': 24, 'request_scanner_subscription': 22, 'request_security_definition_option_parameters': 78, 'request_smart_components': 83, 'request_soft_dollar_tiers': 79, 'request_tick_by_tick_data': 97, 'set_server_loglevel': 14, 'start_api': 71, 'subscribe_to_group_events': 68, 'unsubscribe_from_group_events': 70, 'update_display_group': 69, 'verify_and_auth_message': 73, 'verify_and_auth_request': 72, 'verify_message': 66, 'verify_request': 65}</em><a class="headerlink" href="#ibkr_api.base.messages.Messages.outbound" title="Permalink to this definition">¶</a></dt>
+<code class="descname">outbound</code><em class="property"> = {'calculate_implied_volatility': 54, 'cancel_account_summary': 63, 'cancel_account_updates_multi': 77, 'cancel_calc_option_price': 57, 'cancel_calculate_implied_volatility': 56, 'cancel_fundamental_data': 53, 'cancel_head_time_stamp': 90, 'cancel_histogram_data': 89, 'cancel_historical_data': 25, 'cancel_market_data': 2, 'cancel_market_depth': 11, 'cancel_news_bulletins': 13, 'cancel_order': 4, 'cancel_pnl': 93, 'cancel_pnl_single': 95, 'cancel_positions': 64, 'cancel_positions_multi': 75, 'cancel_real_time_bars': 51, 'cancel_scanner_subscription': 23, 'cancel_tick_by_tick_data': 98, 'exercise_options': 21, 'place_order': 3, 'query_display_groups': 67, 'replace_financial_advisor': 19, 'request_account_data': 6, 'request_account_summary': 62, 'request_account_updates_multi': 76, 'request_all_open_orders': 16, 'request_auto_open_orders': 15, 'request_calc_option_price': 55, 'request_contract_data': 9, 'request_current_time': 49, 'request_executions': 7, 'request_fa': 18, 'request_family_codes': 80, 'request_fundamental_data': 52, 'request_global_cancel': 58, 'request_head_time_stamp': 87, 'request_histogram_data': 88, 'request_historical_data': 20, 'request_historical_news': 86, 'request_historical_ticks': 96, 'request_managed_accounts': 17, 'request_market_data': 1, 'request_market_data_type': 59, 'request_market_depth': 10, 'request_market_depth_exchanges': 82, 'request_market_rule': 91, 'request_matching_symbols': 81, 'request_news_article': 84, 'request_news_bulletins': 12, 'request_news_providers': 85, 'request_open_orders': 5, 'request_order_ids': 8, 'request_pnl': 92, 'request_pnl_single': 94, 'request_positions': 61, 'request_positions_multi': 74, 'request_real_time_bars': 50, 'request_scanner_parameters': 24, 'request_scanner_subscription': 22, 'request_security_definition_option_parameters': 78, 'request_smart_components': 83, 'request_soft_dollar_tiers': 79, 'request_tick_by_tick_data': 97, 'set_server_loglevel': 14, 'start_api': 71, 'subscribe_to_group_events': 68, 'unsubscribe_from_group_events': 70, 'update_display_group': 69, 'verify_and_auth_message': 73, 'verify_and_auth_request': 72, 'verify_message': 66, 'verify_request': 65}</em><a class="headerlink" href="#ibkr_api.base.messages.Messages.outbound" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="ibkr_api.base.messages.Messages.parse_message">
-<em class="property">static </em><code class="descname">parse_message</code><span class="sig-paren">(</span><em>message: bytes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/messages.html#Messages.parse_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.messages.Messages.parse_message" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">parse_message</code><span class="sig-paren">(</span><em>raw_message: bytes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/base/messages.html#Messages.parse_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.base.messages.Messages.parse_message" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse message into a list of fields.
 The message is made of fields separated by NULL character</p>
 </dd></dl>
@@ -1512,18 +1674,14 @@ The message is made of fields separated by NULL character</p>
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Overview</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../overview/architecture.html">IBKR_API Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../overview/installation.html">Installation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../overview/quick_start.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../overview/quick_start.html#request-handlers">Request Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../overview/faq.html">F.A.Q</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../samples/client_application.html">Client Application</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">ibkr_api</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="ibkr_api.html">ibkr_api package</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../samples/ibkr_api.html">IBKR_API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../samples/client_application.html">ClientApplication</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">ibkr_api</a></li>
 </ul>
 
 <div class="relations">

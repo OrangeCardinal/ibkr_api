@@ -44,7 +44,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ibkr_api.classes.contracts.html#module-ibkr_api.classes.contracts.contract">ibkr_api.classes.contracts.contract module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibkr_api.classes.contracts.html#module-ibkr_api.classes.contracts.contract_description">ibkr_api.classes.contracts.contract_description module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibkr_api.classes.contracts.html#module-ibkr_api.classes.contracts.contract_details">ibkr_api.classes.contracts.contract_details module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibkr_api.classes.contracts.html#module-ibkr_api.classes.contracts.security_types">ibkr_api.classes.contracts.security_types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibkr_api.classes.contracts.html#ibkr-api-classes-contracts-security-types-module">ibkr_api.classes.contracts.security_types module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibkr_api.classes.contracts.html#module-ibkr_api.classes.contracts">Module contents</a></li>
 </ul>
 </li>
@@ -101,23 +101,19 @@
 <dt id="ibkr_api.classes.option_chain.OptionChain">
 <em class="property">class </em><code class="descclassname">ibkr_api.classes.option_chain.</code><code class="descname">OptionChain</code><span class="sig-paren">(</span><em>exchange</em>, <em>underlying_contract_id</em>, <em>underlying_symbol</em>, <em>multiplier</em>, <em>expirations</em>, <em>strikes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/classes/option_chain.html#OptionChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.classes.option_chain.OptionChain" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="ibkr_api.classes.option_chain.OptionChain.atm_strike">
+<code class="descname">atm_strike</code><span class="sig-paren">(</span><em>price</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ibkr_api/classes/option_chain.html#OptionChain.atm_strike"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.classes.option_chain.OptionChain.atm_strike" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the first expiration that is above the supplied price
+:param price: Price ~ Usually the Underlying Stock’s Current Price
+:return: strike of the “At the Money” option</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
-<div class="section" id="module-ibkr_api.classes.order">
-<span id="ibkr-api-classes-order-module"></span><h2>ibkr_api.classes.order module<a class="headerlink" href="#module-ibkr_api.classes.order" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ibkr_api.classes.order.Order">
-<em class="property">class </em><code class="descclassname">ibkr_api.classes.order.</code><code class="descname">Order</code><a class="reference internal" href="../_modules/ibkr_api/classes/order.html#Order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.classes.order.Order" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-</dd></dl>
-
-<dl class="class">
-<dt id="ibkr_api.classes.order.OrderComboLeg">
-<em class="property">class </em><code class="descclassname">ibkr_api.classes.order.</code><code class="descname">OrderComboLeg</code><a class="reference internal" href="../_modules/ibkr_api/classes/order.html#OrderComboLeg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibkr_api.classes.order.OrderComboLeg" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-</dd></dl>
-
+<div class="section" id="ibkr-api-classes-order-module">
+<h2>ibkr_api.classes.order module<a class="headerlink" href="#ibkr-api-classes-order-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-ibkr_api.classes.order_state">
 <span id="ibkr-api-classes-order-state-module"></span><h2>ibkr_api.classes.order_state module<a class="headerlink" href="#module-ibkr_api.classes.order_state" title="Permalink to this headline">¶</a></h2>
@@ -173,18 +169,15 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Overview</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../overview/architecture.html">IBKR_API Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../overview/installation.html">Installation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../overview/quick_start.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../overview/quick_start.html#request-handlers">Request Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../overview/faq.html">F.A.Q</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../samples/client_application.html">Client Application</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">ibkr_api</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="ibkr_api.html">ibkr_api package</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/contributors.html">Contributing To This Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../samples/ibkr_api.html">IBKR_API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../samples/client_application.html">ClientApplication</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">ibkr_api</a></li>
 </ul>
 
 <div class="relations">

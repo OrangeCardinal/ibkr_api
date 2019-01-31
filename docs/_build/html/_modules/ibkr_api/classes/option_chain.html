@@ -60,7 +60,18 @@
             <span class="k">if</span> <span class="n">i</span><span class="o">%</span><span class="mi">3</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="n">desc</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
 
-        <span class="k">return</span> <span class="n">desc</span></div>
+        <span class="k">return</span> <span class="n">desc</span>
+
+
+<div class="viewcode-block" id="OptionChain.atm_strike"><a class="viewcode-back" href="../../../source/ibkr_api.classes.html#ibkr_api.classes.option_chain.OptionChain.atm_strike">[docs]</a>    <span class="k">def</span> <span class="nf">atm_strike</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">price</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the first expiration that is above the supplied price</span>
+<span class="sd">        :param price: Price ~ Usually the Underlying Stock&#39;s Current Price</span>
+<span class="sd">        :return: strike of the &quot;At the Money&quot; option</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">strike</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">strikes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">strike</span> <span class="o">&gt;</span> <span class="n">price</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">strike</span></div></div>
 </pre></div>
 
           </div>
@@ -79,14 +90,14 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Overview</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/architecture.html">IBKR_API Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/installation.html">Installation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/quick_start.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../overview/quick_start.html#request-handlers">Request Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/faq.html">F.A.Q</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../samples/client_application.html">Client Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview/contributors.html">Contributing To This Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../samples/ibkr_api.html">IBKR_API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../samples/client_application.html">ClientApplication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../source/modules.html">ibkr_api</a></li>
 </ul>
 

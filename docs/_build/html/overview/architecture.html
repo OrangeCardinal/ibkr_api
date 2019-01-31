@@ -16,7 +16,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Installation Guide" href="installation.html" />
-    <link rel="prev" title="IBKR_API - Supporting Greed Monsters since 2019" href="../index.html" />
+    <link rel="prev" title="IBKR_API" href="../index.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -35,13 +35,56 @@
             
   <div class="section" id="ibkr-api-architecture">
 <h1>IBKR_API Architecture<a class="headerlink" href="#ibkr-api-architecture" title="Permalink to this headline">¶</a></h1>
-<p>The IBKR_API is NOT some wrapper on top of the existing twsapi python API, but rather a complete redesign of the codebase.</p>
-<p>There are three primary interfaces to use. For basic usage the <em>IBKR_API</em> class is your best bet. This class hides the
+<p>The IBKR_API is NOT some wrapper on top of the existing twsapi python API, but rather a complete redesign of the codebase.
+The new codebase was written with the following ideas in mind. One, a ‘design by contract’ approach was used, where each
+portion of the system has clearly defined responsibilities. The other governing principle was to keep the code ‘DRY’.</p>
+<div class="section" id="directory-structure">
+<h2>Directory Structure<a class="headerlink" href="#directory-structure" title="Permalink to this headline">¶</a></h2>
+<p>The table below describes various important directories within this API and their intended purpose</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Directory</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>base</td>
+<td>The core application internals. Unless you are developing for the API this code this code won’t be called directly</td>
+</tr>
+<tr class="row-odd"><td>classes/contracts</td>
+<td>Various types of Contract objects such as Stock, Option, Put, Call, etc</td>
+</tr>
+<tr class="row-even"><td>classes/enum</td>
+<td>Various Enum and IntEnum classes that hold all legal values for whatever specific parameter they represent</td>
+</tr>
+<tr class="row-odd"><td>classes/orders</td>
+<td>Objects that represent various types of orders that can be placed such as Limit , Discretionary, etc</td>
+</tr>
+<tr class="row-even"><td>classes/stocks</td>
+<td>Dow 30, S&amp;P 500, etc (should/will probably be renamed to indexes…)</td>
+</tr>
+<tr class="row-odd"><td>api.py</td>
+<td>IBKR_API interface. Use this if you are looking for a simple synchronized interface</td>
+</tr>
+<tr class="row-even"><td>client_application.py</td>
+<td>ClientApplication Interface. Use this if you are looking for a standard asynchronous event driven approach</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="interfaces">
+<h2>Interfaces<a class="headerlink" href="#interfaces" title="Permalink to this headline">¶</a></h2>
+<p>There are three primary interfaces to use. For basic usage the <cite>IBKR_API</cite> class is your best bet. This class hides the
 complexity of the underlying asynchronous interface provided by the application Bridge (TWS or the IB Gateway) and gives
 you a straight forward way to query data.</p>
 <p>For those users looking to implement real time algorithmic trading systems  the <em>ClientApplication</em> class is the right
 place to start. This class provides an interface similar to what is provided by the official API, minus the artificial
 complexity.</p>
+</div>
 </div>
 
 
@@ -61,14 +104,13 @@ complexity.</p>
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Overview</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">IBKR_API Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html#request-handlers">Request Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">F.A.Q</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../samples/client_application.html">Client Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../samples/ibkr_api.html">IBKR_API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../samples/client_application.html">ClientApplication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../source/modules.html">ibkr_api</a></li>
 </ul>
 
@@ -76,7 +118,7 @@ complexity.</p>
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="../index.html" title="previous chapter">IBKR_API - Supporting Greed Monsters since 2019</a></li>
+      <li>Previous: <a href="../index.html" title="previous chapter">IBKR_API</a></li>
       <li>Next: <a href="installation.html" title="next chapter">Installation Guide</a></li>
   </ul></li>
 </ul>

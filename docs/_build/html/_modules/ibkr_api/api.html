@@ -32,19 +32,9 @@
           <div class="body" role="main">
             
   <h1>Source code for ibkr_api.api</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">IBKR_API is the simplest interface available. </span>
-<span class="sd">The Bridge returns data in an asynchronus manner and on top of that one request for many requests results in several</span>
-<span class="sd">messages of varying message types. This class hides all this complexity from the end user and allows for easy tasks to be</span>
-<span class="sd">automated. For more advanced usage please see the ClientApplication and MultiClientApplication classes. </span>
+<span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
 
-<span class="sd">The main class to use from API user&#39;s point of view.</span>
-<span class="sd">It takes care of almost everything:</span>
-<span class="sd">- creating the connection to TWS/IBGW</span>
-<span class="sd">- executing api requests</span>
-<span class="sd">- gathering and returning the api response data</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
+<span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
@@ -53,18 +43,76 @@
 <span class="kn">from</span> <span class="nn">ibkr_api.base.message_parser</span>           <span class="k">import</span> <span class="n">MessageParser</span>
 
 <span class="kn">from</span> <span class="nn">ibkr_api.classes.contracts.contract</span>    <span class="k">import</span> <span class="n">Contract</span>
-<span class="kn">from</span> <span class="nn">ibkr_api.classes.order</span>                 <span class="k">import</span> <span class="n">Order</span>
+<span class="kn">from</span> <span class="nn">ibkr_api.classes.orders.order</span> <span class="k">import</span> <span class="n">Order</span>
 <span class="kn">from</span> <span class="nn">ibkr_api.classes.scanner</span>               <span class="k">import</span> <span class="n">Scanner</span>
 
-<span class="kn">import</span> <span class="nn">datetime</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="drop_message_id_and_request_id"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.drop_message_id_and_request_id">[docs]</a><span class="k">def</span> <span class="nf">drop_message_id_and_request_id</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Drops the message id and request id values and only returns the &#39;actual&#39; data a user expects</span>
+
+<span class="sd">    :param func: Original Function</span>
+<span class="sd">    :return: Function with modified return values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">new_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">func_args</span><span class="p">,</span><span class="o">**</span><span class="n">func_kwargs</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">func_args</span><span class="p">,</span> <span class="o">**</span><span class="n">func_kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Strip out any Message ID and Request ID values which are not needed for this call</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">real_return_value</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">real_return_value</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">real_return_value</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">real_return_value</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="c1"># If there is only one element in the array, return the element not the array</span>
+        <span class="k">if</span> <span class="n">real_return_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">real_return_value</span><span class="p">,</span><span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">real_return_value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">real_return_value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">real_return_value</span>
+    <span class="k">return</span> <span class="n">new_func</span></div>
+
 <div class="viewcode-block" id="IBKR_API"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API">[docs]</a><span class="k">class</span> <span class="nc">IBKR_API</span><span class="p">(</span><span class="n">ApiCalls</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">message_timeout</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
-        <span class="n">client_id</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">message_timeout</span> <span class="o">=</span> <span class="n">message_timeout</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    IBKR_API is the simplest interface available.</span>
+<span class="sd">    The Bridge returns data in an asynchronous manner and on top of that one request for many requests results in several</span>
+<span class="sd">    messages of varying message types. This class hides all this complexity from the end user and allows for easy tasks to be</span>
+<span class="sd">    automated. For more advanced usage please see the ClientApplication and MultiClientApplication classes.</span>
+
+<span class="sd">    The main class to use from API user&#39;s point of view.</span>
+<span class="sd">    It takes care of almost everything:</span>
+<span class="sd">    - creating the connection to TWS/IB Gateway</span>
+<span class="sd">    - executing api requests</span>
+<span class="sd">    - gathering various api responses and returns the logically expected data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">client_id</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">message_timeout</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="c1"># Each application connected to the bridge must have a unique identifier</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span>              <span class="o">=</span> <span class="n">client_id</span>
+
+        <span class="c1"># Governs how long to wait for a response from the Bridge</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message_timeout</span>        <span class="o">=</span> <span class="n">message_timeout</span>
+
+        <span class="c1"># Stores any message that was skipped during processing (which is a byproduct of hiding the asynchronous design)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unprocessed_messages</span>   <span class="o">=</span> <span class="p">[]</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">client_id</span><span class="p">)</span>
+
+        <span class="c1">#TODO: Better process the initial market data farm type messages</span>
+        <span class="c1">#Get the initial info messages and display them</span>
+        <span class="c1">#info_messages = self._process_response(&#39;info_message&#39;)</span>
+        <span class="c1">#print(info_messages)</span>
+        <span class="c1">#for info_msg in list(info_messages):</span>
+        <span class="c1">#    logger.info(info_msg)</span>
+
+
 
     <span class="k">def</span> <span class="nf">_process_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inbound_message_name</span><span class="p">,</span> <span class="n">end_on_codes</span><span class="o">=</span><span class="p">[]):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -93,8 +141,10 @@
 
         <span class="n">request_start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
         <span class="k">while</span> <span class="ow">not</span> <span class="n">data_received</span><span class="p">:</span>
-            <span class="n">messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">receive_messages</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">messages</span><span class="p">:</span>
+            <span class="n">new_messages</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">receive_messages</span><span class="p">()</span>
+            <span class="c1">#print(type(new_messages))</span>
+            <span class="n">messages_to_process</span> <span class="o">=</span> <span class="n">new_messages</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">unprocessed_messages</span>
+            <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">messages_to_process</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">inbound_message_ids</span><span class="p">:</span>
                     <span class="n">func</span>            <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">message_parser</span><span class="p">,</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">])</span>
                     <span class="n">data</span>            <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">msg</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">])</span>
@@ -112,6 +162,9 @@
                     <span class="c1"># See if we need to consider this code end of processing</span>
                     <span class="k">if</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">end_on_codes</span><span class="p">:</span>
                         <span class="n">data_received</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Message #</span><span class="si">{0}</span><span class="s2"> - &#39;</span><span class="si">{1}</span><span class="s2">&#39; added to unprocessed messages&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">unprocessed_messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
             <span class="c1"># We may not be connected to the bridge, if no data received after the message timeout threshold break</span>
             <span class="n">current_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
@@ -127,25 +180,38 @@
 
         <span class="k">return</span> <span class="n">all_data</span>
 
-<div class="viewcode-block" id="IBKR_API.calculate_implied_volatility"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.calculate_implied_volatility">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_implied_volatility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
-                                     <span class="n">option_price</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">underlying_price</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-                                     <span class="n">implied_vol_options</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call this function to calculate volatility for a supplied</span>
-<span class="sd">        option price and underlying price. Result will be delivered</span>
-<span class="sd">        via EWrapper.tickOptionComputation()</span>
+    <span class="c1">#################</span>
+    <span class="c1">### API Calls ###</span>
+    <span class="c1">#################</span>
+<div class="viewcode-block" id="IBKR_API.calculate_implied_volatility"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.calculate_implied_volatility">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_implied_volatility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                     <span class="n">contract</span>               <span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
+                                     <span class="n">option_price</span>           <span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                                     <span class="n">underlying_price</span>       <span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                                     <span class="n">implied_vol_options</span>    <span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make the calculate_implied_volatility function</span>
 
-<span class="sd">        request_id:int -  The request id.</span>
-<span class="sd">        contract:Contract -  Describes the contract.</span>
-<span class="sd">        option_price:double - The price of the option.</span>
-<span class="sd">        underlying_price:double - Price of the underlying.&quot;&quot;&quot;</span>
+
+<span class="sd">        :param contract: Option Contract which we want to get the Implied Volatility For</span>
+<span class="sd">        :param option_price: Current Option Price</span>
+<span class="sd">        :param underlying_price: Underlying Price</span>
+<span class="sd">        :param implied_vol_options:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Make the Underlying API Call</span>
+        <span class="n">request_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_local_request_id</span><span class="p">()</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">calculate_implied_volatility</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="p">,</span> <span class="n">option_price</span><span class="p">,</span> <span class="n">underlying_price</span><span class="p">,</span> <span class="n">implied_vol_options</span><span class="p">)</span>
+
         <span class="c1"># Process the response from the bridge</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;symbol_samples&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;tick_option_computation&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="IBKR_API.calculate_option_price"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.calculate_option_price">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_option_price</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
-                               <span class="n">volatility</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">underlying_price</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-                               <span class="n">option_price_options</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<div class="viewcode-block" id="IBKR_API.calculate_option_price"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.calculate_option_price">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_option_price</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                               <span class="n">contract</span>             <span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
+                               <span class="n">volatility</span>           <span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                               <span class="n">underlying_price</span>     <span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                               <span class="n">option_price_options</span> <span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Call this function to calculate option price and greek values</span>
 <span class="sd">        for a supplied volatility and underlying price.</span>
 
@@ -153,8 +219,11 @@
 <span class="sd">        contract:Contract - Describes the contract.</span>
 <span class="sd">        volatility:double - The volatility.</span>
 <span class="sd">        underlying_price:double - Price of the underlying.&quot;&quot;&quot;</span>
+        <span class="c1"># Make the Underlying API Call</span>
+        <span class="n">request_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_local_request_id</span><span class="p">()</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">calculate_option_price</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="p">,</span> <span class="n">volatility</span><span class="p">,</span> <span class="n">underlying_price</span><span class="p">,</span> <span class="n">option_price_options</span><span class="p">)</span>
-        <span class="c1"># Process the response from the bridge</span>
+
+        <span class="c1"># Process the Response from the Bridge</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
@@ -395,6 +464,36 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;family_codes&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
+<div class="viewcode-block" id="IBKR_API.request_market_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_market_data">[docs]</a>    <span class="k">def</span> <span class="nf">request_market_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                            <span class="n">contract</span>            <span class="p">:</span> <span class="n">Contract</span>  <span class="p">,</span>
+                            <span class="n">generic_tick_list</span>   <span class="p">:</span> <span class="nb">str</span>       <span class="p">,</span>
+                            <span class="n">snapshot</span>            <span class="p">:</span> <span class="nb">bool</span>      <span class="p">,</span>
+                            <span class="n">regulatory_snapshot</span> <span class="p">:</span> <span class="nb">bool</span>      <span class="p">,</span>
+                            <span class="n">market_data_options</span> <span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Request market data information</span>
+<span class="sd">        </span>
+<span class="sd">        *Related Links*</span>
+<span class="sd">        `Tick Types &lt;https://interactivebrokers.github.io/tws-api/tick_types.html/&gt;`</span>
+
+<span class="sd">        :param contract: Contract for which market data is being requested</span>
+<span class="sd">        :param generic_tick_list: A comma separated string of ticks or an actual list of integers</span>
+<span class="sd">                                  Prefixing w/ &#39;mdoff&#39; indicates that top mkt data shouldn&#39;t tick.</span>
+<span class="sd">                                  You can specify the news source by postfixing w/ &#39;:&lt;source&gt;.</span>
+<span class="sd">                                  Example: &quot;mdoff,292:FLY+BRF&quot;</span>
+<span class="sd">        :param snapshot: If true, get the data once and e</span>
+<span class="sd">        :param regulatory_snapshot: With the US Value Snapshot Bundle for stocks, regulatory snapshots are available for 0.01 USD each.</span>
+<span class="sd">        :param market_data_options: ???? A mystery that IB only knows (They note, &quot;use default value XYZ&quot;)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Process the response from the bridge</span>
+        <span class="n">request_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_local_request_id</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_market_data</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="p">,</span> <span class="n">generic_tick_list</span><span class="p">,</span> <span class="n">snapshot</span><span class="p">,</span> <span class="n">regulatory_snapshot</span><span class="p">,</span> <span class="n">market_data_options</span><span class="p">)</span>
+        <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;tick_price&#39;</span><span class="p">,</span><span class="s1">&#39;tick_size&#39;</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;tick_option_computation&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
 <div class="viewcode-block" id="IBKR_API.request_matching_symbols"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_matching_symbols">[docs]</a>    <span class="k">def</span> <span class="nf">request_matching_symbols</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="c1"># Make the underlying API call</span>
         <span class="n">request_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_local_request_id</span><span class="p">()</span>
@@ -404,7 +503,11 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;symbol_samples&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="IBKR_API.request_option_chain"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_option_chain">[docs]</a>    <span class="k">def</span> <span class="nf">request_option_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">underlying</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">exchange</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="IBKR_API.request_option_chains"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_option_chains">[docs]</a>    <span class="nd">@drop_message_id_and_request_id</span>
+    <span class="k">def</span> <span class="nf">request_option_chains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                              <span class="n">underlying</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
+                              <span class="n">exchange</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Convenience function for request_security_definition_option_parameters</span>
 <span class="sd">        :param underlying:</span>
@@ -422,12 +525,15 @@
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_security_definition_option_parameters</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span> <span class="n">underlying</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">exchange</span><span class="p">,</span>
                                                               <span class="n">underlying</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span> <span class="n">underlying</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;security_definition_option_parameter&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span></div>
+        <span class="n">messages_to_process</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;security_definition_option_parameter&#39;</span><span class="p">,</span><span class="s1">&#39;security_definition_option_parameter_end&#39;</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="n">messages_to_process</span><span class="p">)</span>
 
-<div class="viewcode-block" id="IBKR_API.request_security_definition_option_parameters"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_security_definition_option_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">request_security_definition_option_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">underlying_symbol</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                                      <span class="n">exchange</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                                      <span class="n">underlying_sec_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="IBKR_API.request_security_definition_option_parameters"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_security_definition_option_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">request_security_definition_option_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                                      <span class="n">underlying_symbol</span>     <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                                      <span class="n">exchange</span>              <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                                      <span class="n">underlying_sec_type</span>   <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
                                                       <span class="n">underlying_contract_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 
         <span class="c1"># Process the response from the bridge</span>
@@ -448,24 +554,46 @@
         <span class="n">messages_to_process</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;position_data&#39;</span><span class="p">,</span><span class="s1">&#39;position_end&#39;</span><span class="p">]</span>
         <span class="n">raw_position_data</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="n">messages_to_process</span><span class="p">)</span>
 
-        <span class="c1"># Strip out the message_ids and request_ids</span>
+        <span class="c1"># Strip out the message_ids and request_order_ids</span>
         <span class="n">position_data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">raw_data</span> <span class="ow">in</span> <span class="n">raw_position_data</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">raw_data</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
                 <span class="n">position_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">raw_data</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">position_data</span></div>
 
-<div class="viewcode-block" id="IBKR_API.request_scanner_parameters"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_scanner_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">request_scanner_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Requests an XML string that describes all possible scanner queries.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="IBKR_API.request_smart_components"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_smart_components">[docs]</a>    <span class="nd">@drop_message_id_and_request_id</span>
+    <span class="k">def</span> <span class="nf">request_smart_components</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                 <span class="n">bbo_exchange</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Provides a list of the exchanges that comprise the &#39;SMART&#39; exchange</span>
+
+<span class="sd">        :param bbo_exchange:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Make the API call to the bridge</span>
+        <span class="n">request_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_local_request_id</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_smart_components</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span> <span class="n">bbo_exchange</span><span class="p">)</span>
+
+        <span class="c1"># Process the response from the bridge</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;smart_components&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="IBKR_API.request_scanner_parameters"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_scanner_parameters">[docs]</a>    <span class="nd">@drop_message_id_and_request_id</span>
+    <span class="k">def</span> <span class="nf">request_scanner_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Requests an XML string that describes all possible scanner queries.</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="c1"># Make the api call</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_scanner_parameters</span><span class="p">()</span>
 
         <span class="c1"># Process the response from the bridge</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;scanner_parameters&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">data</span>
 
-        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.request_scanner_subscription"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_scanner_subscription">[docs]</a>    <span class="k">def</span> <span class="nf">request_scanner_subscription</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                      <span class="n">scanner</span><span class="p">:</span> <span class="n">Scanner</span><span class="p">,</span>
@@ -499,19 +627,20 @@
         <span class="k">return</span> <span class="n">data</span></div>
 
     <span class="c1"># Not alphabetic</span>
-<div class="viewcode-block" id="IBKR_API.place_order"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.place_order">[docs]</a>    <span class="k">def</span> <span class="nf">place_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">order</span><span class="p">:</span> <span class="n">Order</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call this function to place an order. The order status will</span>
-<span class="sd">        be returned by the orderStatus event.</span>
+<div class="viewcode-block" id="IBKR_API.place_order"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.place_order">[docs]</a>    <span class="k">def</span> <span class="nf">place_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">order</span><span class="p">:</span> <span class="n">Order</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Place an Order to be executed</span>
 
-<span class="sd">        order_id:int - The order id. You must specify a unique value. When the</span>
-<span class="sd">            order START_APItus returns, it will be identified by this tag.</span>
-<span class="sd">            This tag is also used when canceling the order.</span>
-<span class="sd">        contract:Contract - This structure contains a description of the</span>
-<span class="sd">            contract which is being traded.</span>
-<span class="sd">        order:Order - This structure contains the details of tradedhe order.</span>
-<span class="sd">            Note: Each client MUST connect with a unique clientId.&quot;&quot;&quot;</span>
+<span class="sd">        :param order_id: Unique Identifier for the Order</span>
+<span class="sd">        :param order: Order to be placed</span>
+<span class="sd">        :return: Status Information for the order</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Make the Underlying API Call</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">place_order</span><span class="p">(</span><span class="n">order_id</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">contract</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+
+
         <span class="c1"># Process the response from the bridge</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;order_status&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.request_account_updates_multi"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_account_updates_multi">[docs]</a>    <span class="k">def</span> <span class="nf">request_account_updates_multi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -605,17 +734,39 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="IBKR_API.request_all_open_orders"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_all_open_orders">[docs]</a>    <span class="k">def</span> <span class="nf">request_all_open_orders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call this function to request the open orders placed from all</span>
-<span class="sd">        clients and also from TWS. Each open order will be fed back through the</span>
-<span class="sd">        openOrder() and orderStatus() functions on the EWrapper.</span>
+<div class="viewcode-block" id="IBKR_API.request_all_open_orders"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_all_open_orders">[docs]</a>    <span class="nd">@drop_message_id_and_request_id</span>
+    <span class="k">def</span> <span class="nf">request_all_open_orders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns all open orders regardless of whether they were created in the API or TWS directly</span>
 
-<span class="sd">        Note:  No association is made between the returned orders and the</span>
-<span class="sd">        requesting client.&quot;&quot;&quot;</span>
-        <span class="c1"># Process the response from the bridge</span>
+<span class="sd">        Note:  No association is made between the returned orders and the requesting client.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Make the underlying API Call</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_all_open_orders</span><span class="p">()</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span></div>
+
+        <span class="c1"># Get all Open Orders and build a dictionary keyed on perm_id</span>
+        <span class="n">messages_to_process</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;open_orders&#39;</span><span class="p">,</span><span class="s1">&#39;open_orders_end&#39;</span><span class="p">]</span>
+        <span class="n">open_order_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="n">messages_to_process</span><span class="p">)</span>
+        <span class="n">open_orders</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">open_order_data</span><span class="p">,</span><span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">open_order_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">open_order_data</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">order_data</span> <span class="ow">in</span> <span class="n">open_order_data</span><span class="p">:</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">order_data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">order</span><span class="p">:</span>
+                <span class="n">open_orders</span><span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">perm_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span>
+
+
+        <span class="c1"># Update with order status data</span>
+        <span class="n">order_statuses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;order_status&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">order_statuses</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">order_statuses</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">order_status</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">order_statuses</span><span class="p">):</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">open_orders</span><span class="p">[</span><span class="n">order_status</span><span class="p">[</span><span class="s1">&#39;perm_id&#39;</span><span class="p">]]</span>
+            <span class="n">order</span><span class="o">.</span><span class="n">update_order_status</span><span class="p">(</span><span class="n">order_status</span><span class="p">)</span>
+            <span class="n">open_orders</span><span class="p">[</span><span class="n">order_status</span><span class="p">[</span><span class="s1">&#39;perm_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">order</span>
+
+        <span class="k">return</span> <span class="n">open_orders</span><span class="o">.</span><span class="n">values</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="IBKR_API.request_auto_open_orders"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_auto_open_orders">[docs]</a>    <span class="k">def</span> <span class="nf">request_auto_open_orders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">auto_bind</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Call this function to request that newly created TWS orders</span>
@@ -653,8 +804,15 @@
 
         <span class="k">return</span> <span class="n">timestamp</span></div>
 
-<div class="viewcode-block" id="IBKR_API.request_executions"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_executions">[docs]</a>    <span class="k">def</span> <span class="nf">request_executions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client_id</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">account_code</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-                           <span class="n">symbol</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">security_type</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">exchange</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="IBKR_API.request_executions"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_executions">[docs]</a>    <span class="k">def</span> <span class="nf">request_executions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                           <span class="n">client_id</span>        <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="p">,</span> 
+                           <span class="n">account_code</span>     <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="p">,</span> 
+                           <span class="n">time</span>             <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="p">,</span>
+                           <span class="n">symbol</span>           <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="p">,</span> 
+                           <span class="n">security_type</span>    <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="p">,</span> 
+                           <span class="n">exchange</span>         <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="p">,</span> 
+                           <span class="n">side</span>             <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                           <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;When this function is called, the execution reports that meet the</span>
 <span class="sd">        filter criteria are downloaded to the client via the execDetails()</span>
 <span class="sd">        function. To view executions beyond the past 24 hours, open the</span>
@@ -678,7 +836,7 @@
         <span class="n">messages_to_process</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;execution_data&#39;</span><span class="p">,</span><span class="s1">&#39;execution_data_end&#39;</span><span class="p">]</span>
         <span class="n">full_execution_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="n">messages_to_process</span><span class="p">)</span>
 
-        <span class="c1"># Strip out the message_ids and request_ids</span>
+        <span class="c1"># Strip out the message_ids and request_order_ids</span>
         <span class="n">execution_data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">raw_data</span> <span class="ow">in</span> <span class="n">full_execution_data</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">raw_data</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
@@ -698,11 +856,26 @@
 
     <span class="c1"># Note that formatData parameter affects intraday bars only</span>
     <span class="c1"># 1-day bars always return with date in YYYYMMDD format</span>
-<div class="viewcode-block" id="IBKR_API.request_head_time_stamp"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_head_time_stamp">[docs]</a>    <span class="k">def</span> <span class="nf">request_head_time_stamp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
-                                <span class="n">whatToShow</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">useRTH</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">format_date</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_head_time_stamp</span><span class="p">()</span>
+<div class="viewcode-block" id="IBKR_API.request_head_time_stamp"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_head_time_stamp">[docs]</a>    <span class="nd">@drop_message_id_and_request_id</span>
+    <span class="k">def</span> <span class="nf">request_head_time_stamp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">contract</span>        <span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
+                                <span class="n">what_to_show</span>    <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                <span class="n">only_use_rth</span>         <span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                <span class="n">format_date</span>     <span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span>
+                                <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the earliest time stamp available for the given contract/type of data</span>
+
+<span class="sd">        :param contract: Contract we want to get earliest time stamp for</span>
+<span class="sd">        :param what_to_show: string or ``Show`` enum value</span>
+<span class="sd">        :param only_use_rth:</span>
+<span class="sd">        :param format_date:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">request_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_local_request_id</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_head_time_stamp</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="p">,</span> <span class="n">what_to_show</span><span class="p">,</span> <span class="n">only_use_rth</span><span class="p">,</span> <span class="n">format_date</span><span class="p">)</span>
         <span class="c1"># Process the response from the bridge</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;request_head_time_stamp&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;head_time_stamp&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.request_historical_news"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_historical_news">[docs]</a>    <span class="k">def</span> <span class="nf">request_historical_news</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -725,7 +898,7 @@
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.request_historical_ticks"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_historical_ticks">[docs]</a>    <span class="k">def</span> <span class="nf">request_historical_ticks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">start_date_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                 <span class="n">end_date_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">number_of_ticks</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">what_to_show</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">use_rth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                 <span class="n">end_date_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">number_of_ticks</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">what_to_show</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">only_use_rth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                                  <span class="n">ignore_size</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">miscOptions</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calls request_historical_ticks and then waits for data or a relevant error</span>
@@ -736,7 +909,7 @@
 <span class="sd">        :param end_date_time:</span>
 <span class="sd">        :param number_of_ticks:</span>
 <span class="sd">        :param what_to_show:</span>
-<span class="sd">        :param use_rth:</span>
+<span class="sd">        :param only_use_rth:</span>
 <span class="sd">        :param ignore_size:</span>
 <span class="sd">        :param miscOptions:</span>
 <span class="sd">        :return:</span>
@@ -745,7 +918,7 @@
         <span class="c1"># Make the underlying API Call</span>
         <span class="n">request_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_local_request_id</span><span class="p">()</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_historical_ticks</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="p">,</span> <span class="n">start_date_time</span><span class="p">,</span> <span class="n">end_date_time</span><span class="p">,</span> <span class="n">number_of_ticks</span><span class="p">,</span>
-                                         <span class="n">what_to_show</span><span class="p">,</span> <span class="n">use_rth</span><span class="p">,</span> <span class="n">ignore_size</span><span class="p">,</span> <span class="n">miscOptions</span><span class="p">)</span>
+                                         <span class="n">what_to_show</span><span class="p">,</span> <span class="n">only_use_rth</span><span class="p">,</span> <span class="n">ignore_size</span><span class="p">,</span> <span class="n">miscOptions</span><span class="p">)</span>
 
         <span class="c1"># Process the response from the bridge</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;request_historical_ticks&#39;</span><span class="p">)</span>
@@ -789,12 +962,19 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;request_market_depth_exchanges&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="IBKR_API.request_market_rule"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_market_rule">[docs]</a>    <span class="k">def</span> <span class="nf">request_market_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">market_rule_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<div class="viewcode-block" id="IBKR_API.request_market_rule"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_market_rule">[docs]</a>    <span class="nd">@drop_message_id_and_request_id</span>
+    <span class="k">def</span> <span class="nf">request_market_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">market_rule_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Request the Market Rule for the Given ID</span>
 
+<span class="sd">        :param market_rule_id: Integer Identifier for the Market Rule</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Make the underlying API Call</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_market_rule</span><span class="p">(</span><span class="n">market_rule_id</span><span class="p">)</span>
 
-        <span class="c1"># Process the response from the bridge</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;request_market_rule&#39;</span><span class="p">)</span>
+        <span class="c1"># Process the Response From the Bridge</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;market_rule&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.request_news_providers"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_news_providers">[docs]</a>    <span class="k">def</span> <span class="nf">request_news_providers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -822,7 +1002,8 @@
         <span class="c1"># Process the response from the bridge</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_open_orders</span><span class="p">()</span>
 
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;open_orders&#39;</span><span class="p">)</span>
+        <span class="n">messages_to_process</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;open_orders&#39;</span><span class="p">,</span><span class="s1">&#39;open_orders_end&#39;</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="n">messages_to_process</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.request_positions_multi"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_positions_multi">[docs]</a>    <span class="k">def</span> <span class="nf">request_positions_multi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">account</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model_code</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
@@ -831,11 +1012,6 @@
 <span class="sd">        EWrapper.positionMultiEnd() &quot;&quot;&quot;</span>
         <span class="c1"># Process the response from the bridge</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;request_positions_multi&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span></div>
-
-<div class="viewcode-block" id="IBKR_API.request_smart_components"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_smart_components">[docs]</a>    <span class="k">def</span> <span class="nf">request_smart_components</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">bboExchange</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="c1"># Process the response from the bridge</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;request_smart_components&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.set_server_log_level"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.set_server_log_level">[docs]</a>    <span class="k">def</span> <span class="nf">set_server_log_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_level</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
@@ -859,103 +1035,59 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;subscribe_to_group_events&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-    <span class="c1">#################</span>
-    <span class="c1">### API Calls ###</span>
-    <span class="c1">#################</span>
-<div class="viewcode-block" id="IBKR_API.request_contract_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_contract_data">[docs]</a>    <span class="k">def</span> <span class="nf">request_contract_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">):</span>
+<div class="viewcode-block" id="IBKR_API.request_contract_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_contract_data">[docs]</a>    <span class="nd">@drop_message_id_and_request_id</span>
+    <span class="k">def</span> <span class="nf">request_contract_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                              <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-
+<span class="sd">        Gets all available details for the given contract.</span>
 <span class="sd">        :param contract:</span>
 <span class="sd">        :return:</span>
 
-<span class="sd">        #Call this function to download all details for a particular</span>
-<span class="sd">        #underlying. The contract details will be received via the contractDetails()</span>
-<span class="sd">        #function on the EWrapper.</span>
-
-<span class="sd">        #request_id:int - The ID of the data request. Ensures that responses are</span>
-<span class="sd">        #    make_fieldatched to requests if several requests are in process.</span>
-<span class="sd">        #contract:Contract - The summary description of the contract being looked</span>
-<span class="sd">        #    up.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_contract_data</span><span class="p">(</span><span class="n">contract</span><span class="p">)</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;contract_data&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span></div>
+        <span class="c1"># Generate a local request id</span>
+        <span class="n">request_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_local_request_id</span><span class="p">()</span>
+
+        <span class="c1"># Make the underlying API Call</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_contract_data</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span> <span class="n">request_id</span><span class="p">)</span>
+
+        <span class="c1"># Process contract_data and contract_data_end response messages</span>
+        <span class="n">messages_to_process</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;contract_data&#39;</span><span class="p">,</span><span class="s1">&#39;contract_data_end&#39;</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="n">messages_to_process</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data</span></div>
 
 
-<div class="viewcode-block" id="IBKR_API.request_historical_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_historical_data">[docs]</a>    <span class="k">def</span> <span class="nf">request_historical_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">end_date_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                <span class="n">duration</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bar_size_setting</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">what_to_show</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                <span class="n">use_rth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">format_date</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">keep_up_to_date</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">chart_options</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<div class="viewcode-block" id="IBKR_API.request_historical_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_historical_data">[docs]</a>    <span class="nd">@drop_message_id_and_request_id</span>
+    <span class="k">def</span> <span class="nf">request_historical_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                                <span class="n">contract</span>            <span class="p">:</span> <span class="n">Contract</span>      <span class="p">,</span>
+                                <span class="n">end_date_time</span>       <span class="p">:</span> <span class="nb">str</span>           <span class="p">,</span>
+                                <span class="n">duration</span>            <span class="p">:</span> <span class="nb">str</span>           <span class="p">,</span>
+                                <span class="n">bar_size_setting</span>    <span class="p">:</span> <span class="nb">str</span>           <span class="p">,</span>
+                                <span class="n">what_to_show</span>        <span class="p">:</span> <span class="nb">str</span>           <span class="p">,</span>
+                                <span class="n">only_use_rth</span>        <span class="p">:</span> <span class="nb">int</span>           <span class="p">,</span>
+                                <span class="n">format_date</span>         <span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span>         <span class="p">,</span>
+                                <span class="n">chart_options</span>       <span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[]</span>
+                                <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Request Historical Data</span>
+<span class="sd">        Request Historical Data for a given Contract with the specified parameters</span>
 
-<span class="sd">        :param contract:</span>
+<span class="sd">        :param contract: Contract that we want historical data for</span>
 <span class="sd">        :param end_date_time:</span>
 <span class="sd">        :param duration:</span>
-<span class="sd">        :param bar_size_setting:</span>
-<span class="sd">        :param what_to_show:</span>
-<span class="sd">        :param use_rth:</span>
+<span class="sd">        :param bar_size_setting: Controls how large a bar is. Legal values are defined in the `BarSize` class</span>
+<span class="sd">        :param what_to_show: Determines what data is returned by the Bridge. Legal values are in the `Show` class</span>
+<span class="sd">        :param only_use_rth:</span>
 <span class="sd">        :param format_date:</span>
-<span class="sd">        :param keep_up_to_date:</span>
 <span class="sd">        :param chart_options:</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">request_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_local_request_id</span><span class="p">()</span>
 
+        <span class="c1"># As we are running in a synchronized mode, this should be set to False always</span>
+        <span class="n">keep_up_to_date</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="sd">&quot;&quot;&quot;Requests contracts&#39; historical data. When requesting historical data, a</span>
-<span class="sd">        finishing time and date is required along with a duration string. The</span>
-<span class="sd">        resulting bars will be returned in EWrapper.historicalData()</span>
-
-<span class="sd">        request_id:int - The id of the request. Must be a unique value. When the</span>
-<span class="sd">            market data returns, it whatToShowill be identified by this tag. This is also</span>
-<span class="sd">            used when canceling the market data.</span>
-<span class="sd">        contract:Contract - This object contains a description of the contract for which</span>
-<span class="sd">            market data is being requested.</span>
-<span class="sd">        end_date_time:str - Defines a query end date and time at any point during the past 6 mos.</span>
-<span class="sd">            Valid values include any date/time within the past six months in the format:</span>
-<span class="sd">            yyyymmdd HH:mm:ss ttt</span>
-
-<span class="sd">            where &quot;ttt&quot; is the optional time zone.</span>
-<span class="sd">        durationStr:str - Set the query duration up to one week, using a time unit</span>
-<span class="sd">            of seconds, days or weeks. Valid values include any integer followed by a space</span>
-<span class="sd">            and then S (seconds), D (days) or W (week). If no unit is specified, seconds is used.</span>
-<span class="sd">        barSizeSetting:str - Specifies the size of the bars that will be returned (within IB/TWS listimits).</span>
-<span class="sd">            Valid values include:</span>
-<span class="sd">            1 sec</span>
-<span class="sd">            5 secs</span>
-<span class="sd">            15 secs</span>
-<span class="sd">            30 secs</span>
-<span class="sd">            1 min</span>
-<span class="sd">            2 mins</span>
-<span class="sd">            3 mins</span>
-<span class="sd">            5 mins</span>
-<span class="sd">            15 mins</span>
-<span class="sd">            30 mins</span>
-<span class="sd">            1 hour</span>
-<span class="sd">            1 day</span>
-<span class="sd">        whatToShow:str - Determines the nature of data beinging extracted. Valid values include:</span>
-
-<span class="sd">            TRADES</span>
-<span class="sd">            MIDPOINT</span>
-<span class="sd">            BID</span>
-<span class="sd">            ASK</span>
-<span class="sd">            BID_ASK</span>
-<span class="sd">            HISTORICAL_VOLATILITY</span>
-<span class="sd">            OPTION_IMPLIED_VOLATILITY</span>
-<span class="sd">        useRTH:int - Determines whether to return all data available during the requested time span,</span>
-<span class="sd">            or only data that falls within regular trading hours. Valid values include:</span>
-
-<span class="sd">            0 - all data is returned even where the market in question was outside of its</span>
-<span class="sd">            regular trading hours.</span>
-<span class="sd">            1 - only data within the regular trading hours is returned, even if the</span>
-<span class="sd">            requested time span falls partially or completely outside of the RTH.</span>
-<span class="sd">        formatDate: int - Determines the date format applied to returned bars. validd values include:</span>
-
-<span class="sd">            1 - dates applying to bars returned in the format: yyyymmdd{space}{space}hh:mm:dd</span>
-<span class="sd">            2 - dates are returned as a long integer specifying the number of seconds since</span>
-<span class="sd">                1/1/1970 GMT.</span>
-<span class="sd">        chartOptions:list - For internal use only. Use default value XYZ. &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_historical_data</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span><span class="n">end_date_time</span><span class="p">,</span><span class="n">duration</span><span class="p">,</span> <span class="n">bar_size_setting</span><span class="p">,</span> <span class="n">what_to_show</span><span class="p">,</span>
-                                        <span class="n">use_rth</span><span class="p">,</span> <span class="n">format_date</span><span class="p">,</span> <span class="n">keep_up_to_date</span><span class="p">,</span> <span class="n">chart_options</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_historical_data</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="p">,</span><span class="n">end_date_time</span><span class="p">,</span><span class="n">duration</span><span class="p">,</span> <span class="n">bar_size_setting</span><span class="p">,</span> <span class="n">what_to_show</span><span class="p">,</span>
+                                        <span class="n">only_use_rth</span><span class="p">,</span> <span class="n">format_date</span><span class="p">,</span> <span class="n">keep_up_to_date</span><span class="p">,</span> <span class="n">chart_options</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;historical_data&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
@@ -1020,49 +1152,24 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;tick_by_tick_data&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="IBKR_API.request_market_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_market_data">[docs]</a>    <span class="k">def</span> <span class="nf">request_market_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">generic_tick_list</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                            <span class="n">snapshot</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">regulatory_snapshot</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">market_data_options</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call this function to request market data. The market data</span>
-<span class="sd">                will be returned by the tickPrice and tickSize events.</span>
-
-<span class="sd">                request_id: int - The ticker id. Must be a unique value. When the</span>
-<span class="sd">                    market data returns, it will be identified by this tag. This is</span>
-<span class="sd">                    also used when canceling the market data.</span>
-<span class="sd">                contract:Contract - This structure contains a description of the</span>
-<span class="sd">                    Contract for which market data is being requested.</span>
-<span class="sd">                genericTickList:str - A commma delimited list of generic tick types.</span>
-<span class="sd">                    Tick types can be found in the Generic Tick Types page.</span>
-<span class="sd">                    Prefixing w/ &#39;mdoff&#39; indicates that top mkt data shouldn&#39;t tick.</span>
-<span class="sd">                    You can specify the news source by postfixing w/ &#39;:&lt;source&gt;.</span>
-<span class="sd">                    Example: &quot;mdoff,292:FLY+BRF&quot;</span>
-<span class="sd">                snapshot:bool - Check to return a single snapshot of Market data and</span>
-<span class="sd">                    have the market data subscription cancel. Do not enter any</span>
-<span class="sd">                    genericTicklist values if you use snapshots.</span>
-<span class="sd">                regulatorySnapshot: bool - With the US Value Snapshot Bundle for stocks,</span>
-<span class="sd">                    regulatory snapshots are available for 0.01 USD each.</span>
-<span class="sd">                mktDataOptions:list - For internal use only.</span>
-<span class="sd">                    Use default value XYZ. &quot;&quot;&quot;</span>
-        <span class="c1"># Process the response from the bridge</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_market_data</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="p">,</span> <span class="n">generic_tick_list</span><span class="p">,</span> <span class="n">snapshot</span><span class="p">,</span> <span class="n">regulatory_snapshot</span><span class="p">,</span> <span class="n">market_data_options</span><span class="p">)</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;market_data&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span></div>
-
 <div class="viewcode-block" id="IBKR_API.tws_connection_time"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.tws_connection_time">[docs]</a>    <span class="k">def</span> <span class="nf">tws_connection_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the time the API application made a connection to TWS.&quot;&quot;&quot;</span>
         <span class="c1"># Process the response from the bridge</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="IBKR_API.request_ids"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_ids">[docs]</a>    <span class="k">def</span> <span class="nf">request_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_ids</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call this function to request from TWS the next valid ID that</span>
-<span class="sd">        can be used when placing an order.  After calling this function, the</span>
-<span class="sd">        nextValidId() event will be triggered, and the id returned is that next</span>
-<span class="sd">        valid ID. That ID will reflect any autobinding that has occurred (which</span>
-<span class="sd">        generates new IDs and increments the next valid ID therein).</span>
+<div class="viewcode-block" id="IBKR_API.request_order_id"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_order_id">[docs]</a>    <span class="nd">@drop_message_id_and_request_id</span>
+    <span class="k">def</span> <span class="nf">request_order_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Request the next valid order id that can be used</span>
 
-<span class="sd">        num_ids:int - deprecated&quot;&quot;&quot;</span>
+<span class="sd">        :return: Order ID</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_order_ids</span><span class="p">()</span>
+
         <span class="c1"># Process the response from the bridge</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;next_valid_id&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.request_market_depth"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_market_depth">[docs]</a>    <span class="k">def</span> <span class="nf">request_market_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -1132,7 +1239,7 @@
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.request_histogram_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_histogram_data">[docs]</a>    <span class="k">def</span> <span class="nf">request_histogram_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ticker_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
-                               <span class="n">useRTH</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">time_period</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+                               <span class="n">only_use_rth</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">time_period</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="c1"># Process the response from the bridge</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
@@ -1187,8 +1294,10 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="IBKR_API.request_fundamental_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_fundamental_data">[docs]</a>    <span class="k">def</span> <span class="nf">request_fundamental_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
-                                 <span class="n">report_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">request_options</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<div class="viewcode-block" id="IBKR_API.request_fundamental_data"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_fundamental_data">[docs]</a>    <span class="k">def</span> <span class="nf">request_fundamental_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                 <span class="n">contract</span>           <span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
+                                 <span class="n">report_type</span>        <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                 <span class="n">request_options</span>    <span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Call this function to receive fundamental data for</span>
 <span class="sd">        stocks. The appropriate market data subscription must be set up in</span>
 <span class="sd">        Account Management before you can receive this data.</span>
@@ -1218,7 +1327,14 @@
         <span class="k">return</span> <span class="n">data</span></div>
 
 
-<div class="viewcode-block" id="IBKR_API.request_news_article"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_news_article">[docs]</a>    <span class="k">def</span> <span class="nf">request_news_article</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">provider_code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">article_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">news_article_options</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<div class="viewcode-block" id="IBKR_API.request_news_article"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.request_news_article">[docs]</a>    <span class="k">def</span> <span class="nf">request_news_article</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                             <span class="n">provider_code</span>          <span class="p">:</span> <span class="nb">str</span>   <span class="p">,</span>
+                             <span class="n">article_id</span>             <span class="p">:</span> <span class="nb">str</span>   <span class="p">,</span>
+                             <span class="n">news_article_options</span>   <span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="c1"># Make the Underlying API Call</span>
+        <span class="n">request_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_local_request_id</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">request_news_article</span><span class="p">(</span><span class="n">request_id</span><span class="p">,</span><span class="n">provider_code</span><span class="p">,</span> <span class="n">article_id</span><span class="p">,</span> <span class="n">news_article_options</span><span class="p">)</span>
+
         <span class="c1"># Process the response from the bridge</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_response</span><span class="p">(</span><span class="s1">&#39;news_article&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
@@ -1243,14 +1359,15 @@
 
 <div class="viewcode-block" id="IBKR_API.update_display_group"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.update_display_group">[docs]</a>    <span class="k">def</span> <span class="nf">update_display_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract_info</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update Display Group Information</span>
 
 <span class="sd">        :param request_id: The requestId specified in subscribeToGroupEvents().</span>
 <span class="sd">        :param contract_info: The encoded value that uniquely represents the contract in IB.</span>
 <span class="sd">                              Possible values include:</span>
-<span class="sd">                                    none = empty selection</span>
-<span class="sd">                                    contractID@exchange - any non-combination contract.</span>
-<span class="sd">                                    Examples: 8314@SMART for IBM SMART; 8314@ARCA for IBM @ARCA.</span>
-<span class="sd">                                    combo = if any combo is selected.</span>
+<span class="sd">                              none = empty selection</span>
+<span class="sd">                              contractID@exchange - any non-combination contract.</span>
+<span class="sd">                              Examples: 8314@SMART for IBM SMART; 8314@ARCA for IBM @ARCA.</span>
+<span class="sd">                              combo = if any combo is selected.</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Process the response from the bridge</span>
@@ -1271,7 +1388,7 @@
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="IBKR_API.verify_and_auth_request"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.api.IBKR_API.verify_and_auth_request">[docs]</a>    <span class="k">def</span> <span class="nf">verify_and_auth_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">api_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                <span class="n">opaqueIsvKey</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+                                <span class="n">opaque_is_vkey</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;For IB&#39;s internal purpose. Allows to provide means of verification</span>
 <span class="sd">        between the TWS and third party programs.&quot;&quot;&quot;</span>
         <span class="c1"># Process the response from the bridge</span>
@@ -1310,14 +1427,14 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Overview</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview/architecture.html">IBKR_API Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../overview/installation.html">Installation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../overview/quick_start.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../overview/quick_start.html#request-handlers">Request Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../overview/faq.html">F.A.Q</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../samples/client_application.html">Client Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../overview/contributors.html">Contributing To This Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../samples/ibkr_api.html">IBKR_API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../samples/client_application.html">ClientApplication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../source/modules.html">ibkr_api</a></li>
 </ul>
 

@@ -37,14 +37,15 @@
 
 <span class="kn">from</span> <span class="nn">ibkr_api.base.bridge_connection</span> <span class="k">import</span> <span class="n">BridgeConnection</span>
 <span class="kn">from</span> <span class="nn">ibkr_api.base.constants</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">ibkr_api.base.errors</span> <span class="k">import</span> <span class="n">NOT_CONNECTED</span><span class="p">,</span> <span class="n">UPDATE_TWS</span><span class="p">,</span> <span class="n">Errors</span><span class="p">,</span> <span class="n">BAD_MESSAGE</span>
+<span class="kn">from</span> <span class="nn">ibkr_api.base.errors</span> <span class="k">import</span> <span class="n">NOT_CONNECTED</span><span class="p">,</span> <span class="n">Errors</span><span class="p">,</span> <span class="n">BAD_MESSAGE</span>
 <span class="kn">from</span> <span class="nn">ibkr_api.base.messages</span> <span class="k">import</span> <span class="n">Messages</span>
 <span class="kn">from</span> <span class="nn">ibkr_api.base.message_parser</span> <span class="k">import</span> <span class="n">MessageParser</span>
 
 <span class="kn">from</span> <span class="nn">ibkr_api.classes.contracts.contract</span> <span class="k">import</span> <span class="n">Contract</span>
-<span class="kn">from</span> <span class="nn">ibkr_api.classes.order</span> <span class="k">import</span> <span class="n">Order</span>
+<span class="kn">from</span> <span class="nn">ibkr_api.classes.orders.order</span> <span class="k">import</span> <span class="n">Order</span>
 <span class="kn">from</span> <span class="nn">ibkr_api.classes.scanner</span> <span class="k">import</span> <span class="n">Scanner</span>
 
+<span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">Enum</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
 <span class="kn">import</span> <span class="nn">socket</span>
 
@@ -87,6 +88,37 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">request_handler</span>  <span class="o">=</span> <span class="n">request_handler</span>   <span class="c1"># Functions if exist are called before and/or after api calls</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">response_handler</span> <span class="o">=</span> <span class="n">response_handler</span>  <span class="c1"># API Responses Functions provided by the end user</span>
 
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_optional_fields</span><span class="p">(</span><span class="n">contract</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process the fields a contract may not have (using the default if it doesn&#39;t exist)</span>
+
+<span class="sd">        :param contract:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;last_trade_date_or_contract_month&#39;</span> <span class="p">:</span> <span class="s1">&#39;&#39;</span>    <span class="p">,</span>
+            <span class="s1">&#39;strike&#39;</span>                            <span class="p">:</span> <span class="mf">0.0</span>   <span class="p">,</span> <span class="c1">#was empty string, I think correct default is 0.0</span>
+            <span class="s1">&#39;right&#39;</span>                             <span class="p">:</span> <span class="s1">&#39;&#39;</span>    <span class="p">,</span>
+            <span class="s1">&#39;multiplier&#39;</span>                        <span class="p">:</span> <span class="s1">&#39;&#39;</span>
+        <span class="p">}</span>
+
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span><span class="s1">&#39;multiplier&#39;</span><span class="p">):</span>
+            <span class="n">fields</span><span class="p">[</span><span class="s1">&#39;multiplier&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span><span class="s1">&#39;last_trade_date_or_contract_month&#39;</span><span class="p">):</span>
+            <span class="n">fields</span><span class="p">[</span><span class="s1">&#39;last_trade_date_or_contract_month&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span><span class="s1">&#39;strike&#39;</span><span class="p">):</span>
+            <span class="n">fields</span><span class="p">[</span><span class="s1">&#39;strike&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">contract</span><span class="o">.</span><span class="n">strike</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span><span class="s1">&#39;right&#39;</span><span class="p">):</span>
+            <span class="n">fields</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">contract</span><span class="o">.</span><span class="n">right</span>
+
+        <span class="k">return</span> <span class="n">fields</span>
+
     <span class="k">def</span> <span class="nf">_send_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Send the message if connected.</span>
@@ -112,35 +144,39 @@
         <span class="k">return</span> <span class="n">request_id</span></div>
 
 <div class="viewcode-block" id="ApiCalls.calculate_implied_volatility"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.calculate_implied_volatility">[docs]</a>    <span class="nd">@check_connection</span>
-    <span class="k">def</span> <span class="nf">calculate_implied_volatility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
-                                     <span class="n">option_price</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">underlying_price</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-                                     <span class="n">implVolOptions</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">calculate_implied_volatility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                     <span class="n">request_id</span>             <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                     <span class="n">contract</span>               <span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
+                                     <span class="n">option_price</span>           <span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                                     <span class="n">underlying_price</span>       <span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                                     <span class="n">implied_vol_options</span>    <span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Call this function to calculate volatility for a supplied</span>
-<span class="sd">        option price and underlying price. Result will be delivered</span>
-<span class="sd">        via EWrapper.tickOptionComputation()</span>
+<span class="sd">        Creates a &#39;calculate_implied_volatility&#39; message</span>
+<span class="sd">        Sends Message to Bridge</span>
 
-<span class="sd">        request_id:int -  The request id.</span>
-<span class="sd">        contract:Contract -  Describes the contract.</span>
-<span class="sd">        option_price:double - The price of the option.</span>
-<span class="sd">        underlying_price:double - Price of the underlying.</span>
+<span class="sd">        :param request_id: Unique Identifier for this Request</span>
+<span class="sd">        :param contract: Option which we want to calculate the Implied Volatility of</span>
+<span class="sd">        :param option_price: Option Price</span>
+<span class="sd">        :param underlying_price: Underlying Price</span>
+<span class="sd">        :param implied_vol_options:</span>
+<span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">3</span>
 
-        <span class="c1"># send req market data msg</span>
-        <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_calc_implied_volat&#39;</span><span class="p">]</span>
+
+        <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;calculate_implied_volatility&#39;</span><span class="p">]</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span>
                   <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span>
                   <span class="n">contract</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">primary_exchange</span><span class="p">,</span>
                   <span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">,</span> <span class="n">option_price</span><span class="p">,</span> <span class="n">underlying_price</span><span class="p">]</span>
 
-        <span class="n">implVolOptStr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="n">tag_values_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">implVolOptions</span><span class="p">)</span> <span class="k">if</span> <span class="n">implVolOptions</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="k">if</span> <span class="n">implVolOptions</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">implVolOpt</span> <span class="ow">in</span> <span class="n">implVolOptions</span><span class="p">:</span>
-                <span class="n">implVolOptStr</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">implVolOpt</span><span class="p">)</span>
-        <span class="n">fields</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">tag_values_count</span><span class="p">,</span> <span class="n">implVolOptStr</span><span class="p">])</span>
+        <span class="n">impl_vol_opt_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">tag_values_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">implied_vol_options</span><span class="p">)</span> <span class="k">if</span> <span class="n">implied_vol_options</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">implied_vol_options</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">opt</span> <span class="ow">in</span> <span class="n">implied_vol_options</span><span class="p">:</span>
+                <span class="n">impl_vol_opt_str</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">opt</span><span class="p">)</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">tag_values_count</span><span class="p">,</span> <span class="n">impl_vol_opt_str</span><span class="p">])</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
@@ -380,129 +416,104 @@
 
 <div class="viewcode-block" id="ApiCalls.place_order"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.place_order">[docs]</a>    <span class="nd">@check_connection</span>
     <span class="k">def</span> <span class="nf">place_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">order</span><span class="p">:</span> <span class="n">Order</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call this function to place an order. The order status will</span>
-<span class="sd">        be returned by the orderStatus event.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create the place_order message</span>
+<span class="sd">        Send the message to the Bridge Application(TWS/IBGateway)</span>
 
-<span class="sd">        order_id:int - The order id. You must specify a unique value. When the</span>
-<span class="sd">            order START_APItus returns, it will be identified by this tag.</span>
-<span class="sd">            This tag is also used when canceling the order.</span>
-<span class="sd">        contract:Contract - This structure contains a description of the</span>
-<span class="sd">            contract which is being traded.</span>
-<span class="sd">        order:Order - This structure contains the details of tradedhe order.</span>
-<span class="sd">            Note: Each client MUST connect with a unique client_id.&quot;&quot;&quot;</span>
+<span class="sd">        :param order_id: Identifier for the Order</span>
+<span class="sd">        :param contract: Contract Object used for info like symbol, strike, multiplier, expiration,</span>
+<span class="sd">        :param order:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">MIN_SERVER_VER_DELTA_NEUTRAL_CONID</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_con_id</span> <span class="o">&gt;</span> <span class="mi">0</span> \
-                    <span class="ow">or</span> <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_settling_firm</span> \
-                    <span class="ow">or</span> <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_clearing_account</span> \
-                    <span class="ow">or</span> <span class="n">order</span><span class="o">.</span><span class="n">deltaNeutralClearingIntent</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">response_handler</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">order_id</span><span class="p">,</span> <span class="n">UPDATE_TWS</span><span class="o">.</span><span class="n">code</span><span class="p">(),</span> <span class="n">UPDATE_TWS</span><span class="o">.</span><span class="n">msg</span><span class="p">()</span> <span class="o">+</span>
-                                            <span class="s2">&quot;  It does not support deltaNeutral parameters: ConId, SettlingFirm, ClearingAccount, ClearingIntent.&quot;</span><span class="p">)</span>
-                <span class="k">return</span>
+        <span class="c1"># Gather the fields needed for the message</span>
+        <span class="n">message_id</span>                          <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;place_order&#39;</span><span class="p">]</span>
+        <span class="n">message_version</span>                     <span class="o">=</span> <span class="mi">45</span>
+        <span class="n">last_trade_date_or_contract_month</span>   <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">contract</span> <span class="p">,</span><span class="s1">&#39;last_trade_date_or_contract_month&#39;</span> <span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">strike</span>                              <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">contract</span> <span class="p">,</span><span class="s1">&#39;strike&#39;</span>                            <span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">right</span>                               <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">contract</span> <span class="p">,</span><span class="s1">&#39;right&#39;</span>                             <span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">multiplier</span>                          <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">contract</span> <span class="p">,</span><span class="s1">&#39;multiplier&#39;</span>                        <span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">MIN_SERVER_VER_SCALE_ORDERS3</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">scalePriceIncrement</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">order</span><span class="o">.</span><span class="n">scalePriceIncrement</span> <span class="o">!=</span> <span class="n">UNSET_DOUBLE</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">scalePriceAdjustValue</span> <span class="o">!=</span> <span class="n">UNSET_DOUBLE</span> \
-                        <span class="ow">or</span> <span class="n">order</span><span class="o">.</span><span class="n">scalePriceAdjustInterval</span> <span class="o">!=</span> <span class="n">UNSET_INTEGER</span> \
-                        <span class="ow">or</span> <span class="n">order</span><span class="o">.</span><span class="n">scaleProfitOffset</span> <span class="o">!=</span> <span class="n">UNSET_DOUBLE</span> \
-                        <span class="ow">or</span> <span class="n">order</span><span class="o">.</span><span class="n">scaleAutoReset</span> \
-                        <span class="ow">or</span> <span class="n">order</span><span class="o">.</span><span class="n">scaleInitPosition</span> <span class="o">!=</span> <span class="n">UNSET_INTEGER</span> \
-                        <span class="ow">or</span> <span class="n">order</span><span class="o">.</span><span class="n">scaleInitFillQty</span> <span class="o">!=</span> <span class="n">UNSET_INTEGER</span> \
-                        <span class="ow">or</span> <span class="n">order</span><span class="o">.</span><span class="n">scaleRandomPercent</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">response_handler</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">order_id</span><span class="p">,</span> <span class="n">UPDATE_TWS</span><span class="o">.</span><span class="n">code</span><span class="p">(),</span> <span class="n">UPDATE_TWS</span><span class="o">.</span><span class="n">msg</span><span class="p">()</span> <span class="o">+</span>
-                                                <span class="s2">&quot;  It does not support Scale order parameters: PriceAdjustValue, PriceAdjustInterval, &quot;</span> <span class="o">+</span>
-                                                <span class="s2">&quot;ProfitOffset, AutoReset, InitPosition, InitFillQty and RandomPercent&quot;</span><span class="p">)</span>
-                    <span class="k">return</span>
+        <span class="n">aux_price</span>                           <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">order</span> <span class="p">,</span>   <span class="s1">&#39;aux_price&#39;</span>                 <span class="p">,</span>   <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">volatility</span>                          <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">order</span> <span class="p">,</span>   <span class="s1">&#39;volatility&#39;</span>                <span class="p">,</span>   <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">volatility_type</span>                     <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">order</span> <span class="p">,</span>   <span class="s1">&#39;volatility_type&#39;</span>           <span class="p">,</span>   <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">delta_neutral_order_type</span>            <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">order</span> <span class="p">,</span>   <span class="s1">&#39;delta_neutral_order_type&#39;</span>  <span class="p">,</span>   <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">delta_neutral_aux_price</span>             <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">order</span> <span class="p">,</span>   <span class="s1">&#39;delta_neutral_aux_price&#39;</span>   <span class="p">,</span>   <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">continuous_update</span>                   <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">order</span> <span class="p">,</span>   <span class="s1">&#39;continuous_update&#39;</span>         <span class="p">,</span>   <span class="mi">0</span><span class="p">)</span>
+        <span class="n">reference_price_type</span>                <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">order</span> <span class="p">,</span>   <span class="s1">&#39;reference_price_type&#39;</span>      <span class="p">,</span>   <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">trail_stop_price</span>                    <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">order</span> <span class="p">,</span>   <span class="s1">&#39;trail_stop_price&#39;</span>          <span class="p">,</span>   <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">trailing_percent</span>                    <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">order</span> <span class="p">,</span>   <span class="s1">&#39;trailing_percent&#39;</span>          <span class="p">,</span>   <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">scale_init_level_size</span>               <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">order</span> <span class="p">,</span>   <span class="s1">&#39;scale_init_level_size&#39;</span>     <span class="p">,</span>   <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">scale_subs_level_size</span>               <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">order</span> <span class="p">,</span>   <span class="s1">&#39;scale_subs_level_size&#39;</span>     <span class="p">,</span>   <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">scale_price_increment</span>               <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">order</span> <span class="p">,</span>   <span class="s1">&#39;scale_price_increment&#39;</span>     <span class="p">,</span>   <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">scale_table</span>                         <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">order</span> <span class="p">,</span>   <span class="s1">&#39;scale_table&#39;</span>               <span class="p">,</span>   <span class="s1">&#39;&#39;</span><span class="p">)</span>
 
-
-
-
-
-
-        <span class="c1"># Create the list of fields to send, then send the message</span>
-        <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;place_order&#39;</span><span class="p">]</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">MIN_SERVER_VER_ORDER_CONTAINER</span><span class="p">:</span>
-            <span class="n">message_version</span> <span class="o">=</span> <span class="mi">27</span> <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">MIN_SERVER_VER_NOT_HELD</span><span class="p">)</span> <span class="k">else</span> <span class="mi">45</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">message_version</span><span class="p">)</span>
-
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order_id</span><span class="p">)</span>
-
-        <span class="c1"># send contract fields</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_PLACE_ORDER_CONID</span><span class="p">:</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-
-        <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">contract</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span>
-                   <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span>
-                   <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span><span class="p">,</span>
-                   <span class="n">contract</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span>
-                   <span class="n">contract</span><span class="o">.</span><span class="n">right</span><span class="p">,</span>
-                   <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span><span class="p">,</span>
-                   <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span>
-                   <span class="n">contract</span><span class="o">.</span><span class="n">primary_exchange</span><span class="p">,</span>
-                   <span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span>
-                   <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">]</span>
-
-
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">)</span>
-        <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">contract</span><span class="o">.</span><span class="n">security_id_type</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_id</span><span class="p">]</span>
-        <span class="c1"># send main order fields</span>
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">action</span><span class="p">)</span>
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">total_quantity</span><span class="p">)</span>
-
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">order_type</span><span class="p">)</span>
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">make_field_handle_empty</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">limit_price</span><span class="p">))</span>
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">make_field_handle_empty</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">aux_price</span><span class="p">))</span>
-
-        <span class="c1"># send extended order fields</span>
-        <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">tif</span>            <span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">ocaGroup</span>       <span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">account</span>        <span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">openClose</span>      <span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">origin</span>         <span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">order_ref</span>      <span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">transmit</span>       <span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">parent_id</span>      <span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">block_order</span>    <span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">sweep_to_fill</span>  <span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">display_size</span>   <span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">trigger_method</span> <span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">outside_rth</span>    <span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">hidden</span><span class="p">]</span>
+        <span class="n">fields</span>      <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">order_id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+        <span class="n">fields</span> <span class="o">+=</span>   <span class="p">[</span>
+                    <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span>                     <span class="p">,</span>
+                    <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span>              <span class="p">,</span>
+                    <span class="n">last_trade_date_or_contract_month</span>   <span class="p">,</span>
+                    <span class="n">strike</span>                              <span class="p">,</span>
+                    <span class="n">right</span>                               <span class="p">,</span>
+                    <span class="n">multiplier</span>                          <span class="p">,</span>
+                    <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span>                   <span class="p">,</span>
+                    <span class="n">contract</span><span class="o">.</span><span class="n">primary_exchange</span>           <span class="p">,</span>
+                    <span class="n">contract</span><span class="o">.</span><span class="n">currency</span>                   <span class="p">,</span>
+                    <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span>               <span class="p">,</span>
+                    <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span>              <span class="p">,</span>
+                    <span class="n">contract</span><span class="o">.</span><span class="n">security_id_type</span>           <span class="p">,</span>
+                    <span class="n">contract</span><span class="o">.</span><span class="n">security_id</span>                <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">action</span>                        <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">total_quantity</span>                <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">order_type</span>                    <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">limit_price</span>                   <span class="p">,</span>
+                    <span class="n">aux_price</span>                           <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">time_in_force</span>                 <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">oca_group</span>                     <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">account</span>                       <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">open_close</span>                    <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">origin</span>                        <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">order_ref</span>                     <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">transmit</span>                      <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">parent_id</span>                     <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">block_order</span>                   <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">sweep_to_fill</span>                 <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">display_size</span>                  <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">trigger_method</span>                <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">outside_rth</span>                   <span class="p">,</span>
+                    <span class="n">order</span><span class="o">.</span><span class="n">hidden</span><span class="p">]</span>
 
         <span class="c1"># Send combo legs for BAG requests (srv v8 and above)</span>
         <span class="k">if</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">==</span> <span class="s2">&quot;BAG&quot;</span><span class="p">:</span>
-            <span class="n">comboLegsCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">contract</span><span class="o">.</span><span class="n">combo_legs</span><span class="p">)</span> <span class="k">if</span> <span class="n">contract</span><span class="o">.</span><span class="n">combo_legs</span> <span class="k">else</span> <span class="mi">0</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comboLegsCount</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">comboLegsCount</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">comboLeg</span> <span class="ow">in</span> <span class="n">contract</span><span class="o">.</span><span class="n">combo_legs</span><span class="p">:</span>
-                    <span class="k">assert</span> <span class="n">comboLeg</span>
-                    <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">comboLeg</span><span class="o">.</span><span class="n">conId</span><span class="p">,</span>
-                               <span class="n">comboLeg</span><span class="o">.</span><span class="n">ratio</span><span class="p">,</span>
-                               <span class="n">comboLeg</span><span class="o">.</span><span class="n">action</span><span class="p">,</span>
-                               <span class="n">comboLeg</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span>
-                               <span class="n">comboLeg</span><span class="o">.</span><span class="n">openClose</span><span class="p">,</span>
-                               <span class="n">comboLeg</span><span class="o">.</span><span class="n">shortSaleSlot</span><span class="p">,</span>  <span class="c1"># srv v35 and above</span>
-                               <span class="n">comboLeg</span><span class="o">.</span><span class="n">designatedLocation</span><span class="p">]</span>  <span class="c1"># srv v35 and above</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_SSHORTX_OLD</span><span class="p">:</span>
-                        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comboLeg</span><span class="o">.</span><span class="n">exemptCode</span><span class="p">)</span>
+            <span class="n">combo_legs_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">contract</span><span class="o">.</span><span class="n">combo_legs</span><span class="p">)</span> <span class="k">if</span> <span class="n">contract</span><span class="o">.</span><span class="n">combo_legs</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combo_legs_count</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">combo_legs_count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">combo_leg</span> <span class="ow">in</span> <span class="n">contract</span><span class="o">.</span><span class="n">combo_legs</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="n">combo_leg</span>
+                    <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">combo_leg</span><span class="o">.</span><span class="n">conId</span><span class="p">,</span>
+                               <span class="n">combo_leg</span><span class="o">.</span><span class="n">ratio</span><span class="p">,</span>
+                               <span class="n">combo_leg</span><span class="o">.</span><span class="n">action</span><span class="p">,</span>
+                               <span class="n">combo_leg</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span>
+                               <span class="n">combo_leg</span><span class="o">.</span><span class="n">openClose</span><span class="p">,</span>
+                               <span class="n">combo_leg</span><span class="o">.</span><span class="n">shortSaleSlot</span><span class="p">,</span>
+                               <span class="n">combo_leg</span><span class="o">.</span><span class="n">designatedLocation</span><span class="p">,</span>
+                               <span class="n">combo_leg</span><span class="o">.</span><span class="n">exemptCode</span><span class="p">]</span>
 
         <span class="c1"># Send order combo legs for BAG requests</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE</span> <span class="ow">and</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">==</span> <span class="s2">&quot;BAG&quot;</span><span class="p">:</span>
-            <span class="n">orderComboLegsCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">orderComboLegs</span><span class="p">)</span> <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">orderComboLegs</span> <span class="k">else</span> <span class="mi">0</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">orderComboLegsCount</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">==</span> <span class="s2">&quot;BAG&quot;</span><span class="p">:</span>
+            <span class="n">order_combo_legs_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">order_combo_legs</span><span class="p">)</span> <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">order_combo_legs</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order_combo_legs_count</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">orderComboLegsCount</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">orderComboLeg</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">orderComboLegs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">order_combo_legs_count</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">orderComboLeg</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">order_combo_legs</span><span class="p">:</span>
                     <span class="k">assert</span> <span class="n">orderComboLeg</span>
                     <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">orderComboLeg</span><span class="o">.</span><span class="n">price</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_SMART_COMBO_ROUTING_PARAMS</span> <span class="ow">and</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">==</span> <span class="s2">&quot;BAG&quot;</span><span class="p">:</span>
-            <span class="n">smartComboRoutingParamsCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">smartComboRoutingParams</span><span class="p">)</span> <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">smartComboRoutingParams</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">==</span> <span class="s2">&quot;BAG&quot;</span><span class="p">:</span>
+            <span class="n">smartComboRoutingParamsCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">smart_combo_routing_params</span><span class="p">)</span> <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">smart_combo_routing_params</span> <span class="k">else</span> <span class="mi">0</span>
             <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">smartComboRoutingParamsCount</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">smartComboRoutingParamsCount</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">tagValue</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">smartComboRoutingParams</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">tagValue</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">smart_combo_routing_params</span><span class="p">:</span>
                     <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">tagValue</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">tagValue</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
 
         <span class="c1">######################################################################</span>
@@ -519,7 +530,7 @@
         <span class="c1">#####################################################################</span>
         <span class="c1"># send deprecated sharesAllocation field</span>
         <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">discretionaryAmt</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">discretionary_amt</span><span class="p">,</span>
                    <span class="n">order</span><span class="o">.</span><span class="n">good_after_time</span><span class="p">,</span>
                    <span class="n">order</span><span class="o">.</span><span class="n">good_till_date</span><span class="p">,</span>
 
@@ -532,116 +543,102 @@
 
 
         <span class="c1"># institutional Short Sale Slot Data</span>
-        <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span> <span class="n">order</span><span class="o">.</span><span class="n">shortSaleSlot</span><span class="p">,</span>         <span class="c1"># 0 for retail, 1 or 2 for institutions</span>
-                    <span class="n">order</span><span class="o">.</span><span class="n">designatedLocation</span><span class="p">,</span>    <span class="c1"># populate only when shortSaleSlot = 2.</span>
-                    <span class="n">order</span><span class="o">.</span><span class="n">exemptCode</span><span class="p">]</span>
-
+        <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">short_sale_slot</span><span class="p">,</span>  <span class="c1"># 0 for retail, 1 or 2 for institutions</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">designated_location</span><span class="p">,</span>  <span class="c1"># populate only when short_sale_slot = 2.</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">exempt_code</span><span class="p">]</span>
 
         <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">oca_type</span><span class="p">)</span>
 
         <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">rule80A</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">settlingFirm</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">allOrNone</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">settling_firm</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">all_or_none</span><span class="p">,</span>
                    <span class="n">order</span><span class="o">.</span><span class="n">min_qty</span><span class="p">,</span>
                    <span class="n">order</span><span class="o">.</span><span class="n">percent_offset</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">eTradeOnly</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">firmQuoteOnly</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">nbboPriceCap</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">e_trade_only</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">firm_quote_only</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">nbbo_price_cap</span><span class="p">,</span>
                    <span class="n">order</span><span class="o">.</span><span class="n">auctionStrategy</span><span class="p">,</span>
                    <span class="c1"># AUCTION_MATCH, AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">startingPrice</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">stockRefPrice</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">starting_price</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">stock_ref_price</span><span class="p">,</span>
                    <span class="n">order</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">stockRangeLower</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">stockRangeUpper</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">stock_range_lower</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">stock_range_upper</span><span class="p">,</span>
 
                    <span class="n">order</span><span class="o">.</span><span class="n">override_percentage_constraints</span><span class="p">,</span>
 
-                   <span class="c1"># Volatility orders</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">volatility</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">volatility_type</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_order_type</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_aux_price</span><span class="p">]</span>
+                   <span class="n">volatility</span><span class="p">,</span>
+                   <span class="n">volatility_type</span><span class="p">,</span>
+                   <span class="n">delta_neutral_order_type</span><span class="p">,</span>
+                   <span class="n">delta_neutral_aux_price</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_order_type</span><span class="p">:</span>
-            <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_con_id</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_settling_firm</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_clearing_account</span><span class="p">,</span>
-                       <span class="n">order</span><span class="o">.</span><span class="n">deltaNeutralClearingIntent</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">order</span><span class="p">,</span><span class="s1">&#39;delta_neutral_order_type&#39;</span><span class="p">):</span>
+            <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_con_id</span>               <span class="p">,</span>
+                       <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_settling_firm</span>        <span class="p">,</span>
+                       <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_clearing_account</span>     <span class="p">,</span>
+                       <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_clearing_intent</span>      <span class="p">,</span>
+                       <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_open_close</span>           <span class="p">,</span>
+                       <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_short_sale</span>           <span class="p">,</span>
+                       <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_short_sale_slot</span>      <span class="p">,</span>
+                       <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_designated_location</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">delta_neutral_order_type</span><span class="p">:</span>
-            <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">deltaNeutralOpenClose</span><span class="p">,</span>
-                       <span class="n">order</span><span class="o">.</span><span class="n">deltaNeutralShortSale</span><span class="p">,</span>
-                       <span class="n">order</span><span class="o">.</span><span class="n">deltaNeutralShortSaleSlot</span><span class="p">,</span>
-                       <span class="n">order</span><span class="o">.</span><span class="n">deltaNeutralDesignatedLocation</span><span class="p">]</span>
+        <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">continuous_update</span>            <span class="p">,</span>
+                   <span class="n">reference_price_type</span>         <span class="p">,</span>
+                   <span class="n">trail_stop_price</span>             <span class="p">,</span>
+                   <span class="n">trailing_percent</span>             <span class="p">,</span>
+                   <span class="n">scale_init_level_size</span>        <span class="p">,</span>
+                   <span class="n">scale_subs_level_size</span>        <span class="p">,</span>
+                   <span class="n">scale_price_increment</span><span class="p">]</span>
 
-        <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">continuousUpdate</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">referencePriceType</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">trail_stop_price</span><span class="p">]</span>
-
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">trailing_percent</span><span class="p">)</span>
-
-        <span class="c1"># SCALE orders</span>
-        <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">scaleInitLevelSize</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">scaleSubsLevelSize</span><span class="p">]</span>
-
-
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">scalePriceIncrement</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_SCALE_ORDERS3</span> \
-                <span class="ow">and</span> <span class="n">order</span><span class="o">.</span><span class="n">scalePriceIncrement</span> <span class="o">!=</span> <span class="n">UNSET_DOUBLE</span> \
-                <span class="ow">and</span> <span class="n">order</span><span class="o">.</span><span class="n">scalePriceIncrement</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
-            <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">scalePriceAdjustValue</span><span class="p">,</span>
-                       <span class="n">order</span><span class="o">.</span><span class="n">scalePriceAdjustInterval</span><span class="p">,</span>
-                       <span class="n">order</span><span class="o">.</span><span class="n">scaleProfitOffset</span><span class="p">,</span>
-                       <span class="n">order</span><span class="o">.</span><span class="n">scaleAutoReset</span><span class="p">,</span>
-                       <span class="n">order</span><span class="o">.</span><span class="n">scaleInitPosition</span><span class="p">,</span>
-                       <span class="n">order</span><span class="o">.</span><span class="n">scaleInitFillQty</span><span class="p">,</span>
-                       <span class="n">order</span><span class="o">.</span><span class="n">scaleRandomPercent</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">order</span><span class="p">,</span><span class="s1">&#39;scale_price_increment&#39;</span><span class="p">):</span> <span class="c1"># TODO: add back this --&gt; and scale_price_increment &gt; 0:</span>
+            <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">scale_price_adjust_value</span><span class="p">,</span>
+                       <span class="n">order</span><span class="o">.</span><span class="n">scale_price_adjust_interval</span><span class="p">,</span>
+                       <span class="n">order</span><span class="o">.</span><span class="n">scale_profit_offset</span><span class="p">,</span>
+                       <span class="n">order</span><span class="o">.</span><span class="n">scale_auto_reset</span><span class="p">,</span>
+                       <span class="n">order</span><span class="o">.</span><span class="n">scale_init_position</span><span class="p">,</span>
+                       <span class="n">order</span><span class="o">.</span><span class="n">scale_init_fill_qty</span><span class="p">,</span>
+                       <span class="n">order</span><span class="o">.</span><span class="n">scale_random_percent</span><span class="p">]</span>
 
 
-        <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">scaleTable</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">active_start_time</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">active_stop_time</span><span class="p">]</span>
+        <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">scale_table</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">active_start_time</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">active_stop_time</span><span class="p">]</span>
 
         <span class="c1"># HEDGE orders</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_HEDGE_ORDERS</span><span class="p">:</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">hedgeType</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">hedgeType</span><span class="p">:</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">hedgeParam</span><span class="p">)</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">hedge_type</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">hedge_type</span><span class="p">:</span>
+            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">hedge_param</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_OPT_OUT_SMART_ROUTING</span><span class="p">:</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">optOutSmartRouting</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_PTA_ORDERS</span><span class="p">:</span>
-            <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">clearingAccount</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">clearingIntent</span><span class="p">]</span>
+        <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">opt_out_smart_routing</span>  <span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">clearing_account</span>       <span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">clearing_intent</span>        <span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">not_held</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_NOT_HELD</span><span class="p">:</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">notHeld</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_DELTA_NEUTRAL</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="p">:</span>
-                <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span>
-                           <span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="o">.</span><span class="n">conId</span><span class="p">,</span>
-                           <span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span>
-                           <span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="o">.</span><span class="n">price</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="p">:</span>
+            <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="o">.</span><span class="n">conId</span><span class="p">,</span>
+                       <span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span>
+                       <span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="o">.</span><span class="n">price</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
 
         <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">algorithmic_strategy</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">algorithmic_strategy</span><span class="p">:</span>
-            <span class="n">algoParamsCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">algo_params</span><span class="p">)</span> <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">algo_params</span> <span class="k">else</span> <span class="mi">0</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">algoParamsCount</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">algoParamsCount</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">algoParam</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">algo_params</span><span class="p">:</span>
+            <span class="n">algo_params_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">algorithm_parameters</span><span class="p">)</span> <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">algorithm_parameters</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">algo_params_count</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">algo_params_count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">algoParam</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">algorithm_parameters</span><span class="p">:</span>
                     <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">algoParam</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">algoParam</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
 
 
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">algoId</span><span class="p">)</span>
-
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">whatIf</span><span class="p">)</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">algo_id</span><span class="p">)</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">what_if</span><span class="p">)</span>
 
         <span class="c1"># send miscOptions parameter</span>
-
         <span class="n">miscOptionsStr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">orderMiscOptions</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">tagValue</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">orderMiscOptions</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">order_misc_options</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">tagValue</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">order_misc_options</span><span class="p">:</span>
                 <span class="n">miscOptionsStr</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tagValue</span><span class="p">)</span>
         <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">miscOptionsStr</span><span class="p">)</span>
 
@@ -649,7 +646,7 @@
         <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">solicited</span><span class="p">)</span>
 
 
-        <span class="n">fields</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">order</span><span class="o">.</span><span class="n">randomizeSize</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">randomizePrice</span><span class="p">])</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">order</span><span class="o">.</span><span class="n">randomize_size</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">randomize_price</span><span class="p">])</span>
 
 
         <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">order_type</span> <span class="o">==</span> <span class="s2">&quot;PEG BENCH&quot;</span><span class="p">:</span>
@@ -664,21 +661,23 @@
                     <span class="c1"># TODO: make sure I ported logic in whatever happens 1 line below</span>
                     <span class="c1"># fields += cond.self.conn.make_message()</span>
 
-                <span class="n">fields</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">order</span><span class="o">.</span><span class="n">conditionsIgnoreRth</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">conditionsCancelOrder</span><span class="p">])</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">order</span><span class="o">.</span><span class="n">conditions_ignore_rth</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">conditions_cancel_order</span><span class="p">])</span>
 
             <span class="n">fields</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">order</span><span class="o">.</span><span class="n">adjusted_order_type</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">trigger_price</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">limit_price_offset</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">adjusted_stop_price</span><span class="p">,</span>
                            <span class="n">order</span><span class="o">.</span><span class="n">adjusted_trailing_amount</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">adjusted_trailing_unit</span><span class="p">])</span>
 
 
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">extOperator</span><span class="p">)</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">ext_operator</span><span class="p">)</span>
         <span class="n">fields</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">order</span><span class="o">.</span><span class="n">softDollarTier</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">softDollarTier</span><span class="o">.</span><span class="n">val</span><span class="p">])</span>
         <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">cash_qty</span><span class="p">)</span>
         <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">mifid2DecisionMaker</span><span class="p">)</span>
         <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">mifid2DecisionAlgo</span><span class="p">)</span>
         <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">mifid2ExecutionTrader</span><span class="p">)</span>
         <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">mifid2ExecutionAlgo</span><span class="p">)</span>
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">dontUseAutoPriceForHedge</span><span class="p">)</span>
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">isOmsContainer</span><span class="p">)</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">dont_use_auto_price_for_hedge</span><span class="p">)</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">is_oms_container</span><span class="p">)</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">discrentionary_up_to_limit_price</span><span class="p">)</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># TODO: Figure out missing field</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
@@ -718,12 +717,12 @@
 
 <div class="viewcode-block" id="ApiCalls.request_account_updates_multi"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_account_updates_multi">[docs]</a>    <span class="nd">@check_connection</span>
     <span class="k">def</span> <span class="nf">request_account_updates_multi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">account</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model_code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                      <span class="n">ledgerAndNLV</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+                                      <span class="n">ledger_and_nlv</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Requests account updates for account and/or model.&quot;&quot;&quot;</span>
 
         <span class="n">message_version</span>         <span class="o">=</span> <span class="mi">1</span>
         <span class="n">message_id</span>              <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_account_updates_multi&#39;</span><span class="p">]</span>
-        <span class="n">fields</span>                  <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">account</span><span class="p">,</span> <span class="n">model_code</span><span class="p">,</span> <span class="n">ledgerAndNLV</span><span class="p">]</span>
+        <span class="n">fields</span>                  <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">account</span><span class="p">,</span> <span class="n">model_code</span><span class="p">,</span> <span class="n">ledger_and_nlv</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request_account_summary"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_account_summary">[docs]</a>    <span class="nd">@check_connection</span>
@@ -820,24 +819,41 @@
         <span class="k">return</span> <span class="n">message_sent</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request_contract_data"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_contract_data">[docs]</a>    <span class="k">def</span> <span class="nf">request_contract_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call this function to download all details for a particular</span>
-<span class="sd">        underlying. The contract details will be received via the contractDetails()</span>
-<span class="sd">        function on the EWrapper.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a request_contract_data message</span>
+<span class="sd">        Sends the message to the Bridge</span>
 
-<span class="sd">        request_id:int - The ID of the data request. Ensures that responses are</span>
-<span class="sd">            make_fieldatched to requests if several requests are in process.</span>
-<span class="sd">        contract:Contract - The summary description of the contract being looked</span>
-<span class="sd">            up.&quot;&quot;&quot;</span>
+<span class="sd">        :param contract: Contract to get data about</span>
+<span class="sd">        :param request_id: Unique Identifier for this Request</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">request_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
            <span class="n">request_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_local_request_id</span><span class="p">()</span>
 
         <span class="c1"># send req market data msg</span>
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">8</span>
+
+        <span class="c1"># Handle the Fields that may not exist in a contract</span>
+        <span class="n">last_trade_date_or_contract_month</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span> <span class="s1">&#39;last_trade_date_or_contract_month&#39;</span><span class="p">):</span>
+            <span class="n">last_trade_date_or_contract_month</span> <span class="o">=</span> <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span>
+
+        <span class="n">multiplier</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span><span class="s1">&#39;multiplier&#39;</span><span class="p">):</span>
+            <span class="n">multiplier</span> <span class="o">=</span> <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">):</span>
+            <span class="n">right</span> <span class="o">=</span> <span class="n">contract</span><span class="o">.</span><span class="n">right</span>
+
+        <span class="n">strike</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span> <span class="s1">&#39;strike&#39;</span><span class="p">):</span>
+            <span class="n">strike</span> <span class="o">=</span> <span class="n">contract</span><span class="o">.</span><span class="n">strike</span>
+
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_contract_data&#39;</span><span class="p">]</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span>
-                  <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span><span class="p">,</span><span class="n">contract</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">right</span><span class="p">,</span>
-                  <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span><span class="p">,</span><span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">primary_exchange</span><span class="p">,</span><span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">,</span>
+                  <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span> <span class="n">last_trade_date_or_contract_month</span><span class="p">,</span><span class="n">strike</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span>
+                  <span class="n">multiplier</span><span class="p">,</span><span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">primary_exchange</span><span class="p">,</span><span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">,</span>
                   <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">,</span><span class="n">contract</span><span class="o">.</span><span class="n">include_expired</span><span class="p">,</span>  <span class="n">contract</span><span class="o">.</span><span class="n">security_id_type</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_id</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
@@ -894,15 +910,33 @@
     <span class="c1"># Note that formatData parameter affects intraday bars only</span>
     <span class="c1"># 1-day bars always return with date in YYYYMMDD format</span>
 <div class="viewcode-block" id="ApiCalls.request_head_time_stamp"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_head_time_stamp">[docs]</a>    <span class="nd">@check_connection</span>
-    <span class="k">def</span> <span class="nf">request_head_time_stamp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
-                                <span class="n">whatToShow</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">useRTH</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">formatDate</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">request_head_time_stamp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">request_id</span>      <span class="p">:</span> <span class="nb">int</span>       <span class="p">,</span>
+                                <span class="n">contract</span>        <span class="p">:</span> <span class="n">Contract</span>  <span class="p">,</span>
+                                <span class="n">what_to_show</span>    <span class="p">:</span> <span class="nb">str</span>       <span class="p">,</span>
+                                <span class="n">use_rth</span>         <span class="p">:</span> <span class="nb">int</span>       <span class="p">,</span>
+                                <span class="n">format_date</span>     <span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a &#39;request_head_timestamp&#39; message and sends the message to the bridge</span>
 
-        <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_head_timestamp&#39;</span><span class="p">]</span>
+<span class="sd">        :param request_id:</span>
+<span class="sd">        :param contract:</span>
+<span class="sd">        :param what_to_show:</span>
+<span class="sd">        :param use_rth:</span>
+<span class="sd">        :param format_date:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Handle Optional Contract Fields</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_optional_fields</span><span class="p">(</span><span class="n">contract</span><span class="p">)</span>
+
+
+        <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_head_time_stamp&#39;</span><span class="p">]</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span>
-                  <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span><span class="p">,</span>
+                  <span class="n">fields</span><span class="p">[</span><span class="s1">&#39;last_trade_date_or_contract_month&#39;</span><span class="p">],</span> <span class="n">fields</span><span class="p">[</span><span class="s1">&#39;strike&#39;</span><span class="p">],</span> <span class="n">fields</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">],</span> <span class="n">fields</span><span class="p">[</span><span class="s1">&#39;multiplier&#39;</span><span class="p">],</span>
                   <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">primary_exchange</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">,</span>
                   <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">,</span>
-                  <span class="n">contract</span><span class="o">.</span><span class="n">include_expired</span><span class="p">,</span> <span class="n">useRTH</span><span class="p">,</span> <span class="n">whatToShow</span><span class="p">,</span> <span class="n">formatDate</span><span class="p">]</span>
+                  <span class="n">contract</span><span class="o">.</span><span class="n">include_expired</span><span class="p">,</span> <span class="n">use_rth</span><span class="p">,</span> <span class="n">what_to_show</span><span class="p">,</span> <span class="n">format_date</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request_historical_news"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_historical_news">[docs]</a>    <span class="nd">@check_connection</span>
@@ -918,27 +952,27 @@
             <span class="k">if</span> <span class="n">historicalNewsOptions</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">tagValue</span> <span class="ow">in</span> <span class="n">historicalNewsOptions</span><span class="p">:</span>
                     <span class="n">func_options</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tagValue</span><span class="p">)</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">appened</span><span class="p">(</span><span class="n">func_options</span><span class="p">)</span>
+            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func_options</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request_historical_ticks"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_historical_ticks">[docs]</a>    <span class="nd">@check_connection</span>
-    <span class="k">def</span> <span class="nf">request_historical_ticks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">startDateTime</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                 <span class="n">end_date_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">number_of_ticks</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">whatToShow</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">useRth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-                                 <span class="n">ignoreSize</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">miscOptions</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">request_historical_ticks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">start_date_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                 <span class="n">end_date_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">number_of_ticks</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">what_to_show</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">useRth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                 <span class="n">ignore_size</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">misc_options</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
 
-        <span class="n">miscOptionsString</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">miscOptions</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">tagValue</span> <span class="ow">in</span> <span class="n">miscOptions</span><span class="p">:</span>
-                <span class="n">miscOptionsString</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tagValue</span><span class="p">)</span>
+        <span class="n">misc_options_string</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">misc_options</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">tagValue</span> <span class="ow">in</span> <span class="n">misc_options</span><span class="p">:</span>
+                <span class="n">misc_options_string</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tagValue</span><span class="p">)</span>
 
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_historical_ticks&#39;</span><span class="p">]</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span>
                   <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span><span class="p">,</span>
                   <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">primary_exchange</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">,</span>
                   <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">,</span>
-                  <span class="n">contract</span><span class="o">.</span><span class="n">include_expired</span><span class="p">,</span> <span class="n">startDateTime</span><span class="p">,</span> <span class="n">end_date_time</span><span class="p">,</span> <span class="n">number_of_ticks</span><span class="p">,</span> <span class="n">whatToShow</span><span class="p">,</span> <span class="n">useRth</span><span class="p">,</span>
-                  <span class="n">ignoreSize</span><span class="p">,</span> <span class="n">miscOptionsString</span><span class="p">]</span>
+                  <span class="n">contract</span><span class="o">.</span><span class="n">include_expired</span><span class="p">,</span> <span class="n">start_date_time</span><span class="p">,</span> <span class="n">end_date_time</span><span class="p">,</span> <span class="n">number_of_ticks</span><span class="p">,</span> <span class="n">what_to_show</span><span class="p">,</span> <span class="n">useRth</span><span class="p">,</span>
+                  <span class="n">ignore_size</span><span class="p">,</span> <span class="n">misc_options_string</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request_managed_accounts"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_managed_accounts">[docs]</a>    <span class="nd">@check_connection</span>
@@ -986,14 +1020,15 @@
 <div class="viewcode-block" id="ApiCalls.request_market_rule"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_market_rule">[docs]</a>    <span class="nd">@check_connection</span>
     <span class="k">def</span> <span class="nf">request_market_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">market_rule_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Request Market Rule Information</span>
+<span class="sd">        Create the &#39;request_market_rule&#39; Message</span>
+<span class="sd">        Send the message to the Bridge</span>
 
 <span class="sd">        :param market_rule_id:</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_market_rule&#39;</span><span class="p">]</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">]</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">market_rule_id</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request_news_providers"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_news_providers">[docs]</a>    <span class="nd">@check_connection</span>
@@ -1053,13 +1088,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.set_server_log_level"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.set_server_log_level">[docs]</a>    <span class="nd">@check_connection</span>
-    <span class="k">def</span> <span class="nf">set_server_log_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logLevel</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_server_log_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_level</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The default detail level is ERROR. For more details, see API</span>
 <span class="sd">        Logging.&quot;&quot;&quot;</span>
 
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;set_server_log_level&#39;</span><span class="p">]</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">logLevel</span><span class="p">]</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">log_level</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.start_api"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.start_api">[docs]</a>    <span class="nd">@check_connection</span>
@@ -1132,9 +1167,36 @@
             <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">api_state</span>  <span class="o">=</span> <span class="s2">&quot;Disconnected from the Bridge Application(TWS/IB Gateway).&quot;</span></div>
 
-<div class="viewcode-block" id="ApiCalls.request_historical_data"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_historical_data">[docs]</a>    <span class="k">def</span> <span class="nf">request_historical_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">end_date_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                <span class="n">duration</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bar_size_setting</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">what_to_show</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                <span class="n">use_rth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">format_date</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">keep_up_to_date</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">chart_options</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<div class="viewcode-block" id="ApiCalls.request_historical_data"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_historical_data">[docs]</a>    <span class="k">def</span> <span class="nf">request_historical_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">request_id</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                                <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
+                                <span class="n">end_date_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                <span class="n">duration</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                <span class="n">bar_size_setting</span><span class="p">,</span>
+                                <span class="n">what_to_show</span><span class="p">,</span>
+                                <span class="n">use_rth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                <span class="n">format_date</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                <span class="n">keep_up_to_date</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+                                <span class="n">chart_options</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make the &#39;historical_data&#39; message</span>
+<span class="sd">        Send the message to the Bridge</span>
+<span class="sd">        </span>
+<span class="sd">        Related</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        :param contract: </span>
+<span class="sd">        :param end_date_time: </span>
+<span class="sd">        :param duration: </span>
+<span class="sd">        :param bar_size_setting: string or `BarSize` </span>
+<span class="sd">        :param what_to_show: String or `Show` enum</span>
+<span class="sd">        :param use_rth: </span>
+<span class="sd">        :param format_date: </span>
+<span class="sd">        :param keep_up_to_date: </span>
+<span class="sd">        :param chart_options: Not sure what this is yet</span>
+<span class="sd">        :return: </span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="sd">&quot;&quot;&quot;Requests contracts&#39; historical data. When requesting historical data, a</span>
 <span class="sd">        finishing time and date is required along with a duration string. The</span>
 <span class="sd">        resulting bars will be returned in EWrapper.historicalData()</span>
@@ -1187,17 +1249,37 @@
 <span class="sd">            1 - dates applying to bars returned in the format: yyyymmdd{space}{space}hh:mm:dd</span>
 <span class="sd">            2 - dates are returned as a long integer specifying the number of seconds since</span>
 <span class="sd">                1/1/1970 GMT.</span>
-<span class="sd">        chartOptions:list - For internal use only. Use default value XYZ. &quot;&quot;&quot;</span>
-
-        <span class="c1"># Get the request id for this work</span>
-        <span class="c1">#request_id = self.conn.generate_request_id()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Create Message</span>
-        <span class="n">request_id</span> <span class="o">=</span> <span class="mi">29</span>
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_historical_data&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Handle cases where the representing Enum is passed in instead of a string</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bar_size_setting</span><span class="p">,</span><span class="n">Enum</span><span class="p">):</span>
+            <span class="n">bar_size_setting</span> <span class="o">=</span> <span class="n">bar_size_setting</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">what_to_show</span><span class="p">,</span><span class="n">Enum</span><span class="p">):</span>
+            <span class="n">what_to_show</span> <span class="o">=</span> <span class="n">what_to_show</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="c1"># Stocks don&#39;t have these attributes, if they don&#39;t exist empty values are passed instead as the Bridge expects</span>
+        <span class="n">last_trade_date_or_contract_month</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span><span class="s1">&#39;last_trade_date_or_contract_month&#39;</span><span class="p">):</span>
+            <span class="n">last_trade_date_or_contract_month</span> <span class="o">=</span> <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span>
+
+        <span class="n">right</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">):</span>
+            <span class="n">right</span> <span class="o">=</span> <span class="n">contract</span><span class="o">.</span><span class="n">right</span>
+
+        <span class="n">strike</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span> <span class="s1">&#39;strike&#39;</span><span class="p">):</span>
+            <span class="n">strike</span> <span class="o">=</span> <span class="n">contract</span><span class="o">.</span><span class="n">strike</span>
+
+        <span class="n">multiplier</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span><span class="s1">&#39;multiplier&#39;</span><span class="p">):</span>
+            <span class="n">multiplier</span> <span class="o">=</span> <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span>
+
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span>
-                    <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span><span class="p">,</span>
-                    <span class="n">contract</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span>
+                    <span class="n">last_trade_date_or_contract_month</span><span class="p">,</span><span class="n">strike</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">multiplier</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span>
                     <span class="n">contract</span><span class="o">.</span><span class="n">primary_exchange</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">,</span>
                     <span class="n">contract</span><span class="o">.</span><span class="n">include_expired</span><span class="p">,</span><span class="n">end_date_time</span><span class="p">,</span> <span class="n">bar_size_setting</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">use_rth</span><span class="p">,</span> <span class="n">what_to_show</span><span class="p">,</span> <span class="n">format_date</span><span class="p">]</span>
 
@@ -1205,14 +1287,15 @@
        <span class="c1"># Send combo legs for BAG requests</span>
         <span class="k">if</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">==</span> <span class="s2">&quot;BAG&quot;</span><span class="p">:</span>
             <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contract</span><span class="o">.</span><span class="n">combo_legs</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">comboLeg</span> <span class="ow">in</span> <span class="n">contract</span><span class="o">.</span><span class="n">combo_legs</span><span class="p">:</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comboLeg</span><span class="o">.</span><span class="n">contract_id</span><span class="p">)</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comboLeg</span><span class="o">.</span><span class="n">ratio</span><span class="p">)</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comboLeg</span><span class="o">.</span><span class="n">action</span><span class="p">)</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comboLeg</span><span class="o">.</span><span class="n">exchange</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">combo_leg</span> <span class="ow">in</span> <span class="n">contract</span><span class="o">.</span><span class="n">combo_legs</span><span class="p">:</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combo_leg</span><span class="o">.</span><span class="n">contract_id</span><span class="p">)</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combo_leg</span><span class="o">.</span><span class="n">ratio</span><span class="p">)</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combo_leg</span><span class="o">.</span><span class="n">action</span><span class="p">)</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combo_leg</span><span class="o">.</span><span class="n">exchange</span><span class="p">)</span>
 
 
         <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">keep_up_to_date</span><span class="p">)</span>
+
         <span class="c1"># send chartOptions parameter</span>
         <span class="n">chart_options_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">if</span> <span class="n">chart_options</span><span class="p">:</span>
@@ -1223,12 +1306,13 @@
         <span class="c1"># Send the Message</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
-
 <div class="viewcode-block" id="ApiCalls.request_news_bulletins"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_news_bulletins">[docs]</a>    <span class="nd">@check_connection</span>
     <span class="k">def</span> <span class="nf">request_news_bulletins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_messages</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Request to receive news bulletins.</span>
-
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
 <span class="sd">        :param all_messages: If set to TRUE, returns all the existing bulletins for the current day</span>
 <span class="sd">                             If set to FALSE, will only return new bulletins.</span>
 <span class="sd">        :return:</span>
@@ -1252,18 +1336,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request_tick_by_tick_data"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_tick_by_tick_data">[docs]</a>    <span class="nd">@check_connection</span>
-    <span class="k">def</span> <span class="nf">request_tick_by_tick_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">tick_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                  <span class="n">number_of_ticks</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ignoreSize</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">request_tick_by_tick_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                  <span class="n">request_id</span>        <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                  <span class="n">contract</span>          <span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
+                                  <span class="n">tick_type</span>         <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                  <span class="n">number_of_ticks</span>   <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                  <span class="n">ignore_size</span>       <span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
 
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_tick_by_tick_data&#39;</span><span class="p">]</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span>
                   <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span><span class="p">,</span>
                   <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">primary_exchange</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">,</span>
-                  <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">,</span> <span class="n">tick_type</span>
+                  <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">,</span> <span class="n">tick_type</span><span class="p">,</span> <span class="n">number_of_ticks</span><span class="p">,</span> <span class="n">ignore_size</span>
                   <span class="p">]</span>
-
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">number_of_ticks</span><span class="p">)</span>
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ignoreSize</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
@@ -1273,7 +1358,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version_</span></div>
 
-<div class="viewcode-block" id="ApiCalls.verify_request"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.verify_request">[docs]</a>    <span class="k">def</span> <span class="nf">verify_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">apiName</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">api_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="ApiCalls.verify_request"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.verify_request">[docs]</a>    <span class="k">def</span> <span class="nf">verify_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">api_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Allows for an application to request what the correct message should be for a given api/version.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1286,12 +1371,30 @@
 
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;verify_request&#39;</span><span class="p">]</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">apiName</span><span class="p">,</span> <span class="n">api_version</span><span class="p">]</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">api_name</span><span class="p">,</span> <span class="n">api_version</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request_market_data"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_market_data">[docs]</a>    <span class="nd">@check_connection</span>
     <span class="k">def</span> <span class="nf">request_market_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">generic_tick_list</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
                             <span class="n">snapshot</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">regulatory_snapshot</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">market_data_options</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Related Inbound Messages / Functions</span>
+<span class="sd">        ------------------------</span>
+<span class="sd">        tick_price</span>
+<span class="sd">        tick_size</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        :param request_id:</span>
+<span class="sd">        :param contract:</span>
+<span class="sd">        :param generic_tick_list:</span>
+<span class="sd">        :param snapshot:</span>
+<span class="sd">        :param regulatory_snapshot:</span>
+<span class="sd">        :param market_data_options:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
         <span class="sd">&quot;&quot;&quot;Call this function to request market data. The market data</span>
 <span class="sd">                will be returned by the tickPrice and tickSize events.</span>
 
@@ -1316,57 +1419,37 @@
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">11</span>
 
         <span class="c1"># send req market data msg</span>
-        <span class="n">insert_offset</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_market_data&#39;</span><span class="p">]</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span>
                           <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span><span class="p">,</span>
                           <span class="n">contract</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span>
                           <span class="n">contract</span><span class="o">.</span><span class="n">primary_exchange</span><span class="p">,</span>
-                          <span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">]</span>
+                          <span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">]</span>
 
-        <span class="c1"># Send Contract Fields</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_REQ_MKT_DATA_CONID</span><span class="p">:</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-            <span class="n">insert_offset</span> <span class="o">+=</span> <span class="mi">1</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_TRADING_CLASS</span><span class="p">:</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">)</span>
-            <span class="n">insert_offset</span> <span class="o">+=</span> <span class="mi">1</span>
-
-        <span class="c1"># Send combo legs for BAG requests (srv v8 and above)</span>
+        <span class="c1"># Send Combo Legs for BAG Requests</span>
         <span class="k">if</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span> <span class="o">==</span> <span class="s2">&quot;BAG&quot;</span><span class="p">:</span>
             <span class="n">combo_leg_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">contract</span><span class="o">.</span><span class="n">combo_legs</span><span class="p">)</span> <span class="k">if</span> <span class="n">contract</span><span class="o">.</span><span class="n">combo_legs</span> <span class="k">else</span> <span class="mi">0</span>
             <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combo_leg_count</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">comboLeg</span> <span class="ow">in</span> <span class="n">contract</span><span class="o">.</span><span class="n">combo_legs</span><span class="p">:</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comboLeg</span><span class="o">.</span><span class="n">conId</span><span class="p">)</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comboLeg</span><span class="o">.</span><span class="n">ratio</span><span class="p">)</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comboLeg</span><span class="o">.</span><span class="n">action</span><span class="p">)</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comboLeg</span><span class="o">.</span><span class="n">exchange</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">combo_leg</span> <span class="ow">in</span> <span class="n">contract</span><span class="o">.</span><span class="n">combo_legs</span><span class="p">:</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combo_leg</span><span class="o">.</span><span class="n">conId</span><span class="p">)</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combo_leg</span><span class="o">.</span><span class="n">ratio</span><span class="p">)</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combo_leg</span><span class="o">.</span><span class="n">action</span><span class="p">)</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combo_leg</span><span class="o">.</span><span class="n">exchange</span><span class="p">)</span>
 
         <span class="c1"># Send Delta Neutral Contract Fields</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_DELTA_NEUTRAL</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="p">:</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="o">.</span><span class="n">conId</span><span class="p">)</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="o">.</span><span class="n">delta</span><span class="p">)</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="o">.</span><span class="n">price</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="p">:</span>
+            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="o">.</span><span class="n">conId</span><span class="p">)</span>
+            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="o">.</span><span class="n">delta</span><span class="p">)</span>
+            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contract</span><span class="o">.</span><span class="n">delta_neutral_contract</span><span class="o">.</span><span class="n">price</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">generic_tick_list</span><span class="p">)</span>
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">snapshot</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_REQ_SMART_COMPONENTS</span><span class="p">:</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">regulatory_snapshot</span><span class="p">)</span>
-
-        <span class="c1"># send mktDataOptions parameter</span>
-        <span class="c1"># TODO: Clarify if the code is beneficial</span>
-        <span class="c1"># if self.server_version() &gt;= MIN_SERVER_VER_LINKING:</span>
-        <span class="c1">#    # current doc says this part if for &quot;internal use only&quot; -&gt; won&#39;t support it</span>
-        <span class="c1">#    if mktDataOptions:</span>
-        <span class="c1">#        raise NotImplementedError(&quot;not supported&quot;)</span>
-        <span class="c1">#    mktDataOptionsStr = &quot;&quot;</span>
-        <span class="c1">#    fields += [mktDataOptionsStr), ]</span>
+        <span class="c1"># TODO: Clarify what market_data_options is for</span>
+        <span class="n">market_data_options</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">generic_tick_list</span><span class="p">,</span> <span class="n">snapshot</span><span class="p">,</span> <span class="n">regulatory_snapshot</span><span class="p">,</span> <span class="n">market_data_options</span><span class="p">])</span>
 
         <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">make_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
@@ -1376,21 +1459,19 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection_time</span></div>
 
-<div class="viewcode-block" id="ApiCalls.request_ids"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_ids">[docs]</a>    <span class="k">def</span> <span class="nf">request_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_ids</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call this function to request from TWS the next valid ID that</span>
-<span class="sd">        can be used when placing an order.  After calling this function, the</span>
-<span class="sd">        nextValidId() event will be triggered, and the id returned is that next</span>
-<span class="sd">        valid ID. That ID will reflect any autobinding that has occurred (which</span>
-<span class="sd">        generates new IDs and increments the next valid ID therein).</span>
 
-<span class="sd">        num_ids:int - deprecated&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ApiCalls.request_order_ids"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_order_ids">[docs]</a>    <span class="nd">@check_connection</span>
+    <span class="k">def</span> <span class="nf">request_order_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct the request_order_ids message</span>
+<span class="sd">        Send the message to the Bridge application</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">is_connected</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">response_handler</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">NO_VALID_ID</span><span class="p">,</span> <span class="n">NOT_CONNECTED</span><span class="o">.</span><span class="n">code</span><span class="p">(),</span> <span class="n">NOT_CONNECTED</span><span class="o">.</span><span class="n">msg</span><span class="p">())</span>
-            <span class="k">return</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="n">num_ids</span>         <span class="o">=</span> <span class="mi">1</span> <span class="c1"># Deprecated field that is still expected but ignored in the message</span>
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_ids&#39;</span><span class="p">]</span>
+        <span class="n">message_id</span>      <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_order_ids&#39;</span><span class="p">]</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">num_ids</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
@@ -1497,13 +1578,13 @@
 
 <div class="viewcode-block" id="ApiCalls.request_histogram_data"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_histogram_data">[docs]</a>    <span class="nd">@check_connection</span>
     <span class="k">def</span> <span class="nf">request_histogram_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ticker_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
-                               <span class="n">useRTH</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">time_period</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+                               <span class="n">use_real_time_hours</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">time_period</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_histogram_data&#39;</span><span class="p">]</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">ticker_id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span>
                   <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span><span class="p">,</span>
                   <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">primary_exchange</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">,</span>
-                  <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">include_expired</span><span class="p">,</span> <span class="n">useRTH</span><span class="p">,</span>
+                  <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">include_expired</span><span class="p">,</span> <span class="n">use_real_time_hours</span><span class="p">,</span>
                   <span class="n">time_period</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
@@ -1584,8 +1665,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request__real_time_bars"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request__real_time_bars">[docs]</a>    <span class="nd">@check_connection</span>
-    <span class="k">def</span> <span class="nf">request__real_time_bars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">barSize</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-                                <span class="n">whatToShow</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">useRTH</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="k">def</span> <span class="nf">request__real_time_bars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">bar_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                <span class="n">what_to_show</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">use_rth</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
                                 <span class="n">realTimeBarsOptions</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Call the reqRealTimeBars() function to start receiving real time bar</span>
 <span class="sd">        results through the realtimeBar() EWrapper function.</span>
@@ -1595,15 +1676,15 @@
 <span class="sd">            used when canceling the request.</span>
 <span class="sd">        contract:Contract - This object contains a description of the contract</span>
 <span class="sd">            for which real time bars are being requested</span>
-<span class="sd">        barSize:int - Currently only 5 second bars are supported, if any other</span>
+<span class="sd">        bar_size:int - Currently only 5 second bars are supported, if any other</span>
 <span class="sd">            value is used, an exception will be thrown.</span>
-<span class="sd">        whatToShow:str - Determines the nature of the data extracted. Valid</span>
+<span class="sd">        what_to_show:str - Determines the nature of the data extracted. Valid</span>
 <span class="sd">            values include:</span>
 <span class="sd">            TRADES</span>
 <span class="sd">            BID</span>
 <span class="sd">            ASK</span>
 <span class="sd">            MIDPOINT</span>
-<span class="sd">        useRTH:bool - Regular Trading Hours only. Valid values include:</span>
+<span class="sd">        use_rth:bool - Regular Trading Hours only. Valid values include:</span>
 <span class="sd">            0 = all data available during the time span requested is returned,</span>
 <span class="sd">                including time intervals when the market in question was</span>
 <span class="sd">                outside of regular trading hours.</span>
@@ -1614,28 +1695,18 @@
 
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">3</span>
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_real_time_bars&#39;</span><span class="p">]</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">request_id</span><span class="p">]</span>
-
-        <span class="c1"># send contract fields</span>
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-
-        <span class="n">fields</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">contract</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span><span class="p">,</span>
-                       <span class="n">contract</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span>
-                       <span class="n">contract</span><span class="o">.</span><span class="n">primary_exchange</span><span class="p">,</span>
-                       <span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">])</span>
-
-
-        <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">,</span> <span class="p">]</span>
-
-        <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">barSize</span><span class="p">,</span> <span class="n">whatToShow</span><span class="p">,</span> <span class="n">useRTH</span><span class="p">]</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                  <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span><span class="p">,</span>
+                  <span class="n">contract</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span>
+                  <span class="n">contract</span><span class="o">.</span><span class="n">primary_exchange</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">,</span>
+                  <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">,</span> <span class="n">bar_size</span><span class="p">,</span> <span class="n">what_to_show</span><span class="p">,</span> <span class="n">use_rth</span><span class="p">]</span>
 
         <span class="c1"># send realTimeBarsOptions parameter</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_LINKING</span><span class="p">:</span>
-            <span class="n">realTimeBarsOptionsStr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-            <span class="k">if</span> <span class="n">realTimeBarsOptions</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">tagValueOpt</span> <span class="ow">in</span> <span class="n">realTimeBarsOptions</span><span class="p">:</span>
-                    <span class="n">realTimeBarsOptionsStr</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tagValueOpt</span><span class="p">)</span>
-            <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">realTimeBarsOptionsStr</span><span class="p">,</span> <span class="p">]</span>
+        <span class="n">realTimeBarsOptionsStr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">realTimeBarsOptions</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">tagValueOpt</span> <span class="ow">in</span> <span class="n">realTimeBarsOptions</span><span class="p">:</span>
+                <span class="n">realTimeBarsOptionsStr</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tagValueOpt</span><span class="p">)</span>
+        <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">realTimeBarsOptionsStr</span><span class="p">,</span> <span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
@@ -1756,7 +1827,7 @@
 
 <div class="viewcode-block" id="ApiCalls.verify_and_auth_request"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.verify_and_auth_request">[docs]</a>    <span class="nd">@check_connection</span>
     <span class="k">def</span> <span class="nf">verify_and_auth_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">api_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                <span class="n">opaqueIsvKey</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+                                <span class="n">opaque_is_vkey</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;For IB&#39;s internal purpose. Allows to provide means of verification</span>
 <span class="sd">        between the TWS and third party programs.&quot;&quot;&quot;</span>
 
@@ -1767,7 +1838,7 @@
 
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;verify_and_auth_request&#39;</span><span class="p">]</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">api_name</span><span class="p">,</span> <span class="n">api_version</span><span class="p">,</span> <span class="n">opaqueIsvKey</span><span class="p">]</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">api_name</span><span class="p">,</span> <span class="n">api_version</span><span class="p">,</span> <span class="n">opaque_is_vkey</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.verify_and_auth_message"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.verify_and_auth_message">[docs]</a>    <span class="nd">@check_connection</span>
@@ -1783,28 +1854,30 @@
 
 <div class="viewcode-block" id="ApiCalls.request_security_definition_option_parameters"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_security_definition_option_parameters">[docs]</a>    <span class="nd">@check_connection</span>
     <span class="k">def</span> <span class="nf">request_security_definition_option_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">underlying_symbol</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                                      <span class="n">futFopExchange</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">underlyingSecType</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                                      <span class="n">futFopExchange</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">underlying_security_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
                                                       <span class="n">underlying_contract_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Requests security definition option parameters for viewing a</span>
 <span class="sd">        contract&#39;s option chain request_id the ID chosen for the request</span>
 <span class="sd">        underlying_symbol futFopExchange The exchange on which the returned</span>
 <span class="sd">        options are trading. Can be set to the empty string &quot;&quot; for all</span>
-<span class="sd">        exchanges. underlyingSecType The type of the underlying security,</span>
+<span class="sd">        exchanges. underlying_security_type The type of the underlying security,</span>
 <span class="sd">        i.e. STK underlying_contract_id the contract ID of the underlying security.</span>
 <span class="sd">        Response comes via EWrapper.securityDefinitionOptionParameter()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_security_definition_option_parameters&#39;</span><span class="p">]</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">underlying_symbol</span><span class="p">,</span>
-                  <span class="n">futFopExchange</span><span class="p">,</span> <span class="n">underlyingSecType</span><span class="p">,</span> <span class="n">underlying_contract_id</span><span class="p">]</span>
+                  <span class="n">futFopExchange</span><span class="p">,</span> <span class="n">underlying_security_type</span><span class="p">,</span> <span class="n">underlying_contract_id</span><span class="p">]</span>
         <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">make_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request_soft_dollar_tiers"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_soft_dollar_tiers">[docs]</a>    <span class="nd">@check_connection</span>
     <span class="k">def</span> <span class="nf">request_soft_dollar_tiers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Requests pre-defined Soft Dollar Tiers. This is only supported for</span>
-<span class="sd">        registered professional advisors and hedge and mutual funds who have</span>
-<span class="sd">        configured Soft Dollar Tiers in Account Management.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Requests pre-defined Soft Dollar Tiers.</span>
+<span class="sd">        This is only supported for registered professional advisers, hedge funds, and mutual funds who have</span>
+<span class="sd">        configured Soft Dollar Tiers in Account Management.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_soft_dollar_tiers&#39;</span><span class="p">]</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">]</span>
@@ -1813,6 +1886,10 @@
 
 <div class="viewcode-block" id="ApiCalls.request_family_codes"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_family_codes">[docs]</a>    <span class="nd">@check_connection</span>
     <span class="k">def</span> <span class="nf">request_family_codes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get Information on Related Accounts (aka &quot;Family Codes&quot;)</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_family_codes&#39;</span><span class="p">]</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">]</span>
@@ -1851,14 +1928,14 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Overview</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/architecture.html">IBKR_API Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/installation.html">Installation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/quick_start.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../overview/quick_start.html#request-handlers">Request Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/faq.html">F.A.Q</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../samples/client_application.html">Client Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview/contributors.html">Contributing To This Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../samples/ibkr_api.html">IBKR_API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../samples/client_application.html">ClientApplication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../source/modules.html">ibkr_api</a></li>
 </ul>
 

@@ -69,8 +69,6 @@
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.financial_advisor.FinancialAdvisor.ACCOUNT_ALIASES">ACCOUNT_ALIASES (ibkr_api.classes.enum.financial_advisor.FinancialAdvisor attribute)</a>
 </li>
-      <li><a href="source/ibkr_api.html#ibkr_api.client_application.ClientApplication.act">act() (ibkr_api.client_application.ClientApplication method)</a>
-</li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.rule_80a.Rule80A.AGENCY">AGENCY (ibkr_api.classes.enum.rule_80a.Rule80A attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.rule_80a.Rule80A.AGENCY_PT">AGENCY_PT (ibkr_api.classes.enum.rule_80a.Rule80A attribute)</a>
@@ -104,6 +102,8 @@
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.ASK_SIZE">ASK_SIZE (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.ASK_YIELD">ASK_YIELD (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.html#ibkr_api.classes.option_chain.OptionChain.atm_strike">atm_strike() (ibkr_api.classes.option_chain.OptionChain method)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.AUCTION_IMBALANCE">AUCTION_IMBALANCE (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
@@ -152,8 +152,6 @@
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.bond_contract_data">bond_contract_data() (ibkr_api.base.message_parser.MessageParser static method)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.BOND_FACTOR_MULTIPLIER">BOND_FACTOR_MULTIPLIER (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
-</li>
-      <li><a href="source/ibkr_api.classes.contracts.html#ibkr_api.classes.contracts.security_types.SecurityTypes.BONDS">BONDS (ibkr_api.classes.contracts.security_types.SecurityTypes attribute)</a>
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.bridge_connection.BridgeConnection">BridgeConnection (class in ibkr_api.base.bridge_connection)</a>
 </li>
@@ -293,8 +291,6 @@
         <li><a href="source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.cancel_tick_by_tick_data">(ibkr_api.base.api_calls.ApiCalls method)</a>
 </li>
       </ul></li>
-      <li><a href="source/ibkr_api.classes.contracts.html#ibkr_api.classes.contracts.security_types.SecurityTypes.CASH">CASH (ibkr_api.classes.contracts.security_types.SecurityTypes attribute)</a>
-</li>
       <li><a href="source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.CAT">CAT() (ibkr_api.classes.stocks.dow30.Dow30 method)</a>
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.api_calls.check_connection">check_connection() (in module ibkr_api.base.api_calls)</a>
@@ -323,11 +319,11 @@
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.contract_data">contract_data() (ibkr_api.base.message_parser.MessageParser static method)</a>
 </li>
+      <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.contract_data_end">contract_data_end() (ibkr_api.base.message_parser.MessageParser static method)</a>
+</li>
       <li><a href="source/ibkr_api.classes.contracts.html#ibkr_api.classes.contracts.contract_description.ContractDescription">ContractDescription (class in ibkr_api.classes.contracts.contract_description)</a>
 </li>
       <li><a href="source/ibkr_api.classes.contracts.html#ibkr_api.classes.contracts.contract_details.ContractDetails">ContractDetails (class in ibkr_api.classes.contracts.contract_details)</a>
-</li>
-      <li><a href="source/ibkr_api.classes.contracts.html#ibkr_api.classes.contracts.security_types.SecurityTypes.CONTRACTS_FOR_DIFFERENCES">CONTRACTS_FOR_DIFFERENCES (ibkr_api.classes.contracts.security_types.SecurityTypes attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.CREDITMAN_MARK_PRICE">CREDITMAN_MARK_PRICE (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
@@ -391,7 +387,7 @@
 </li>
       <li><a href="source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30">Dow30 (class in ibkr_api.classes.stocks.dow30)</a>
 </li>
-      <li><a href="source/ibkr_api.classes.contracts.html#ibkr_api.classes.contracts.security_types.SecurityTypes.DUTCH_WARRANTS">DUTCH_WARRANTS (ibkr_api.classes.contracts.security_types.SecurityTypes attribute)</a>
+      <li><a href="source/ibkr_api.html#ibkr_api.api.drop_message_id_and_request_id">drop_message_id_and_request_id() (in module ibkr_api.api)</a>
 </li>
       <li><a href="source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.DWDP">DWDP() (ibkr_api.classes.stocks.dow30.Dow30 method)</a>
 </li>
@@ -401,14 +397,16 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.EIGHT_HOURS">EIGHT_HOURS (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.errors.Errors">Errors (class in ibkr_api.base.errors)</a>
 </li>
       <li><a href="source/ibkr_api.classes.html#ibkr_api.classes.execution.Execution">Execution (class in ibkr_api.classes.execution)</a>
 </li>
-      <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.execution_data">execution_data() (ibkr_api.base.message_parser.MessageParser static method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.execution_data">execution_data() (ibkr_api.base.message_parser.MessageParser static method)</a>
+</li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.execution_data_end">execution_data_end() (ibkr_api.base.message_parser.MessageParser static method)</a>
 </li>
       <li><a href="source/ibkr_api.html#ibkr_api.api.IBKR_API.exercise_options">exercise_options() (ibkr_api.api.IBKR_API method)</a>
@@ -424,28 +422,38 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.family_codes">family_codes() (ibkr_api.base.message_parser.MessageParser static method)</a>
+
+      <ul>
+        <li><a href="source/ibkr_api.html#ibkr_api.client_application.ClientApplication.family_codes">(ibkr_api.client_application.ClientApplication method)</a>
 </li>
+      </ul></li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.historical_data_type.HistoricalDataType.FEE_RATE">FEE_RATE (ibkr_api.classes.enum.historical_data_type.HistoricalDataType attribute)</a>
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.messages.Messages.field_types">field_types (ibkr_api.base.messages.Messages attribute)</a>
 </li>
-      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.report_type.ReportType.FINANCIAL_STATEMENTS">FINANCIAL_STATEMENTS (ibkr_api.classes.enum.report_type.ReportType attribute)</a>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.FIFTEEN_MINUTES">FIFTEEN_MINUTES (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
 </li>
-      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.report_type.ReportType.FINANCIAL_SUMMARY">FINANCIAL_SUMMARY (ibkr_api.classes.enum.report_type.ReportType attribute)</a>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.FIFTEEN_SECONDS">FIFTEEN_SECONDS (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.report_type.ReportType.FINANCIAL_STATEMENTS">FINANCIAL_STATEMENTS (ibkr_api.classes.enum.report_type.ReportType attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.report_type.ReportType.FINANCIAL_SUMMARY">FINANCIAL_SUMMARY (ibkr_api.classes.enum.report_type.ReportType attribute)</a>
+</li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.financial_advisor.FinancialAdvisor">FinancialAdvisor (class in ibkr_api.classes.enum.financial_advisor)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.FIVE_MINUTES">FIVE_MINUTES (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.FIVE_SECONDS">FIVE_SECONDS (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.messages.Messages.FieldType.FLOAT">FLOAT (ibkr_api.base.messages.Messages.FieldType attribute)</a>
 </li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.FOUR_HOURS">FOUR_HOURS (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.FUNDAMENTAL_RATIOS">FUNDAMENTAL_RATIOS (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
-      <li><a href="source/ibkr_api.classes.contracts.html#ibkr_api.classes.contracts.security_types.SecurityTypes.FUTURES">FUTURES (ibkr_api.classes.contracts.security_types.SecurityTypes attribute)</a>
-</li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.FUTURES_OPEN_INTEREST">FUTURES_OPEN_INTEREST (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
-</li>
-      <li><a href="source/ibkr_api.classes.contracts.html#ibkr_api.classes.contracts.security_types.SecurityTypes.FUTURES_OPTIONS">FUTURES_OPTIONS (ibkr_api.classes.contracts.security_types.SecurityTypes attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -475,6 +483,8 @@
 </li>
       <li><a href="source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.HD">HD() (ibkr_api.classes.stocks.dow30.Dow30 method)</a>
 </li>
+      <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.head_time_stamp">head_time_stamp() (ibkr_api.base.message_parser.MessageParser static method)</a>
+</li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.HIGH">HIGH (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.HIGH_13_WEEK">HIGH_13_WEEK (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
@@ -489,10 +499,10 @@
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.historical_data">historical_data() (ibkr_api.base.message_parser.MessageParser static method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.historical_data_update">historical_data_update() (ibkr_api.base.message_parser.MessageParser static method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.historical_news">historical_news() (ibkr_api.base.message_parser.MessageParser static method)</a>
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.historical_news_end">historical_news_end() (ibkr_api.base.message_parser.MessageParser static method)</a>
@@ -508,6 +518,14 @@
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.historical_data_type.HistoricalDataType">HistoricalDataType (class in ibkr_api.classes.enum.historical_data_type)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.HOUR_1">HOUR_1 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.HOUR_2">HOUR_2 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.HOUR_3">HOUR_3 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.HOUR_4">HOUR_4 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.HOUR_8">HOUR_8 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -549,8 +567,6 @@
 </li>
       <li><a href="source/ibkr_api.classes.contracts.html#module-ibkr_api.classes.contracts.contract_details">ibkr_api.classes.contracts.contract_details (module)</a>
 </li>
-      <li><a href="source/ibkr_api.classes.contracts.html#module-ibkr_api.classes.contracts.security_types">ibkr_api.classes.contracts.security_types (module)</a>
-</li>
       <li><a href="source/ibkr_api.classes.enum.html#module-ibkr_api.classes.enum">ibkr_api.classes.enum (module)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#module-ibkr_api.classes.enum.bar_size">ibkr_api.classes.enum.bar_size (module)</a>
@@ -570,8 +586,6 @@
       <li><a href="source/ibkr_api.classes.html#module-ibkr_api.classes.execution">ibkr_api.classes.execution (module)</a>
 </li>
       <li><a href="source/ibkr_api.classes.html#module-ibkr_api.classes.option_chain">ibkr_api.classes.option_chain (module)</a>
-</li>
-      <li><a href="source/ibkr_api.classes.html#module-ibkr_api.classes.order">ibkr_api.classes.order (module)</a>
 </li>
       <li><a href="source/ibkr_api.classes.html#module-ibkr_api.classes.order_state">ibkr_api.classes.order_state (module)</a>
 </li>
@@ -607,12 +621,8 @@
         <li><a href="source/ibkr_api.html#ibkr_api.multiple_client_application.MultipleClientApplication.info_message">(ibkr_api.multiple_client_application.MultipleClientApplication method)</a>
 </li>
       </ul></li>
-      <li><a href="source/ibkr_api.html#ibkr_api.client_application.ClientApplication.initialize">initialize() (ibkr_api.client_application.ClientApplication method)</a>
-
-      <ul>
-        <li><a href="source/ibkr_api.html#ibkr_api.multiple_client_application.MultipleClientApplication.initialize">(ibkr_api.multiple_client_application.MultipleClientApplication method)</a>
+      <li><a href="source/ibkr_api.html#ibkr_api.multiple_client_application.MultipleClientApplication.initialize">initialize() (ibkr_api.multiple_client_application.MultipleClientApplication method)</a>
 </li>
-      </ul></li>
       <li><a href="source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.INTC">INTC() (ibkr_api.classes.stocks.dow30.Dow30 method)</a>
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.messages.Messages.FieldType.INTEGER">INTEGER (ibkr_api.base.messages.Messages.FieldType attribute)</a>
@@ -698,7 +708,11 @@
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.MARK_PRICE">MARK_PRICE (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.market_data_type">market_data_type() (ibkr_api.base.message_parser.MessageParser static method)</a>
+
+      <ul>
+        <li><a href="source/ibkr_api.html#ibkr_api.client_application.ClientApplication.market_data_type">(ibkr_api.client_application.ClientApplication method)</a>
 </li>
+      </ul></li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.market_depth_exchanges">market_depth_exchanges() (ibkr_api.base.message_parser.MessageParser static method)</a>
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.market_depth_l2">market_depth_l2() (ibkr_api.base.message_parser.MessageParser static method)</a>
@@ -711,17 +725,21 @@
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.messages.Messages">Messages (class in ibkr_api.base.messages)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.messages.Messages.FieldType">Messages.FieldType (class in ibkr_api.base.messages)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.historical_data_type.HistoricalDataType.MIDPOINT">MIDPOINT (ibkr_api.classes.enum.historical_data_type.HistoricalDataType attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.MINUTES_1">MINUTES_1 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
 </li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.MINUTES_10">MINUTES_10 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.MINUTES_15">MINUTES_15 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.MINUTES_2">MINUTES_2 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.MINUTES_20">MINUTES_20 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.MINUTES_3">MINUTES_3 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
 </li>
@@ -732,6 +750,8 @@
       <li><a href="source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.MMM">MMM() (ibkr_api.classes.stocks.dow30.Dow30 method)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.MODEL_OPTION">MODEL_OPTION (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.MONTH_1">MONTH_1 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.MRK">MRK() (ibkr_api.classes.stocks.dow30.Dow30 method)</a>
 </li>
@@ -769,18 +789,34 @@
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.ONE_DAY">ONE_DAY (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.ONE_HOUR">ONE_HOUR (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.ONE_MINUTE">ONE_MINUTE (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.ONE_MONTH">ONE_MONTH (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.ONE_SECOND">ONE_SECOND (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.ONE_WEEK">ONE_WEEK (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.OPEN">OPEN (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.OPEN_EFP_COMPUTATION">OPEN_EFP_COMPUTATION (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.OPEN_INTEREST">OPEN_INTEREST (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
-      <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.open_order">open_order() (ibkr_api.base.message_parser.MessageParser static method)</a>
+      <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.open_orders">open_orders() (ibkr_api.base.message_parser.MessageParser static method)</a>
+</li>
+      <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.open_orders_end">open_orders_end() (ibkr_api.base.message_parser.MessageParser static method)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.OPTION_ASK_EXCH">OPTION_ASK_EXCH (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.OPTION_BID_EXCH">OPTION_BID_EXCH (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.OPTION_CALL_OPEN_INTEREST">OPTION_CALL_OPEN_INTEREST (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.OPTION_CALL_VOLUME">OPTION_CALL_VOLUME (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
@@ -791,23 +827,15 @@
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.historical_data_type.HistoricalDataType.OPTION_IMPLIED_VOLATILITY">OPTION_IMPLIED_VOLATILITY (ibkr_api.classes.enum.historical_data_type.HistoricalDataType attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.OPTION_PUT_OPEN_INTEREST">OPTION_PUT_OPEN_INTEREST (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.OPTION_PUT_VOLUME">OPTION_PUT_VOLUME (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.html#ibkr_api.classes.option_chain.OptionChain">OptionChain (class in ibkr_api.classes.option_chain)</a>
 </li>
-      <li><a href="source/ibkr_api.classes.contracts.html#ibkr_api.classes.contracts.security_types.SecurityTypes.OPTIONS">OPTIONS (ibkr_api.classes.contracts.security_types.SecurityTypes attribute)</a>
-</li>
-      <li><a href="source/ibkr_api.classes.html#ibkr_api.classes.order.Order">Order (class in ibkr_api.classes.order)</a>
-</li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.order_bound">order_bound() (ibkr_api.base.message_parser.MessageParser static method)</a>
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.order_status">order_status() (ibkr_api.base.message_parser.MessageParser static method)</a>
-</li>
-      <li><a href="source/ibkr_api.classes.html#ibkr_api.classes.order.OrderComboLeg">OrderComboLeg (class in ibkr_api.classes.order)</a>
 </li>
       <li><a href="source/ibkr_api.classes.html#ibkr_api.classes.order_state.OrderState">OrderState (class in ibkr_api.classes.order_state)</a>
 </li>
@@ -991,12 +1019,6 @@
         <li><a href="source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_historical_ticks">(ibkr_api.base.api_calls.ApiCalls method)</a>
 </li>
       </ul></li>
-      <li><a href="source/ibkr_api.html#ibkr_api.api.IBKR_API.request_ids">request_ids() (ibkr_api.api.IBKR_API method)</a>
-
-      <ul>
-        <li><a href="source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_ids">(ibkr_api.base.api_calls.ApiCalls method)</a>
-</li>
-      </ul></li>
       <li><a href="source/ibkr_api.html#ibkr_api.api.IBKR_API.request_managed_accounts">request_managed_accounts() (ibkr_api.api.IBKR_API method)</a>
 
       <ul>
@@ -1009,14 +1031,14 @@
         <li><a href="source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_market_data">(ibkr_api.base.api_calls.ApiCalls method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/ibkr_api.html#ibkr_api.api.IBKR_API.request_market_data_type">request_market_data_type() (ibkr_api.api.IBKR_API method)</a>
 
       <ul>
         <li><a href="source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_market_data_type">(ibkr_api.base.api_calls.ApiCalls method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/ibkr_api.html#ibkr_api.api.IBKR_API.request_market_depth">request_market_depth() (ibkr_api.api.IBKR_API method)</a>
 
       <ul>
@@ -1065,7 +1087,11 @@
         <li><a href="source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_open_orders">(ibkr_api.base.api_calls.ApiCalls method)</a>
 </li>
       </ul></li>
-      <li><a href="source/ibkr_api.html#ibkr_api.api.IBKR_API.request_option_chain">request_option_chain() (ibkr_api.api.IBKR_API method)</a>
+      <li><a href="source/ibkr_api.html#ibkr_api.api.IBKR_API.request_option_chains">request_option_chains() (ibkr_api.api.IBKR_API method)</a>
+</li>
+      <li><a href="source/ibkr_api.html#ibkr_api.api.IBKR_API.request_order_id">request_order_id() (ibkr_api.api.IBKR_API method)</a>
+</li>
+      <li><a href="source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_order_ids">request_order_ids() (ibkr_api.base.api_calls.ApiCalls method)</a>
 </li>
       <li><a href="source/ibkr_api.html#ibkr_api.api.IBKR_API.request_pnl">request_pnl() (ibkr_api.api.IBKR_API method)</a>
 
@@ -1145,12 +1171,8 @@
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.rule_80a.Rule80A">Rule80A (class in ibkr_api.classes.enum.rule_80a)</a>
 </li>
-      <li><a href="source/ibkr_api.html#ibkr_api.client_application.ClientApplication.run">run() (ibkr_api.client_application.ClientApplication method)</a>
-
-      <ul>
-        <li><a href="source/ibkr_api.html#ibkr_api.multiple_client_application.MultipleClientApplication.run">(ibkr_api.multiple_client_application.MultipleClientApplication method)</a>
+      <li><a href="source/ibkr_api.html#ibkr_api.multiple_client_application.MultipleClientApplication.run">run() (ibkr_api.multiple_client_application.MultipleClientApplication method)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -1169,6 +1191,8 @@
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.SECONDS_1">SECONDS_1 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
 </li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.SECONDS_10">SECONDS_10 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.SECONDS_15">SECONDS_15 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.SECONDS_30">SECONDS_30 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
@@ -1178,8 +1202,6 @@
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.security_definition_option_parameter">security_definition_option_parameter() (ibkr_api.base.message_parser.MessageParser static method)</a>
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.security_definition_option_parameter_end">security_definition_option_parameter_end() (ibkr_api.base.message_parser.MessageParser static method)</a>
-</li>
-      <li><a href="source/ibkr_api.classes.contracts.html#ibkr_api.classes.contracts.security_types.SecurityTypes">SecurityTypes (class in ibkr_api.classes.contracts.security_types)</a>
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.bridge_connection.BridgeConnection.send_message">send_message() (ibkr_api.base.bridge_connection.BridgeConnection method)</a>
 </li>
@@ -1191,10 +1213,10 @@
         <li><a href="source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.set_server_log_level">(ibkr_api.base.api_calls.ApiCalls method)</a>
 </li>
       </ul></li>
-      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.SHORT_TERM_VOLUME_10_MIN">SHORT_TERM_VOLUME_10_MIN (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.SHORT_TERM_VOLUME_10_MIN">SHORT_TERM_VOLUME_10_MIN (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
+</li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.SHORT_TERM_VOLUME_3_MIN">SHORT_TERM_VOLUME_3_MIN (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.SHORT_TERM_VOLUME_5_MIN">SHORT_TERM_VOLUME_5_MIN (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
@@ -1213,16 +1235,10 @@
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.start_api">start_api() (ibkr_api.base.api_calls.ApiCalls method)</a>
 </li>
-      <li><a href="source/ibkr_api.classes.contracts.html#ibkr_api.classes.contracts.security_types.SecurityTypes.STOCK">STOCK (ibkr_api.classes.contracts.security_types.SecurityTypes attribute)</a>
-</li>
       <li><a href="source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.stocks">stocks() (ibkr_api.classes.stocks.dow30.Dow30 method)</a>
 </li>
-      <li><a href="source/ibkr_api.html#ibkr_api.client_application.ClientApplication.stop">stop() (ibkr_api.client_application.ClientApplication method)</a>
-
-      <ul>
-        <li><a href="source/ibkr_api.html#ibkr_api.multiple_client_application.MultipleClientApplication.stop">(ibkr_api.multiple_client_application.MultipleClientApplication method)</a>
+      <li><a href="source/ibkr_api.html#ibkr_api.multiple_client_application.MultipleClientApplication.stop">stop() (ibkr_api.multiple_client_application.MultipleClientApplication method)</a>
 </li>
-      </ul></li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.messages.Messages.FieldType.STRING">STRING (ibkr_api.base.messages.Messages.FieldType attribute)</a>
 </li>
       <li><a href="source/ibkr_api.html#ibkr_api.api.IBKR_API.subscribe_to_group_events">subscribe_to_group_events() (ibkr_api.api.IBKR_API method)</a>
@@ -1239,6 +1255,16 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.TEN_MINUTES">TEN_MINUTES (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.TEN_SECONDS">TEN_SECONDS (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.THIRTY_MINUTES">THIRTY_MINUTES (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.THIRTY_SECONDS">THIRTY_SECONDS (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.THREE_MINUTES">THREE_MINUTES (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.tick_by_tick">tick_by_tick() (ibkr_api.base.message_parser.MessageParser static method)</a>
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.tick_news">tick_news() (ibkr_api.base.message_parser.MessageParser static method)</a>
@@ -1246,13 +1272,31 @@
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.tick_option_computation">tick_option_computation() (ibkr_api.base.message_parser.MessageParser static method)</a>
 </li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.tick_price">tick_price() (ibkr_api.base.message_parser.MessageParser static method)</a>
+
+      <ul>
+        <li><a href="source/ibkr_api.html#ibkr_api.client_application.ClientApplication.tick_price">(ibkr_api.client_application.ClientApplication method)</a>
 </li>
+      </ul></li>
       <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.tick_req">tick_req() (ibkr_api.base.message_parser.MessageParser static method)</a>
+</li>
+      <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.tick_request_params">tick_request_params() (ibkr_api.base.message_parser.MessageParser static method)</a>
+
+      <ul>
+        <li><a href="source/ibkr_api.html#ibkr_api.client_application.ClientApplication.tick_request_params">(ibkr_api.client_application.ClientApplication method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.tick_size">tick_size() (ibkr_api.base.message_parser.MessageParser static method)</a>
+
+      <ul>
+        <li><a href="source/ibkr_api.html#ibkr_api.client_application.ClientApplication.tick_size">(ibkr_api.client_application.ClientApplication method)</a>
+</li>
+      </ul></li>
+      <li><a href="source/ibkr_api.base.html#ibkr_api.base.message_parser.MessageParser.tick_string">tick_string() (ibkr_api.base.message_parser.MessageParser static method)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType">TickType (class in ibkr_api.classes.enum.tick_type)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/ibkr_api.classes.html#ibkr_api.classes.execution.Execution.to_csv">to_csv() (ibkr_api.classes.execution.Execution method)</a>
 </li>
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.tick_type.TickType.TRADE_COUNT">TRADE_COUNT (ibkr_api.classes.enum.tick_type.TickType attribute)</a>
@@ -1262,6 +1306,12 @@
       <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.historical_data_type.HistoricalDataType.TRADES">TRADES (ibkr_api.classes.enum.historical_data_type.HistoricalDataType attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.TRV">TRV() (ibkr_api.classes.stocks.dow30.Dow30 method)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.TWENTY_MINUTES">TWENTY_MINUTES (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.TWO_HOUR">TWO_HOUR (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
+</li>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.TWO_MINUTES">TWO_MINUTES (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
 </li>
       <li><a href="source/ibkr_api.html#ibkr_api.api.IBKR_API.tws_connection_time">tws_connection_time() (ibkr_api.api.IBKR_API method)</a>
 
@@ -1339,11 +1389,11 @@
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="source/ibkr_api.classes.contracts.html#ibkr_api.classes.contracts.security_types.SecurityTypes.WARRANTS">WARRANTS (ibkr_api.classes.contracts.security_types.SecurityTypes attribute)</a>
+      <li><a href="source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.WBA">WBA() (ibkr_api.classes.stocks.dow30.Dow30 method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.WBA">WBA() (ibkr_api.classes.stocks.dow30.Dow30 method)</a>
+      <li><a href="source/ibkr_api.classes.enum.html#ibkr_api.classes.enum.bar_size.BarSize.WEEK_1">WEEK_1 (ibkr_api.classes.enum.bar_size.BarSize attribute)</a>
 </li>
       <li><a href="source/ibkr_api.classes.stocks.html#ibkr_api.classes.stocks.dow30.Dow30.WMT">WMT() (ibkr_api.classes.stocks.dow30.Dow30 method)</a>
 </li>
@@ -1376,14 +1426,14 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Overview</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview/architecture.html">IBKR_API Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="overview/installation.html">Installation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="overview/quick_start.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="overview/quick_start.html#request-handlers">Request Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="overview/faq.html">F.A.Q</a></li>
-<li class="toctree-l1"><a class="reference internal" href="samples/client_application.html">Client Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview/contributors.html">Contributing To This Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samples/ibkr_api.html">IBKR_API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samples/client_application.html">ClientApplication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source/modules.html">ibkr_api</a></li>
 </ul>
 
