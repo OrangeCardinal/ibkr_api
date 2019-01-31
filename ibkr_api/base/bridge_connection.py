@@ -114,8 +114,6 @@ class BridgeConnection:
                     cont = False
         except Exception:
             pass
-            #logger.error(e)
-            #logger.error("Exception raised from receive_message %s", sys.exc_info())
 
 
         # Split the socket data into messages that can be passed back
