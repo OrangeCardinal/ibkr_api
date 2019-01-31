@@ -386,8 +386,8 @@ class ApiCalls(object):
         Create the place_order message
         Send the message to the Bridge Application(TWS/IBGateway)
 
-        :param order_id:
-        :param contract:
+        :param order_id: Identifier for the Order
+        :param contract: Contract Object used for info like symbol, strike, multiplier, expiration,
         :param order:
         :return:
         """
@@ -411,10 +411,10 @@ class ApiCalls(object):
         trailing_percent                    = getattr(order ,   'trailing_percent'          ,   '')
         scale_init_level_size               = getattr(order ,   'scale_init_level_size'     ,   '')
         scale_subs_level_size               = getattr(order ,   'scale_subs_level_size'     ,   '')
-        scale_price_increment               = getattr(order ,   'scale_price_increment'     ,   '')
+        scale_price_increment               = getattr(order ,   'scale_price_increment'     ,   0.0)
         scale_table                         = getattr(order ,   'scale_table'               ,   '')
 
-        fields      = [message_id, message_version, order_id, contract.id]
+        fields      = [message_id, order_id, contract.id]
         fields +=   [
                     contract.symbol                     ,
                     contract.security_type              ,
@@ -556,9 +556,7 @@ class ApiCalls(object):
                    scale_subs_level_size        ,
                    scale_price_increment]
 
-        #TODO: Fix conditional here
-        #if order.scale_price_increment != UNSET_DOUBLE and scale_price_increment > 0.0:
-        if hasattr(order,'scale_price_increment'):
+        if hasattr(order,'scale_price_increment'): # TODO: add back this --> and scale_price_increment > 0:
             fields += [order.scale_price_adjust_value,
                        order.scale_price_adjust_interval,
                        order.scale_profit_offset,
@@ -604,7 +602,7 @@ class ApiCalls(object):
         fields.append(order.what_if)
 
         # send miscOptions parameter
-        miscOptionsStr = UNSET_DOUBLE
+        miscOptionsStr = ""
         if order.order_misc_options:
             for tagValue in order.order_misc_options:
                 miscOptionsStr += str(tagValue)
@@ -644,9 +642,9 @@ class ApiCalls(object):
         fields.append(order.mifid2ExecutionAlgo)
         fields.append(order.dont_use_auto_price_for_hedge)
         fields.append(order.is_oms_container)
+        fields.append(order.discrentionary_up_to_limit_price)
+        fields.append(0) # TODO: Figure out missing field
 
-        print(fields)
-        print(len(fields))
         self.conn.send_message(fields)
 
     @check_connection
