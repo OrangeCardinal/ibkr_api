@@ -17,9 +17,6 @@ Responsible For
 import logging
 import socket
 import struct
-import threading
-
-
 
 from ibkr_api.base.constants import DISCONNECTED, UNKNOWN, CONNECTED
 from ibkr_api.base.errors import FAIL_CREATE_SOCK, Errors
@@ -37,9 +34,6 @@ class BridgeConnection:
         self.socket = None
         self.status = UNKNOWN
         self.request_id = -1
-
-        self.lock = threading.Lock()
-
 
     def connect(self):
         self.status = CONNECTED
@@ -59,18 +53,14 @@ class BridgeConnection:
             logger.error(Errors.connect_fail()['message'])
             self.status = DISCONNECTED
 
-        self.socket.settimeout(1)   #non-blocking
+        self.socket.settimeout(1)   # Non-blocking mode (We won't wait for data on recv() calls
 
     def disconnect(self):
-        self.lock.acquire()
-        try:
-            logger.debug("Closing socket connection to bridge (TWS/IBGW)")
-            self.socket.close()
-            self.socket = None
-            self.status = DISCONNECTED
-            logger.debug("disconnected")
-        finally:
-            self.lock.release()
+        logger.debug("Closing socket connection to bridge (TWS/IBGW)")
+        self.socket.close()
+        self.socket = None
+        self.status = DISCONNECTED
+        logger.debug("disconnected")
 
 
     def is_connected(self):
@@ -79,10 +69,6 @@ class BridgeConnection:
     def generate_request_id(self):
         self.request_id += 1
         return self.request_id
-
-    ###########################
-    # Field Level abstraction #
-    ###########################
 
 
     ###########################
@@ -111,7 +97,7 @@ class BridgeConnection:
         # Check that we are connected
         if not self.is_connected():
             logger.debug("receive_message attempted while not connected.")
-            return []
+            return messages
 
 
         # Read data from the socket
@@ -152,11 +138,12 @@ class BridgeConnection:
         :param msg:
         :return:
         """
+
         # Check if we received a list of fields, if so convert it to a proper message
         if isinstance(msg, list):
             msg = self.make_message(msg)
 
-        # Send data, and release the lock
+        # Send data
         #try:
         if make_msg:
             msg = self.make_msg(msg)
@@ -200,7 +187,7 @@ class BridgeConnection:
         """ first the size prefix and then the corresponding msg payload """
 
         if len(buf) < 4:
-            return (0, "", buf)
+            return 0, "", buf
 
         size = struct.unpack("!I", buf[0:4])[0]
 
@@ -208,4 +195,4 @@ class BridgeConnection:
             text = struct.unpack("!%ds" % size, buf[4:4 + size])[0]
             return size, text, buf[4 + size:]
         else:
-            return (size, "", buf)
+            return size, "", buf
