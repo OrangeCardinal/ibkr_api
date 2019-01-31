@@ -1,15 +1,3 @@
-"""
-IBKR_API is the simplest interface available. 
-The Bridge returns data in an asynchronous manner and on top of that one request for many requests results in several
-messages of varying message types. This class hides all this complexity from the end user and allows for easy tasks to be
-automated. For more advanced usage please see the ClientApplication and MultiClientApplication classes. 
-
-The main class to use from API user's point of view.
-It takes care of almost everything:
-- creating the connection to TWS/IB Gateway
-- executing api requests
-- gathering and returning the api response data
-"""
 from functools import wraps
 
 import datetime
@@ -58,6 +46,18 @@ def drop_message_id_and_request_id(func):
     return new_func
 
 class IBKR_API(ApiCalls):
+    """
+    IBKR_API is the simplest interface available.
+    The Bridge returns data in an asynchronous manner and on top of that one request for many requests results in several
+    messages of varying message types. This class hides all this complexity from the end user and allows for easy tasks to be
+    automated. For more advanced usage please see the ClientApplication and MultiClientApplication classes.
+
+    The main class to use from API user's point of view.
+    It takes care of almost everything:
+    - creating the connection to TWS/IB Gateway
+    - executing api requests
+    - gathering various api responses and returns the logically expected data
+    """
     def __init__(self, host, port, client_id:int=0, message_timeout:int=2):
         # Each application connected to the bridge must have a unique identifier
         self.client_id              = client_id
@@ -108,6 +108,7 @@ class IBKR_API(ApiCalls):
         request_start = datetime.datetime.now()
         while not data_received:
             new_messages        = self.conn.receive_messages()
+            #print(type(new_messages))
             messages_to_process = new_messages + self.unprocessed_messages
             for msg in messages_to_process:
                 if msg['id'] in inbound_message_ids:
@@ -436,12 +437,10 @@ class IBKR_API(ApiCalls):
                             regulatory_snapshot : bool      ,
                             market_data_options : list):
         """
-        Creates a subscription
+        Request market data information
         
-        Related Links
-        -------------
-        https://interactivebrokers.github.io/tws-api/tick_types.html
-
+        *Related Links*
+        `Tick Types <https://interactivebrokers.github.io/tws-api/tick_types.html/>`
 
         :param contract: Contract for which market data is being requested
         :param generic_tick_list: A comma separated string of ticks or an actual list of integers
@@ -453,14 +452,6 @@ class IBKR_API(ApiCalls):
         :param market_data_options: ???? A mystery that IB only knows (They note, "use default value XYZ")
         :return:
         """
-
-
-        """Call this function to request market data. The market data
-                will be returned by the tickPrice and tickSize events.
-
-                snapshot:bool - Check to return a single snapshot of Market data and
-                    have the market data subscription cancel. Do not enter any
-                    genericTicklist values if you use snapshots. """
 
         # Process the response from the bridge
         request_id = self.get_local_request_id()
@@ -723,6 +714,8 @@ class IBKR_API(ApiCalls):
         messages_to_process = ['open_orders','open_orders_end']
         open_order_data = self._process_response(messages_to_process)
         open_orders = {}
+        if isinstance(open_order_data,tuple):
+            open_order_data = [open_order_data]
 
         for order_data in open_order_data:
             order = order_data[2]
@@ -732,6 +725,8 @@ class IBKR_API(ApiCalls):
 
         # Update with order status data
         order_statuses = self._process_response('order_status')
+        if order_statuses is None:
+            order_statuses = []
         for order_status in list(order_statuses):
             order = open_orders[order_status['perm_id']]
             order.update_order_status(order_status)
@@ -1330,14 +1325,15 @@ class IBKR_API(ApiCalls):
 
     def update_display_group(self, request_id: int, contract_info: str):
         """
+        Update Display Group Information
 
         :param request_id: The requestId specified in subscribeToGroupEvents().
         :param contract_info: The encoded value that uniquely represents the contract in IB.
                               Possible values include:
-                                    none = empty selection
-                                    contractID@exchange - any non-combination contract.
-                                    Examples: 8314@SMART for IBM SMART; 8314@ARCA for IBM @ARCA.
-                                    combo = if any combo is selected.
+                              none = empty selection
+                              contractID@exchange - any non-combination contract.
+                              Examples: 8314@SMART for IBM SMART; 8314@ARCA for IBM @ARCA.
+                              combo = if any combo is selected.
         :return:
         """
         # Process the response from the bridge
