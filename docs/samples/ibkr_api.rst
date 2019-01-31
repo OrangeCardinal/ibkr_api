@@ -1,11 +1,10 @@
-========
-IBKR_API
-========
+==========================
+IBKR_API Client Quickstart
+==========================
 IBKR_API provides an interface that hides the inherent complexity of an event driven asynchronous
-This page has several snippets for common tasks that you may want to do with this API.
-
-
-
+This page has several snippets for common tasks that you may want to do with this API. All the samples below
+assume that the code from the Initial Setup block have already been executed, otherwise the code shown should be self
+contained.
 
 Initial Setup
 -------------
@@ -20,6 +19,45 @@ Initial Setup
     port =
     ibkr = IBKR_API(host, port)
 
+===================
+Working With Orders
+===================
+Placing an Order
+----------------
+There are many various types of orders that can be placed and as such we will allow Interactive Brokers documentation
+to explain every option. (Even I as the developer of this API do not know all permutations at this point). The main endpoint
+to use is `place_order` . The order id simply must be a unique integer or a duplicate id error will be generated.
+
+
+Placing a Limit Order
+---------------------
+The sample below shows a limit order being placed to purchase 1 share of Bank of America Stock.
+
+.. code-block:: python
+   order_id = 60
+   contract = Stock('BAC')
+   contract.currency = "USD"
+   contract.exchange = "SMART"
+
+   total_quantity = 1
+   limit_price = 26.5
+   order = LimitOrder(OrderAction.BUY.value, contract, total_quantity, limit_price)
+   ibkr.place_order(order_id, order)
+
+Get all open orders
+-------------------
+Now that we know how to place an order. The next logical step is to check on that order.
+This can be done with a call to `request_open_orders` which will return a list of `Order` objects.
+
+.. code-block:: python
+   open_orders = ibkr.request_all_open_orders()
+   for open_order in open_orders:
+    print(open_order)
+
+
+===================
+Other Functionality
+===================
 Get all linked accounts (aka 'Family Codes')
 --------------------------------------------
 .. code-block:: python
@@ -73,14 +111,3 @@ Get the Last Year of Daily Prices for XOM
     print("XOM Daily Closes")
     for bar in bar_data:
         print("{0}: {1}".format(bar.date, bar.close))
-
-
-Get all open orders
--------------------
-.. code-block:: python
-
-   open_orders = ibkr.request_all_open_orders()
-   for open_order in open_orders:
-    print(open_order)
-
-
