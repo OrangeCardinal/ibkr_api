@@ -1,6 +1,6 @@
-==========================
-IBKR_API Client Quickstart
-==========================
+===========================
+IBKR_API Client Quick Start
+===========================
 IBKR_API provides an interface that hides the inherent complexity of an event driven asynchronous
 This page has several snippets for common tasks that you may want to do with this API. All the samples below
 assume that the code from the Initial Setup block have already been executed, otherwise the code shown should be self
@@ -34,6 +34,7 @@ Placing a Limit Order
 The sample below shows a limit order being placed to purchase 1 share of Bank of America Stock.
 
 .. code-block:: python
+
    order_id = 60
    contract = Stock('BAC')
    contract.currency = "USD"
@@ -50,6 +51,7 @@ Now that we know how to place an order. The next logical step is to check on tha
 This can be done with a call to `request_open_orders` which will return a list of `Order` objects.
 
 .. code-block:: python
+
    open_orders = ibkr.request_all_open_orders()
    for open_order in open_orders:
     print(open_order)
