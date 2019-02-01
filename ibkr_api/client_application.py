@@ -1,102 +1,86 @@
-from ibkr_api.base.api_calls import ApiCalls
-from ibkr_api.base.message_parser import MessageParser
+from ibkr_api.minimal_client_application    import MinimalClientApplication
+from ibkr_api.base.message_parser           import MessageParser
 
 import logging
-import time
-
 
 logger = logging.getLogger(__name__)
-class ClientApplication(ApiCalls):
-    def __init__(self, host, port, response_handler='default', request_handler='default'):
+class ClientApplication(MinimalClientApplication):
+    def __init__(self, host, port, debug_mode=False):
         """
+        Base class for users to extend in the creation of asynchronous event driven applications
 
         :param host: Host of the Bridge Connection
         :param port: Port of the Bridge Connection
-        :param response_handler: User Supplied Response Handler
-        :param request_handler:
+        :param debug_mode: If True, warnings will be generated for non existing functions
+
         """
-        # TODO: Handle keyboard input in a non blocking manner
-        super().__init__()
-        self.still_running      = True  # Controls when the event loop
-        self.messages_received  = []    # List of all messages received (not sure if needed)
-        self.keyboard_input     = []    # Keyboard Input
-        self.message_parser     = MessageParser()
-        self.client_id          = 0
-        self.debug_mode         = True
+        super().__init__(host, port)
 
-        super().connect(host, port, self.client_id)
 
+    #################################################################################
+    # Functions that receive inbound messages from the Bridge Connection (TWS/IBGW) #
+    #################################################################################
     def info_message(self, message_id, request_id, info):
-        print(info)
-
-    def initialize(self):
         """
-        Called one time before the main event processing loop is entered.
+        Called when an info_message is received by the bridge.
+        This function is meant to be overridden
+
+        :param message_id:
+        :param request_id:
+        :param info:
         :return:
         """
-        raise NotImplementedError
+        ticker_id = info['ticker_id']
+        code      = info['code']
+        text      = info['text']
+
+        msg = """
+        Message Id: {0} 
+        Request ID: {1}
+        Ticker ID : {2}
+        Code      : {3}
+        Text      : {4}
+        """.format(message_id, request_id, ticker_id, code, text)
+        logger.info(msg)
+
+    def family_codes(self, account_data):
+        account_id = account_data['account_id']
+        family_code = account_data['family_code']
+
+        msg = "Account ID: {0} Family Code: {1}".format(account_id, family_code)
+        logger.info(msg)
 
     def managed_accounts(self,message_id, request_id, account):
-        print(request_id)
-        print(account)
+        msg = "Message ID: {0}, Request ID: {1}, Account: {2}".format(message_id, request_id, account)
+        logger.info(msg)
 
-    # TODO: Handle keyboard input in a non blocking manner
 
+    def market_data_type(self, message_id, request_id, data):
+        msg = "(Market Data Type) Message ID: {0}, Request ID: {1}, Account: {2}".format(message_id, request_id, data)
+        logger.info(msg)
+
+    def position_data(self, message_id, request_id,position_data):
+        """
+        Process the position_data inbound data
+
+        :param message_id:
+        :param request_id:
+        :param position_data:
+        :return:
+        """
+        pass
 
     def scanner_data(self, message_id, request_id, scanner_data):
-        print(request_id)
-        print(scanner_data)
+        pass
 
-    ##################################################
-    # Functions Related to the Event Processing Loop #
-    ##################################################
-    def act(self):
-        """
-        Action if any your application should do at the end of each event loop
-        :return:
-        """
-        raise NotImplementedError
+    def tick_price(self, message_id, request_id, data):
+        msg = "(Tick Price) Message ID: {0}, Request ID: {1}, Data: {2}".format(message_id, request_id, data)
+        logger.info(msg)
 
-    def run(self):
-        """
-        Primary event loop of the application
-        :return:
-        """
-        #timeStart = time.time()
-        #timeOut = 20
+    def tick_request_params(self, message_id, request_id, data):
+        msg = "(Tick Request Params) Message ID: {0}, Request ID: {1}, Data: {2}".format(message_id, request_id, data)
+        logger.info(msg)
 
-        # keyboard_reader = KeyboardReader()
-        # keyboard_reader.start()
-
-        self.initialize()
-
-        while self.still_running:
-            messages = self.conn.receive_messages()
-            for message in messages:
-                    # Call the correct function in the message parser to parse and return the data
-                    logging.debug("{0} message received".format(message['action']))
-                    func = getattr(self.message_parser, message['action'])
-                    data = func(message['fields'])
-
-                    # Call the response handler as needed
-                    # If we are in development also send a warning that a handler doesnt exist
-                    if hasattr(self, message['action']):
-                        func = getattr(self, message['action'])
-                        func(*data)
-                    elif self.debug_mode:
-                        logger.warning("The function '{0}' does not exist.".format(message['action']))
-
-            # Invoke any user defined behaviour at this point.
-            self.act()
-            time.sleep(1)
-
-        logger.info("Application has been shut down.")
-        return 0
-
-    def stop(self):
-        """
-        Stops the primary event loop, allowing the application to
-        :return:
-        """
-        logger.info("Shutdown requested")
-        self.still_running = False
+    def tick_size(self, message_id, request_id, tick_data):
+        msg = "(Tick Size) Message ID: {0}, Request ID: {1}, Data: {2}".format(message_id, request_id, tick_data)
+        logger.info(msg)

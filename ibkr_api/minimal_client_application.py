@@ -13,9 +13,9 @@ class MinimalClientApplication(ApiCalls):
 
         :param host: Host of the Bridge Connection
         :param port: Port of the Bridge Connection
-        :param response_handler: User Supplied Response Handler
-        :param request_handler:
+        :param debug_mode: If True, warnings will be generated for functions that do not exist
         """
+
         # TODO: Handle keyboard input in a non blocking manner
         super().__init__()
         self.still_running      = True  # Controls when the event loop
@@ -35,6 +35,13 @@ class MinimalClientApplication(ApiCalls):
         Actions your application should do at the end of each event loop.
         This is expected to be overridden in your application class.
         :return:
+        """
+        raise NotImplementedError
+
+    def initialize(self):
+        """
+        Called one time before the main event processing loop is entered.
+        This method is expected to be overridden by your own application sub class
         """
         raise NotImplementedError
 
