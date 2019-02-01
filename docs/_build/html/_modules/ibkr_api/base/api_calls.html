@@ -538,7 +538,7 @@
                    <span class="n">order</span><span class="o">.</span><span class="n">financial_advisers_method</span><span class="p">,</span>
                    <span class="n">order</span><span class="o">.</span><span class="n">financial_advisers_percentage</span><span class="p">,</span>
                    <span class="n">order</span><span class="o">.</span><span class="n">financial_advisers_profile</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">modelCode</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">model_code</span>
                    <span class="p">]</span>
 
 
@@ -557,7 +557,7 @@
                    <span class="n">order</span><span class="o">.</span><span class="n">e_trade_only</span><span class="p">,</span>
                    <span class="n">order</span><span class="o">.</span><span class="n">firm_quote_only</span><span class="p">,</span>
                    <span class="n">order</span><span class="o">.</span><span class="n">nbbo_price_cap</span><span class="p">,</span>
-                   <span class="n">order</span><span class="o">.</span><span class="n">auctionStrategy</span><span class="p">,</span>
+                   <span class="n">order</span><span class="o">.</span><span class="n">auction_strategy</span><span class="p">,</span>
                    <span class="c1"># AUCTION_MATCH, AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT</span>
                    <span class="n">order</span><span class="o">.</span><span class="n">starting_price</span><span class="p">,</span>
                    <span class="n">order</span><span class="o">.</span><span class="n">stock_ref_price</span><span class="p">,</span>
@@ -632,7 +632,7 @@
                     <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">algoParam</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">algoParam</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
 
 
-        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">algo_id</span><span class="p">)</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">algorithm_id</span><span class="p">)</span>
         <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">what_if</span><span class="p">)</span>
 
         <span class="c1"># send miscOptions parameter</span>
@@ -1934,7 +1934,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/quick_start.html">Quickstart Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/faq.html">F.A.Q</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/contributors.html">Contributing To This Codebase</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../samples/ibkr_api.html">IBKR_API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../samples/ibkr_api.html">IBKR_API Client Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../samples/ibkr_api.html#working-with-orders">Working With Orders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../samples/ibkr_api.html#other-functionality">Other Functionality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../samples/client_application.html">ClientApplication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../source/modules.html">ibkr_api</a></li>
 </ul>
