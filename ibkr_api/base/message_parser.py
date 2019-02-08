@@ -655,6 +655,15 @@ class MessageParser(object):
 
     @staticmethod
     def open_orders(fields):
+        """
+        Parses the open_orders message and returns well formatted data
+
+        :param fields: Message Fields
+
+        :returns: message_id
+        :returns: None (No Request ID is returned with this type of message)
+        :returns: Order
+        """
         fields_iterator     = iter(fields)
         optional_field      = MessageParser._optional_field
 
@@ -671,7 +680,7 @@ class MessageParser(object):
         contract.symbol                                     = next(fields_iterator)
         contract.security_type                              = next(fields_iterator)
         contract.last_trade_date_or_contract_month          = next(fields_iterator)
-        contract.strike                                     = float(next(fields_iterator))
+        contract.strike                                     = next(fields_iterator)
         contract.right                                      = next(fields_iterator)
         contract.multiplier                                 = next(fields_iterator)
         contract.exchange                                   = next(fields_iterator)
@@ -734,7 +743,6 @@ class MessageParser(object):
         order.nbbo_price_cap                            = next(fields_iterator)
         order.parent_id                                 = int(next(fields_iterator))
 
-        print(fields[60:70])
         order.trigger_method                            = optional_field(next(fields_iterator), int)
         order.volatility                                = next(fields_iterator)
         order.volatility_type                           = next(fields_iterator)
