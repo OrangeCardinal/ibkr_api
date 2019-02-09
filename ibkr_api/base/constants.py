@@ -20,6 +20,7 @@ MAX_MSG_LEN = 0xFFFFFF # 16Mb - 1byte
 UNSET_INTEGER = 2 ** 31 - 1
 UNSET_DOUBLE = sys.float_info.max
 
+
 ##################################################################################################
 ### Client/Server Versions used to determine functionality available in the client application ###
 ##################################################################################################
@@ -111,12 +112,12 @@ MIN_SERVER_VER_API_BIND_ORDER           = 144
 MIN_SERVER_VER_ORDER_CONTAINER          = 145
 MIN_SERVER_VER_SMART_DEPTH              = 146
 MIN_SERVER_VER_REMOVE_NULL_ALL_CASTING  = 147
-
+MIN_SERVER_VER_D_PEG_ORDERS             = 148
 # 100+ messaging */
 # 100 = enhanced handshake, msg length prefixes
 
 MIN_CLIENT_VER = 100
-MAX_CLIENT_VER = MIN_SERVER_VER_REMOVE_NULL_ALL_CASTING
+MAX_CLIENT_VER = MIN_SERVER_VER_D_PEG_ORDERS
 
 
 
