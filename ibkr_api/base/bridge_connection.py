@@ -7,7 +7,7 @@ and conditions of the IB API Non-Commercial License or the IB API Commercial Lic
 """
 Bridge Connection between a client application and the bridge (TWS/IBGW)
 
-Responsible For
+:Responsible For:
 1. Managing the socket between the app and the bridge
 2. Properly creating low level messages for the bridge
 3. Reading the bridge's responses and process/route them accordingly 
@@ -18,14 +18,11 @@ import logging
 import socket
 import struct
 
-from ibkr_api.base.constants import DISCONNECTED, UNKNOWN, CONNECTED
-from ibkr_api.base.errors import FAIL_CREATE_SOCK, Errors
-from ibkr_api.base.messages import Messages
-
-#TODO: support SSL !!
+from ibkr_api.base.constants    import DISCONNECTED, UNKNOWN, CONNECTED
+from ibkr_api.base.errors       import FAIL_CREATE_SOCK, Errors
+from ibkr_api.base.messages     import Messages
 
 logger = logging.getLogger(__name__)
-
 
 class BridgeConnection:
     def __init__(self, host, port):
@@ -56,11 +53,10 @@ class BridgeConnection:
         self.socket.settimeout(1)   # Non-blocking mode (We won't wait for data on recv() calls
 
     def disconnect(self):
-        logger.debug("Closing socket connection to bridge (TWS/IBGW)")
+        logger.debug("Closing socket connection to the api bridge (TWS/IB Gateway)")
         self.socket.close()
         self.socket = None
         self.status = DISCONNECTED
-        logger.debug("disconnected")
 
 
     def is_connected(self):
