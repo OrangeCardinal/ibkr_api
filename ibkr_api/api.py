@@ -367,26 +367,25 @@ class IBKR_API(ApiCalls):
         return data
 
     def exercise_options(self, request_id: int, contract: Contract,
-                         exercise_action: int, exercise_quantity: int,
+                         exercise_or_lapse: int, exercise_quantity: int,
                          account: str, override: int):
         """
         Exercise an existing option position
         
         :param request_id: Unique Identifier for the this request 
         :param contract: Option to be exercised (TODO: Switch to Option model later)
-        :param exercise_action: Specifies if you want the option to lapse or be exercised (1 - exercise, 2 - lapse)
+        :param exercise_or_lapse: Specifies if you want the option to lapse or be exercised (1 - exercise, 2 - lapse)
         :param exercise_quantity: The quanity to be exercised 
         :param account: 
-        :param override: Specifies whether your setting will override the system's natural action. 
+        :param override: Specifies whether your setting will override the system's natural action. (0 - don't override, 1 - override)
                          For example, if your action is "exercise" and the option is not in-the-money, 
                          by natural action the option would not exercise. If you have override set to "yes" the 
                          natural action would be overridden and the out-of-the money option would be exercised.
-                         (0 - don't override, 1 - override) 
-        :return: 
+        :return:
         """
         # Make the underlying API call
         request_id = self.get_local_request_id()
-        super().exercise_options(request_id, contract, exercise_action, exercise_quantity, account, override)
+        super().exercise_options(request_id, contract, exercise_or_lapse, exercise_quantity, account, override)
 
         # Process the response from the bridge
         data = self._process_response('')
@@ -1368,10 +1367,8 @@ class IBKR_API(ApiCalls):
         data = self._process_response('')
         return data
 
-    def verify_request(self, api_name: str, api_version: str):
+    def verify_request(self, api_name, api_version):
         """For IB's internal purpose. Allows to provide means of verification
         between the TWS and third party programs."""
         super().verify_request(api_name, api_version)
-        while True:
-            messages = self.conn.receive_messages()
-            time.sleep(1)
+        data =self._process_response('verify_request')
