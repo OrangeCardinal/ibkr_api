@@ -87,6 +87,26 @@ you a straight forward way to query data.</p>
 place to start. This class provides an interface similar to what is provided by the official API, minus the artificial
 complexity.</p>
 </div>
+<div class="section" id="rabbitmq">
+<h2>RabbitMQ<a class="headerlink" href="#rabbitmq" title="Permalink to this headline">¶</a></h2>
+<p>Two exchanges are being used trading desk for messages bound for the trading desk.
+actor for messages bound for the various actors.</p>
+<div class="section" id="message-exchanges">
+<h3>Message Exchanges<a class="headerlink" href="#message-exchanges" title="Permalink to this headline">¶</a></h3>
+<p>Routing key:  &lt;message_type&gt;.&lt;Actor.code&gt;</p>
+<p>+==============+====================+=================================================================+
+| Exchange     | Queue Message Type | Meaning                                                         |
++==============+====================+=================================================================+
+| trading_desk | bridge             | (API) Requests from Actors for the bridge application           |
++————–+——————–+—————————————————————–+
+| trading_desk | multi_client       | Responses from prior request                                    |
++————–+——————–+—————————————————————–+
+| actor        | bridge             | Request for the MultiClientApplication to deliver to the bridge |
++————–+——————–+—————————————————————–+
+| actor        | multi_client       | Request from the MultiClientApplication                         |
++————–+——————–+—————————————————————–+</p>
+</div>
+</div>
 </div>
 
 
@@ -109,8 +129,8 @@ complexity.</p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">IBKR_API Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="faq.html">F.A.Q</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#f-a-q">F.A.Q</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributors.html">Contributing To This Codebase</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../samples/ibkr_api.html">IBKR_API Client Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../samples/ibkr_api.html#working-with-orders">Working With Orders</a></li>

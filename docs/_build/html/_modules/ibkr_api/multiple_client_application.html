@@ -56,8 +56,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span>          <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug_mode</span>         <span class="o">=</span> <span class="kc">True</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MultipleClientApplication.register"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.multiple_client_application.MultipleClientApplication.register">[docs]</a>    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -76,10 +75,6 @@
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
-
-<div class="viewcode-block" id="MultipleClientApplication.managed_accounts"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.multiple_client_application.MultipleClientApplication.managed_accounts">[docs]</a>    <span class="k">def</span> <span class="nf">managed_accounts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">message_id</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">account</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">request_id</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">account</span><span class="p">)</span></div>
 
     <span class="c1"># TODO: Handle keyboard input in a non blocking manner</span>
 <div class="viewcode-block" id="MultipleClientApplication.run"><a class="viewcode-back" href="../../source/ibkr_api.html#ibkr_api.multiple_client_application.MultipleClientApplication.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -146,8 +141,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview/architecture.html">IBKR_API Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../overview/installation.html">Installation Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../overview/quick_start.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../overview/faq.html">F.A.Q</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../overview/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../overview/quick_start.html#f-a-q">F.A.Q</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../overview/contributors.html">Contributing To This Codebase</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../samples/ibkr_api.html">IBKR_API Client Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../samples/ibkr_api.html#working-with-orders">Working With Orders</a></li>

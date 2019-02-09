@@ -42,3 +42,28 @@ complexity.
 
 
 
+RabbitMQ
+--------
+Two exchanges are being used trading desk for messages bound for the trading desk.
+actor for messages bound for the various actors.
+
+
+Message Exchanges
+^^^^^^^^^^^^^^^^^^
+Routing key:  <message_type>.<Actor.code>
+
++==============+====================+=================================================================+
+| Exchange     | Queue Message Type | Meaning                                                         |
++==============+====================+=================================================================+
+| trading_desk | bridge             | (API) Requests from Actors for the bridge application           |
++--------------+--------------------+-----------------------------------------------------------------+
+| trading_desk | multi_client       | Responses from prior request                                    |
++--------------+--------------------+-----------------------------------------------------------------+
+| actor        | bridge             | Request for the MultiClientApplication to deliver to the bridge |
++--------------+--------------------+-----------------------------------------------------------------+
+| actor        | multi_client       | Request from the MultiClientApplication                         |
++--------------+--------------------+-----------------------------------------------------------------+
+
+
+
+

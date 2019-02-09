@@ -35,11 +35,11 @@
 <span></span><span class="kn">import</span> <span class="nn">logging</span>
 
 
-<span class="kn">from</span> <span class="nn">ibkr_api.base.bridge_connection</span> <span class="k">import</span> <span class="n">BridgeConnection</span>
-<span class="kn">from</span> <span class="nn">ibkr_api.base.constants</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">ibkr_api.base.errors</span> <span class="k">import</span> <span class="n">NOT_CONNECTED</span><span class="p">,</span> <span class="n">Errors</span><span class="p">,</span> <span class="n">BAD_MESSAGE</span>
-<span class="kn">from</span> <span class="nn">ibkr_api.base.messages</span> <span class="k">import</span> <span class="n">Messages</span>
-<span class="kn">from</span> <span class="nn">ibkr_api.base.message_parser</span> <span class="k">import</span> <span class="n">MessageParser</span>
+<span class="kn">from</span> <span class="nn">ibkr_api.base.bridge_connection</span>    <span class="k">import</span> <span class="n">BridgeConnection</span>
+<span class="kn">from</span> <span class="nn">ibkr_api.base.constants</span>            <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">ibkr_api.base.errors</span>               <span class="k">import</span> <span class="n">NOT_CONNECTED</span><span class="p">,</span> <span class="n">Errors</span><span class="p">,</span> <span class="n">BAD_MESSAGE</span>
+<span class="kn">from</span> <span class="nn">ibkr_api.base.messages</span>             <span class="k">import</span> <span class="n">Messages</span>
+<span class="kn">from</span> <span class="nn">ibkr_api.base.message_parser</span>       <span class="k">import</span> <span class="n">MessageParser</span>
 
 <span class="kn">from</span> <span class="nn">ibkr_api.classes.contracts.contract</span> <span class="k">import</span> <span class="n">Contract</span>
 <span class="kn">from</span> <span class="nn">ibkr_api.classes.orders.order</span> <span class="k">import</span> <span class="n">Order</span>
@@ -285,13 +285,12 @@
 
 <div class="viewcode-block" id="ApiCalls.cancel_market_depth"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.cancel_market_depth">[docs]</a>    <span class="nd">@check_connection</span>
     <span class="k">def</span> <span class="nf">cancel_market_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">is_smart_depth</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;After calling this function, market depth data for the specified id</span>
-<span class="sd">        will stop flowing.</span>
-
-<span class="sd">        request_id:int - The ID that was specified in the call to</span>
-<span class="sd">            reqMktDepth().</span>
-<span class="sd">        is_smart_depth:bool - specifies SMART depth request&quot;&quot;&quot;</span>
-
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Cancels a prior request to to</span>
+<span class="sd">        :param request_id: Id of the prior call to request_market_depth</span>
+<span class="sd">        :param is_smart_depth: Specifies SMART depth request</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">1</span>
 
         <span class="c1"># send cancel market depth msg</span>
@@ -376,15 +375,25 @@
 
 <div class="viewcode-block" id="ApiCalls.exercise_options"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.exercise_options">[docs]</a>    <span class="nd">@check_connection</span>
     <span class="k">def</span> <span class="nf">exercise_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
-                         <span class="n">exercize_action</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">exercize_quantity</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                         <span class="n">exercise_or_lapse</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">exercise_quantity</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                          <span class="n">account</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">override</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param request_id: Unique identifier for this request</span>
+<span class="sd">        :param contract: Contract of the option to be acted upon</span>
+<span class="sd">        :param exercise_or_lapse:  1 = exercise, 2 = lapse</span>
+<span class="sd">        :param exercise_quantity:</span>
+<span class="sd">        :param account:</span>
+<span class="sd">        :param override:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="sd">&quot;&quot;&quot;request_id:int - The ticker id. multipleust be a unique value.</span>
 <span class="sd">        contract:Contract - This structure contains a description of the</span>
 <span class="sd">            contract to be exercised</span>
-<span class="sd">        exercize_action:int - Specifies whether you want the option to lapse</span>
+<span class="sd">        exercise_or_lapse:int - Specifies whether you want the option to lapse</span>
 <span class="sd">            or be exercised.</span>
-<span class="sd">            Values are 1 = exercise, 2 = lapse.</span>
-<span class="sd">        exercize_quantity:int - The quantity you want to exercise.</span>
+
+<span class="sd">        exercise_quantity:int - The quantity you want to exercise.</span>
 <span class="sd">        account:str - destination account</span>
 <span class="sd">        override:int - Specifies whether your setting will override the system&#39;s</span>
 <span class="sd">            natural action. For example, if your action is &quot;exercise&quot; and the</span>
@@ -397,20 +406,11 @@
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">2</span>
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;exercise_options&#39;</span><span class="p">]</span>
 
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span><span class="p">,</span>
-                  <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span><span class="p">,</span>
-                  <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span>
-                  <span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">,</span> <span class="n">exercize_action</span><span class="p">,</span> <span class="n">exercize_quantity</span><span class="p">,</span> <span class="n">account</span><span class="p">,</span> <span class="n">override</span><span class="p">]</span>
-
-        <span class="c1"># send contract fields</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_TRADING_CLASS</span><span class="p">:</span>
-            <span class="n">insert_offset</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_version</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">MIN_SERVER_VER_TRADING_CLASS</span><span class="p">:</span>
-            <span class="n">insert_position</span> <span class="o">=</span> <span class="mi">12</span> <span class="o">+</span> <span class="n">insert_offset</span>
-            <span class="n">insert_offset</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">insert_position</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">)</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span>
+                  <span class="n">contract</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">security_type</span>   <span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">last_trade_date_or_contract_month</span><span class="p">,</span>
+                  <span class="n">contract</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">right</span>           <span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">multiplier</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span>
+                  <span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span>  <span class="p">,</span> <span class="n">exercise_or_lapse</span><span class="p">,</span>
+                  <span class="n">exercise_quantity</span><span class="p">,</span> <span class="n">account</span><span class="p">,</span> <span class="n">override</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
@@ -726,63 +726,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request_account_summary"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_account_summary">[docs]</a>    <span class="nd">@check_connection</span>
-    <span class="k">def</span> <span class="nf">request_account_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">group_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call this method to request and keep up to date the data that appears</span>
-<span class="sd">        on the TWS Account Window Summary tab. The data is returned by</span>
-<span class="sd">        accountSummary().</span>
+    <span class="k">def</span> <span class="nf">request_account_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>  <span class="n">tags</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">group_name</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;All&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends a request to stream the data that appears in the TWS Account Window Summary Tab</span>
 
-<span class="sd">        Note:   This request is designed for an FA managed account but can be</span>
-<span class="sd">        used for any multi-account structure.</span>
-
-<span class="sd">        request_id:int - The ID of the data request. Ensures that responses are matched</span>
-<span class="sd">            to requests If several requests are in process.</span>
-<span class="sd">        group_name:str - Set to All to returnrn account summary data for all</span>
-<span class="sd">            accounts, or set to a specific Advisor Account Group name that has</span>
-<span class="sd">            already been created in TWS Global Configuration.</span>
-<span class="sd">        tags:str - A comma-separated list of account tags.  Available tags are:</span>
-<span class="sd">            accountountType</span>
-<span class="sd">            NetLiquidation,</span>
-<span class="sd">            TotalCashValue - Total cash including futures pnl</span>
-<span class="sd">            SettledCash - For cash accounts, this is the same as</span>
-<span class="sd">            TotalCashValue</span>
-<span class="sd">            AccruedCash - Net accrued interest</span>
-<span class="sd">            BuyingPower - The maximum amount of marginable US stocks the</span>
-<span class="sd">                account can buy</span>
-<span class="sd">            EquityWithLoanValue - Cash + stocks + bonds + mutual funds</span>
-<span class="sd">            PreviousDayEquityWithLoanValue,</span>
-<span class="sd">            GrossPositionValue - The sum of the absolute value of all stock</span>
-<span class="sd">                and equity option positions</span>
-<span class="sd">            RegTEquity,</span>
-<span class="sd">            RegTMargin,</span>
-<span class="sd">            SMA - Special Memorandum Account</span>
-<span class="sd">            InitMarginReq,</span>
-<span class="sd">            MaintMarginReq,</span>
-<span class="sd">            AvailableFunds,</span>
-<span class="sd">            ExcessLiquidity,</span>
-<span class="sd">            Cushion - Excess liquidity as a percentage of net liquidation value</span>
-<span class="sd">            FullInitMarginReq,</span>
-<span class="sd">            FullMaintMarginReq,</span>
-<span class="sd">            FullAvailableFunds,</span>
-<span class="sd">            FullExcessLiquidity,</span>
-<span class="sd">            LookAheadNextChange - Time when look-ahead values take effect</span>
-<span class="sd">            LookAheadInitMarginReq,</span>
-<span class="sd">            LookAheadMaintMarginReq,</span>
-<span class="sd">            LookAheadAvailableFunds,</span>
-<span class="sd">            LookAheadExcessLiquidity,</span>
-<span class="sd">            HighestSeverity - A measure of how close the account is to liquidation</span>
-<span class="sd">            DayTradesRemaining - The Number of Open/Close trades a user</span>
-<span class="sd">                could put on before Pattern Day Trading is detected. A value of &quot;-1&quot;</span>
-<span class="sd">                means that the user can put on unlimited day trades.</span>
-<span class="sd">            Leverage - GrossPositionValue / NetLiquidation</span>
-<span class="sd">            $LEDGER - Single flag to relay all cash balance tags*, only in base</span>
-<span class="sd">                currency.</span>
-<span class="sd">            $LEDGER:CURRENCY - Single flag to relay all cash balance tags*, only in</span>
-<span class="sd">                the specified currency.</span>
-<span class="sd">            $LEDGER:ALL - Single flag to relay all cash balance tags* in all</span>
-<span class="sd">            currencies.&quot;&quot;&quot;</span>
+<span class="sd">        :param request_id: Unique identifier for this request</span>
+<span class="sd">        :param tags: Single Value or list of Account Tags (see enum `AccountTag` for legal values</span>
+<span class="sd">        :param group_name: set to All to return for all accounts, otherwise Financial Advisor group name (Default All)</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_account_summary&#39;</span><span class="p">]</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">group_name</span><span class="p">,</span> <span class="n">tags</span><span class="p">]</span>
+        <span class="n">message_id</span>      <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;request_account_summary&#39;</span><span class="p">]</span>
+        <span class="n">fields</span>          <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">group_name</span><span class="p">,</span> <span class="n">tags</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request_all_open_orders"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_all_open_orders">[docs]</a>    <span class="nd">@check_connection</span>
@@ -1108,13 +1063,19 @@
 
 
 <div class="viewcode-block" id="ApiCalls.subscribe_to_group_events"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.subscribe_to_group_events">[docs]</a>    <span class="nd">@check_connection</span>
-    <span class="k">def</span> <span class="nf">subscribe_to_group_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">groupId</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;request_id:int - The unique number associated with the notification.</span>
-<span class="sd">        groupId:int - The ID of the group, currently it is a number from 1 to 7.</span>
-<span class="sd">            This is the display group subscription request sent by the API to TWS.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">subscribe_to_group_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                  <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                  <span class="n">group_id</span>  <span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Associate a prior request to a display group</span>
+
+<span class="sd">        :param request_id: Unique identifier for this request</span>
+<span class="sd">        :param group_id: The ID of the group, currently it is a number from 1 to 7.</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">message_id</span> <span class="o">=</span> <span class="n">Messages</span><span class="o">.</span><span class="n">outbound</span><span class="p">[</span><span class="s1">&#39;subscribe_to_group_events&#39;</span><span class="p">]</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">groupId</span><span class="p">]</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">message_id</span><span class="p">,</span> <span class="n">message_version</span><span class="p">,</span> <span class="n">request_id</span><span class="p">,</span> <span class="n">group_id</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.connect"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">client_id</span><span class="p">):</span>
@@ -1168,28 +1129,24 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">api_state</span>  <span class="o">=</span> <span class="s2">&quot;Disconnected from the Bridge Application(TWS/IB Gateway).&quot;</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request_historical_data"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_historical_data">[docs]</a>    <span class="k">def</span> <span class="nf">request_historical_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                <span class="n">request_id</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
-                                <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
-                                <span class="n">end_date_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                <span class="n">duration</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                                <span class="n">bar_size_setting</span><span class="p">,</span>
-                                <span class="n">what_to_show</span><span class="p">,</span>
-                                <span class="n">use_rth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-                                <span class="n">format_date</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-                                <span class="n">keep_up_to_date</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-                                <span class="n">chart_options</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+                                <span class="n">request_id</span>      <span class="p">:</span> <span class="nb">int</span>       <span class="p">,</span>
+                                <span class="n">contract</span>        <span class="p">:</span> <span class="n">Contract</span>  <span class="p">,</span>
+                                <span class="n">end_date_time</span>   <span class="p">:</span> <span class="nb">str</span>       <span class="p">,</span>
+                                <span class="n">duration</span>        <span class="p">:</span> <span class="nb">str</span>       <span class="p">,</span>
+                                <span class="n">bar_size_setting</span>            <span class="p">,</span>
+                                <span class="n">what_to_show</span>                <span class="p">,</span>
+                                <span class="n">use_rth</span>         <span class="p">:</span> <span class="nb">int</span>       <span class="p">,</span>
+                                <span class="n">format_date</span>     <span class="p">:</span> <span class="nb">int</span>       <span class="p">,</span>
+                                <span class="n">keep_up_to_date</span> <span class="p">:</span> <span class="nb">bool</span>      <span class="p">,</span>
+                                <span class="n">chart_options</span>   <span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make the &#39;historical_data&#39; message</span>
 <span class="sd">        Send the message to the Bridge</span>
-<span class="sd">        </span>
-<span class="sd">        Related</span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        :param contract: </span>
+<span class="sd">        :param request_id: Unique Identifier for this request</span>
+<span class="sd">        :param contract: Contract that we are interested in getting historical data from</span>
 <span class="sd">        :param end_date_time: </span>
 <span class="sd">        :param duration: </span>
-<span class="sd">        :param bar_size_setting: string or `BarSize` </span>
+<span class="sd">        :param bar_size_setting: string or `BarSize` enum</span>
 <span class="sd">        :param what_to_show: String or `Show` enum</span>
 <span class="sd">        :param use_rth: </span>
 <span class="sd">        :param format_date: </span>
@@ -1214,29 +1171,7 @@
 <span class="sd">        durationStr:str - Set the query duration up to one week, using a time unit</span>
 <span class="sd">            of seconds, days or weeks. Valid values include any integer followed by a space</span>
 <span class="sd">            and then S (seconds), D (days) or W (week). If no unit is specified, seconds is used.</span>
-<span class="sd">        barSizeSetting:str - Specifies the size of the bars that will be returned (within IB/TWS listimits).</span>
-<span class="sd">            Valid values include:</span>
-<span class="sd">            1 sec</span>
-<span class="sd">            5 secs</span>
-<span class="sd">            15 secs</span>
-<span class="sd">            30 secs</span>
-<span class="sd">            1 min</span>
-<span class="sd">            2 mins</span>
-<span class="sd">            3 mins</span>
-<span class="sd">            5 mins</span>
-<span class="sd">            15 mins</span>
-<span class="sd">            30 mins</span>
-<span class="sd">            1 hour</span>
-<span class="sd">            1 day</span>
-<span class="sd">        whatToShow:str - Determines the nature of data beinging extracted. Valid values include:</span>
 
-<span class="sd">            TRADES</span>
-<span class="sd">            MIDPOINT</span>
-<span class="sd">            BID</span>
-<span class="sd">            ASK</span>
-<span class="sd">            BID_ASK</span>
-<span class="sd">            HISTORICAL_VOLATILITY</span>
-<span class="sd">            OPTION_IMPLIED_VOLATILITY</span>
 <span class="sd">        useRTH:int - Determines whether to return all data available during the requested time span,</span>
 <span class="sd">            or only data that falls within regular trading hours. Valid values include:</span>
 
@@ -1311,8 +1246,6 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Request to receive news bulletins.</span>
 <span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
 <span class="sd">        :param all_messages: If set to TRUE, returns all the existing bulletins for the current day</span>
 <span class="sd">                             If set to FALSE, will only return new bulletins.</span>
 <span class="sd">        :return:</span>
@@ -1375,23 +1308,23 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ApiCalls.request_market_data"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_market_data">[docs]</a>    <span class="nd">@check_connection</span>
-    <span class="k">def</span> <span class="nf">request_market_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">generic_tick_list</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                            <span class="n">snapshot</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">regulatory_snapshot</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">market_data_options</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">request_market_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                            <span class="n">request_id</span>          <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                            <span class="n">contract</span>            <span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
+                            <span class="n">generic_tick_list</span>   <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                            <span class="n">snapshot</span>            <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+                            <span class="n">regulatory_snapshot</span> <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+                            <span class="n">market_data_options</span> <span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Related Inbound Messages / Functions</span>
-<span class="sd">        ------------------------</span>
-<span class="sd">        tick_price</span>
-<span class="sd">        tick_size</span>
+<span class="sd">        Start streaming market data. Will result in &#39;tick_price&#39; and &#39;tick_size&#39; inbound messages being generated.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        :param request_id:</span>
+<span class="sd">        :param request_id: Unique Identifier for this request</span>
 <span class="sd">        :param contract:</span>
-<span class="sd">        :param generic_tick_list:</span>
-<span class="sd">        :param snapshot:</span>
-<span class="sd">        :param regulatory_snapshot:</span>
-<span class="sd">        :param market_data_options:</span>
-<span class="sd">        :return:</span>
+<span class="sd">        :param generic_tick_list: List of Tick Types. See the enum TickType for legal values.</span>
+<span class="sd">        :param snapshot: Check to return a single snapshot of Market data ave the market data subscription cancel</span>
+<span class="sd">        :param regulatory_snapshot: With the US Value Snapshot Bundle for stocks, these are available for 0.01 USD each.</span>
+<span class="sd">        :param market_data_options: For internal use only. Use default XYZ</span>
+<span class="sd">        :return: None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
 
@@ -1411,10 +1344,8 @@
 <span class="sd">                snapshot:bool - Check to return a single snapshot of Market data and</span>
 <span class="sd">                    have the market data subscription cancel. Do not enter any</span>
 <span class="sd">                    genericTicklist values if you use snapshots.</span>
-<span class="sd">                regulatorySnapshot: bool - With the US Value Snapshot Bundle for stocks,</span>
-<span class="sd">                    regulatory snapshots are available for 0.01 USD each.</span>
-<span class="sd">                mktDataOptions:list - For internal use only.</span>
-<span class="sd">                    Use default value XYZ. &quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
 
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">11</span>
 
@@ -1483,6 +1414,15 @@
                              <span class="n">is_smart_depth</span>         <span class="p">:</span> <span class="nb">bool</span>      <span class="p">,</span>
                              <span class="n">market_depth_options</span>   <span class="p">:</span> <span class="nb">list</span>
                              <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param request_id: Unique identifier for this request</span>
+<span class="sd">        :param contract:</span>
+<span class="sd">        :param num_rows:</span>
+<span class="sd">        :param is_smart_depth:</span>
+<span class="sd">        :param market_depth_options:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="sd">&quot;&quot;&quot;Call this function to request market depth for a specific</span>
 <span class="sd">        contract. The market depth will be returned by the updateMktDepth() and</span>
 <span class="sd">        updateMktDepthL2() events.</span>
@@ -1540,11 +1480,8 @@
 <span class="sd">        Requests Financial Advisor Configuration Information.</span>
 <span class="sd">        The data returns in an XML string via a &quot;receiveFA&quot; ActiveX event.</span>
 
-<span class="sd">        financial_advisor_data:int - Specifies the type of Financial Advisor</span>
-<span class="sd">        Valid values include:</span>
-<span class="sd">            1 = GROUPS</span>
-<span class="sd">            2 = PROFILE</span>
-<span class="sd">            3 = ACCOUNT ALIASES</span>
+<span class="sd">        :param financial_advisor_data:  Specifies the type of Financial Advisor. See the enum FinancialAdvisor for legal values.</span>
+<span class="sd">        :return: None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1">#Create the Message</span>
         <span class="n">message_version</span> <span class="o">=</span> <span class="mi">1</span>
@@ -1615,6 +1552,14 @@
                                      <span class="n">scanner_options</span>  <span class="p">:</span> <span class="nb">list</span>          <span class="p">,</span>
                                      <span class="n">filter_options</span>   <span class="p">:</span> <span class="nb">list</span>
                                      <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param request_id: Unique identifier for this request</span>
+<span class="sd">        :param scanner:</span>
+<span class="sd">        :param scanner_options:</span>
+<span class="sd">        :param filter_options:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="sd">&quot;&quot;&quot;request_id:int - Identifier for the given request</span>
 <span class="sd">        scannerSubscription:Scanner - This structure contains</span>
 <span class="sd">            possible parameters used to filter results.</span>
@@ -1664,10 +1609,24 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ApiCalls.request__real_time_bars"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request__real_time_bars">[docs]</a>    <span class="nd">@check_connection</span>
-    <span class="k">def</span> <span class="nf">request__real_time_bars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract</span><span class="p">:</span> <span class="n">Contract</span><span class="p">,</span> <span class="n">bar_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-                                <span class="n">what_to_show</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">use_rth</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-                                <span class="n">realTimeBarsOptions</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<div class="viewcode-block" id="ApiCalls.request_real_time_bars"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.request_real_time_bars">[docs]</a>    <span class="nd">@check_connection</span>
+    <span class="k">def</span> <span class="nf">request_real_time_bars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">request_id</span>          <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                <span class="n">contract</span>            <span class="p">:</span> <span class="n">Contract</span><span class="p">,</span>
+                                <span class="n">bar_size</span>            <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                <span class="n">what_to_show</span>        <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                <span class="n">use_rth</span>             <span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+                                <span class="n">real_time_bars_options</span> <span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Send a request to start streaming real time bar</span>
+<span class="sd">        :param request_id:</span>
+<span class="sd">        :param contract:</span>
+<span class="sd">        :param bar_size:</span>
+<span class="sd">        :param what_to_show:</span>
+<span class="sd">        :param use_rth:</span>
+<span class="sd">        :param real_time_bars_options:</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="sd">&quot;&quot;&quot;Call the reqRealTimeBars() function to start receiving real time bar</span>
 <span class="sd">        results through the realtimeBar() EWrapper function.</span>
 
@@ -1701,10 +1660,10 @@
                   <span class="n">contract</span><span class="o">.</span><span class="n">primary_exchange</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span> <span class="n">contract</span><span class="o">.</span><span class="n">local_symbol</span><span class="p">,</span>
                   <span class="n">contract</span><span class="o">.</span><span class="n">trading_class</span><span class="p">,</span> <span class="n">bar_size</span><span class="p">,</span> <span class="n">what_to_show</span><span class="p">,</span> <span class="n">use_rth</span><span class="p">]</span>
 
-        <span class="c1"># send realTimeBarsOptions parameter</span>
+        <span class="c1"># send real_time_bars_options parameter</span>
         <span class="n">realTimeBarsOptionsStr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">realTimeBarsOptions</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">tagValueOpt</span> <span class="ow">in</span> <span class="n">realTimeBarsOptions</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">real_time_bars_options</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">tagValueOpt</span> <span class="ow">in</span> <span class="n">real_time_bars_options</span><span class="p">:</span>
                 <span class="n">realTimeBarsOptionsStr</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tagValueOpt</span><span class="p">)</span>
         <span class="n">fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">realTimeBarsOptionsStr</span><span class="p">,</span> <span class="p">]</span>
 
@@ -1792,6 +1751,12 @@
 
 <div class="viewcode-block" id="ApiCalls.update_display_group"><a class="viewcode-back" href="../../../source/ibkr_api.base.html#ibkr_api.base.api_calls.ApiCalls.update_display_group">[docs]</a>    <span class="nd">@check_connection</span>
     <span class="k">def</span> <span class="nf">update_display_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">contract_info</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param request_id:</span>
+<span class="sd">        :param contract_info:</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="sd">&quot;&quot;&quot;request_id:int - The requestId specified in subscribeToGroupEvents().</span>
 <span class="sd">        contract_info:str - The encoded value that uniquely represents the</span>
 <span class="sd">            contract in IB. Possible values include:</span>
@@ -1931,8 +1896,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/architecture.html">IBKR_API Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/installation.html">Installation Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../overview/quick_start.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../overview/faq.html">F.A.Q</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview/quick_start.html#f-a-q">F.A.Q</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview/contributors.html">Contributing To This Codebase</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../samples/ibkr_api.html">IBKR_API Client Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../samples/ibkr_api.html#working-with-orders">Working With Orders</a></li>
