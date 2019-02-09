@@ -1,11 +1,11 @@
 import logging
 
 
-from ibkr_api.base.bridge_connection import BridgeConnection
-from ibkr_api.base.constants import *
-from ibkr_api.base.errors import NOT_CONNECTED, Errors, BAD_MESSAGE
-from ibkr_api.base.messages import Messages
-from ibkr_api.base.message_parser import MessageParser
+from ibkr_api.base.bridge_connection    import BridgeConnection
+from ibkr_api.base.constants            import *
+from ibkr_api.base.errors               import NOT_CONNECTED, Errors, BAD_MESSAGE
+from ibkr_api.base.messages             import Messages
+from ibkr_api.base.message_parser       import MessageParser
 
 from ibkr_api.classes.contracts.contract import Contract
 from ibkr_api.classes.orders.order import Order
@@ -251,13 +251,12 @@ class ApiCalls(object):
 
     @check_connection
     def cancel_market_depth(self, request_id: int, is_smart_depth: bool):
-        """After calling this function, market depth data for the specified id
-        will stop flowing.
-
-        request_id:int - The ID that was specified in the call to
-            reqMktDepth().
-        is_smart_depth:bool - specifies SMART depth request"""
-
+        """
+        Cancels a prior request to to
+        :param request_id: Id of the prior call to request_market_depth
+        :param is_smart_depth: Specifies SMART depth request
+        :return: None
+        """
         message_version = 1
 
         # send cancel market depth msg
@@ -342,15 +341,25 @@ class ApiCalls(object):
 
     @check_connection
     def exercise_options(self, request_id: int, contract: Contract,
-                         exercize_action: int, exercize_quantity: int,
+                         exercise_or_lapse: int, exercise_quantity: int,
                          account: str, override: int):
+        """
+
+        :param request_id: Unique identifier for this request
+        :param contract: Contract of the option to be acted upon
+        :param exercise_or_lapse:  1 = exercise, 2 = lapse
+        :param exercise_quantity:
+        :param account:
+        :param override:
+        :return:
+        """
         """request_id:int - The ticker id. multipleust be a unique value.
         contract:Contract - This structure contains a description of the
             contract to be exercised
-        exercize_action:int - Specifies whether you want the option to lapse
+        exercise_or_lapse:int - Specifies whether you want the option to lapse
             or be exercised.
-            Values are 1 = exercise, 2 = lapse.
-        exercize_quantity:int - The quantity you want to exercise.
+
+        exercise_quantity:int - The quantity you want to exercise.
         account:str - destination account
         override:int - Specifies whether your setting will override the system's
             natural action. For example, if your action is "exercise" and the
@@ -363,20 +372,11 @@ class ApiCalls(object):
         message_version = 2
         message_id = Messages.outbound['exercise_options']
 
-        fields = [message_id, message_version, request_id, contract.symbol, contract.security_type,
-                  contract.last_trade_date_or_contract_month, contract.strike, contract.right, contract.multiplier,
-                  contract.exchange,
-                  contract.currency, contract.local_symbol, exercize_action, exercize_quantity, account, override]
-
-        # send contract fields
-        if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
-            insert_offset += 1
-            fields.insert(3, contract.id)
-
-        if self.server_version() >= MIN_SERVER_VER_TRADING_CLASS:
-            insert_position = 12 + insert_offset
-            insert_offset += 1
-            fields.insert(insert_position, contract.trading_class)
+        fields = [message_id, message_version, request_id,
+                  contract.symbol, contract.security_type   , contract.last_trade_date_or_contract_month,
+                  contract.strike, contract.right           , contract.multiplier, contract.exchange,
+                  contract.currency, contract.local_symbol  , exercise_or_lapse,
+                  exercise_quantity, account, override, contract.id, contract.trading_class]
 
         self.conn.send_message(fields)
 
@@ -504,7 +504,7 @@ class ApiCalls(object):
                    order.financial_advisers_method,
                    order.financial_advisers_percentage,
                    order.financial_advisers_profile,
-                   order.modelCode
+                   order.model_code
                    ]
 
 
@@ -523,7 +523,7 @@ class ApiCalls(object):
                    order.e_trade_only,
                    order.firm_quote_only,
                    order.nbbo_price_cap,
-                   order.auctionStrategy,
+                   order.auction_strategy,
                    # AUCTION_MATCH, AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT
                    order.starting_price,
                    order.stock_ref_price,
@@ -598,7 +598,7 @@ class ApiCalls(object):
                     fields += [algoParam.tag, algoParam.value]
 
 
-        fields.append(order.algo_id)
+        fields.append(order.algorithm_id)
         fields.append(order.what_if)
 
         # send miscOptions parameter
@@ -692,63 +692,18 @@ class ApiCalls(object):
         self.conn.send_message(fields)
 
     @check_connection
-    def request_account_summary(self, request_id: int, group_name: str, tags: str):
-        """Call this method to request and keep up to date the data that appears
-        on the TWS Account Window Summary tab. The data is returned by
-        accountSummary().
+    def request_account_summary(self, request_id: int,  tags: str, group_name: str='All'):
+        """
+        Sends a request to stream the data that appears in the TWS Account Window Summary Tab
 
-        Note:   This request is designed for an FA managed account but can be
-        used for any multi-account structure.
-
-        request_id:int - The ID of the data request. Ensures that responses are matched
-            to requests If several requests are in process.
-        group_name:str - Set to All to returnrn account summary data for all
-            accounts, or set to a specific Advisor Account Group name that has
-            already been created in TWS Global Configuration.
-        tags:str - A comma-separated list of account tags.  Available tags are:
-            accountountType
-            NetLiquidation,
-            TotalCashValue - Total cash including futures pnl
-            SettledCash - For cash accounts, this is the same as
-            TotalCashValue
-            AccruedCash - Net accrued interest
-            BuyingPower - The maximum amount of marginable US stocks the
-                account can buy
-            EquityWithLoanValue - Cash + stocks + bonds + mutual funds
-            PreviousDayEquityWithLoanValue,
-            GrossPositionValue - The sum of the absolute value of all stock
-                and equity option positions
-            RegTEquity,
-            RegTMargin,
-            SMA - Special Memorandum Account
-            InitMarginReq,
-            MaintMarginReq,
-            AvailableFunds,
-            ExcessLiquidity,
-            Cushion - Excess liquidity as a percentage of net liquidation value
-            FullInitMarginReq,
-            FullMaintMarginReq,
-            FullAvailableFunds,
-            FullExcessLiquidity,
-            LookAheadNextChange - Time when look-ahead values take effect
-            LookAheadInitMarginReq,
-            LookAheadMaintMarginReq,
-            LookAheadAvailableFunds,
-            LookAheadExcessLiquidity,
-            HighestSeverity - A measure of how close the account is to liquidation
-            DayTradesRemaining - The Number of Open/Close trades a user
-                could put on before Pattern Day Trading is detected. A value of "-1"
-                means that the user can put on unlimited day trades.
-            Leverage - GrossPositionValue / NetLiquidation
-            $LEDGER - Single flag to relay all cash balance tags*, only in base
-                currency.
-            $LEDGER:CURRENCY - Single flag to relay all cash balance tags*, only in
-                the specified currency.
-            $LEDGER:ALL - Single flag to relay all cash balance tags* in all
-            currencies."""
+        :param request_id: Unique identifier for this request
+        :param tags: Single Value or list of Account Tags (see enum `AccountTag` for legal values
+        :param group_name: set to All to return for all accounts, otherwise Financial Advisor group name (Default All)
+        :return: None
+        """
         message_version = 1
-        message_id = Messages.outbound['request_account_summary']
-        fields = [message_id, message_version, request_id, group_name, tags]
+        message_id      = Messages.outbound['request_account_summary']
+        fields          = [message_id, message_version, request_id, group_name, tags]
         self.conn.send_message(fields)
 
     @check_connection
@@ -1074,13 +1029,19 @@ class ApiCalls(object):
 
 
     @check_connection
-    def subscribe_to_group_events(self, request_id: int, groupId: int):
-        """request_id:int - The unique number associated with the notification.
-        groupId:int - The ID of the group, currently it is a number from 1 to 7.
-            This is the display group subscription request sent by the API to TWS."""
+    def subscribe_to_group_events(self,
+                                  request_id: int,
+                                  group_id  : int):
+        """
+        Associate a prior request to a display group
+
+        :param request_id: Unique identifier for this request
+        :param group_id: The ID of the group, currently it is a number from 1 to 7.
+        :return:
+        """
         message_version = 1
         message_id = Messages.outbound['subscribe_to_group_events']
-        fields = [message_id, message_version, request_id, groupId]
+        fields = [message_id, message_version, request_id, group_id]
         self.conn.send_message(fields)
 
     def connect(self, host, port, client_id):
@@ -1134,28 +1095,24 @@ class ApiCalls(object):
             self.api_state  = "Disconnected from the Bridge Application(TWS/IB Gateway)."
 
     def request_historical_data(self,
-                                request_id:int,
-                                contract: Contract,
-                                end_date_time: str,
-                                duration: str,
-                                bar_size_setting,
-                                what_to_show,
-                                use_rth: int,
-                                format_date: int,
-                                keep_up_to_date: bool,
-                                chart_options: list):
+                                request_id      : int       ,
+                                contract        : Contract  ,
+                                end_date_time   : str       ,
+                                duration        : str       ,
+                                bar_size_setting            ,
+                                what_to_show                ,
+                                use_rth         : int       ,
+                                format_date     : int       ,
+                                keep_up_to_date : bool      ,
+                                chart_options   : list):
         """
         Make the 'historical_data' message
         Send the message to the Bridge
-        
-        Related
-        
-        Parameters
-        ----------
-        :param contract: 
+        :param request_id: Unique Identifier for this request
+        :param contract: Contract that we are interested in getting historical data from
         :param end_date_time: 
         :param duration: 
-        :param bar_size_setting: string or `BarSize` 
+        :param bar_size_setting: string or `BarSize` enum
         :param what_to_show: String or `Show` enum
         :param use_rth: 
         :param format_date: 
@@ -1180,29 +1137,7 @@ class ApiCalls(object):
         durationStr:str - Set the query duration up to one week, using a time unit
             of seconds, days or weeks. Valid values include any integer followed by a space
             and then S (seconds), D (days) or W (week). If no unit is specified, seconds is used.
-        barSizeSetting:str - Specifies the size of the bars that will be returned (within IB/TWS listimits).
-            Valid values include:
-            1 sec
-            5 secs
-            15 secs
-            30 secs
-            1 min
-            2 mins
-            3 mins
-            5 mins
-            15 mins
-            30 mins
-            1 hour
-            1 day
-        whatToShow:str - Determines the nature of data beinging extracted. Valid values include:
 
-            TRADES
-            MIDPOINT
-            BID
-            ASK
-            BID_ASK
-            HISTORICAL_VOLATILITY
-            OPTION_IMPLIED_VOLATILITY
         useRTH:int - Determines whether to return all data available during the requested time span,
             or only data that falls within regular trading hours. Valid values include:
 
@@ -1277,8 +1212,6 @@ class ApiCalls(object):
         """
         Request to receive news bulletins.
         
-        Parameters
-        ----------
         :param all_messages: If set to TRUE, returns all the existing bulletins for the current day
                              If set to FALSE, will only return new bulletins.
         :return:
@@ -1341,23 +1274,23 @@ class ApiCalls(object):
         self._send_message(fields)
 
     @check_connection
-    def request_market_data(self, request_id: int, contract: Contract, generic_tick_list: str,
-                            snapshot: bool, regulatory_snapshot: bool, market_data_options: list):
+    def request_market_data(self,
+                            request_id          : int,
+                            contract            : Contract,
+                            generic_tick_list   : str,
+                            snapshot            : bool,
+                            regulatory_snapshot : bool,
+                            market_data_options : list):
         """
-        Related Inbound Messages / Functions
-        ------------------------
-        tick_price
-        tick_size
+        Start streaming market data. Will result in 'tick_price' and 'tick_size' inbound messages being generated.
 
-        Parameters
-        ----------
-        :param request_id:
+        :param request_id: Unique Identifier for this request
         :param contract:
-        :param generic_tick_list:
-        :param snapshot:
-        :param regulatory_snapshot:
-        :param market_data_options:
-        :return:
+        :param generic_tick_list: List of Tick Types. See the enum TickType for legal values.
+        :param snapshot: Check to return a single snapshot of Market data ave the market data subscription cancel
+        :param regulatory_snapshot: With the US Value Snapshot Bundle for stocks, these are available for 0.01 USD each.
+        :param market_data_options: For internal use only. Use default XYZ
+        :return: None
         """
 
 
@@ -1377,10 +1310,8 @@ class ApiCalls(object):
                 snapshot:bool - Check to return a single snapshot of Market data and
                     have the market data subscription cancel. Do not enter any
                     genericTicklist values if you use snapshots.
-                regulatorySnapshot: bool - With the US Value Snapshot Bundle for stocks,
-                    regulatory snapshots are available for 0.01 USD each.
-                mktDataOptions:list - For internal use only.
-                    Use default value XYZ. """
+        """
+
 
         message_version = 11
 
@@ -1449,6 +1380,15 @@ class ApiCalls(object):
                              is_smart_depth         : bool      ,
                              market_depth_options   : list
                              ):
+        """
+
+        :param request_id: Unique identifier for this request
+        :param contract:
+        :param num_rows:
+        :param is_smart_depth:
+        :param market_depth_options:
+        :return:
+        """
         """Call this function to request market depth for a specific
         contract. The market depth will be returned by the updateMktDepth() and
         updateMktDepthL2() events.
@@ -1506,11 +1446,8 @@ class ApiCalls(object):
         Requests Financial Advisor Configuration Information.
         The data returns in an XML string via a "receiveFA" ActiveX event.
 
-        financial_advisor_data:int - Specifies the type of Financial Advisor
-        Valid values include:
-            1 = GROUPS
-            2 = PROFILE
-            3 = ACCOUNT ALIASES
+        :param financial_advisor_data:  Specifies the type of Financial Advisor. See the enum FinancialAdvisor for legal values.
+        :return: None
         """
         #Create the Message
         message_version = 1
@@ -1581,6 +1518,14 @@ class ApiCalls(object):
                                      scanner_options  : list          ,
                                      filter_options   : list
                                      ):
+        """
+
+        :param request_id: Unique identifier for this request
+        :param scanner:
+        :param scanner_options:
+        :param filter_options:
+        :return:
+        """
         """request_id:int - Identifier for the given request
         scannerSubscription:Scanner - This structure contains
             possible parameters used to filter results.
@@ -1631,9 +1576,23 @@ class ApiCalls(object):
         self.conn.send_message(fields)
 
     @check_connection
-    def request__real_time_bars(self, request_id: int, contract: Contract, bar_size: int,
-                                what_to_show: str, use_rth: bool,
-                                realTimeBarsOptions: list):
+    def request_real_time_bars(self,
+                                request_id          : int,
+                                contract            : Contract,
+                                bar_size            : int,
+                                what_to_show        : str,
+                                use_rth             : bool,
+                                real_time_bars_options : list):
+        """
+        Send a request to start streaming real time bar
+        :param request_id:
+        :param contract:
+        :param bar_size:
+        :param what_to_show:
+        :param use_rth:
+        :param real_time_bars_options:
+        :return: None
+        """
         """Call the reqRealTimeBars() function to start receiving real time bar
         results through the realtimeBar() EWrapper function.
 
@@ -1667,10 +1626,10 @@ class ApiCalls(object):
                   contract.primary_exchange, contract.currency, contract.local_symbol,
                   contract.trading_class, bar_size, what_to_show, use_rth]
 
-        # send realTimeBarsOptions parameter
+        # send real_time_bars_options parameter
         realTimeBarsOptionsStr = ""
-        if realTimeBarsOptions:
-            for tagValueOpt in realTimeBarsOptions:
+        if real_time_bars_options:
+            for tagValueOpt in real_time_bars_options:
                 realTimeBarsOptionsStr += str(tagValueOpt)
         fields += [realTimeBarsOptionsStr, ]
 
@@ -1758,6 +1717,12 @@ class ApiCalls(object):
 
     @check_connection
     def update_display_group(self, request_id: int, contract_info: str):
+        """
+
+        :param request_id:
+        :param contract_info:
+        :return: None
+        """
         """request_id:int - The requestId specified in subscribeToGroupEvents().
         contract_info:str - The encoded value that uniquely represents the
             contract in IB. Possible values include:
