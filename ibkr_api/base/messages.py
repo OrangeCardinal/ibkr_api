@@ -48,7 +48,7 @@ class Messages(object):
             'account_summary'                               : 63,
             'account_summary_end'                           : 64,
             'verify_message_api'                            : 65,
-            'verify_completed'                              : 66,
+            'verify_request'                                : 66,
             'display_group_list'                            : 67,
             'display_group_updated'                         : 68,
             'verify_and_auth_message_api'                   : 69,
