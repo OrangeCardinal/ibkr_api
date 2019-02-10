@@ -1,5 +1,8 @@
 ibkr\_api.classes.contracts package
 ===================================
+.. autoclass:: ibkr_api.classes.contracts.contract
+    :members:
+
 
 Module contents
 ---------------
