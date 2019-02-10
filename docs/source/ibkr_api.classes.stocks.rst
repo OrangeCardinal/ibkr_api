@@ -1,9 +1,6 @@
 ibkr\_api.classes.stocks package
 ================================
 
-Submodules
-----------
-
 ibkr\_api.classes.stocks.dow30 module
 -------------------------------------
 

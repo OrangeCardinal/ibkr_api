@@ -10,16 +10,10 @@ Subpackages
     ibkr_api.classes.enum
     ibkr_api.classes.stocks
 
-Submodules
-----------
+Classes
+-------
+.. autoclass::  ibkr_api.classes.bar
 
-ibkr\_api.classes.bar module
-----------------------------
-
-.. automodule:: ibkr_api.classes.bar
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 ibkr\_api.classes.execution module
 ----------------------------------
@@ -40,7 +34,7 @@ ibkr\_api.classes.option\_chain module
 ibkr\_api.classes.order module
 ------------------------------
 
-.. automodule:: ibkr_api.classes.order
+.. automodule:: ibkr_api.classes.orders
     :members:
     :undoc-members:
     :show-inheritance:

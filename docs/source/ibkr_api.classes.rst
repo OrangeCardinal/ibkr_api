@@ -34,7 +34,7 @@ ibkr\_api.classes.option\_chain module
 ibkr\_api.classes.order module
 ------------------------------
 
-.. automodule:: ibkr_api.classes.order
+.. automodule:: ibkr_api.classes.orders
     :members:
     :undoc-members:
     :show-inheritance:
