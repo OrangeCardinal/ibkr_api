@@ -26,15 +26,15 @@ ibkr\_api.classes.execution module
 ibkr\_api.classes.option\_chain module
 --------------------------------------
 
-.. automodule:: ibkr_api.classes.option_chain
+.. autoclass:: ibkr_api.classes.option_chain
     :members:
     :undoc-members:
     :show-inheritance:
 
-ibkr\_api.classes.order module
-------------------------------
+ibkr\_api.classes.orders
+-------------------------
 
-.. automodule:: ibkr_api.classes.orders
+.. autoclass:: ibkr_api.classes.orders
     :members:
     :undoc-members:
     :show-inheritance:
@@ -42,7 +42,7 @@ ibkr\_api.classes.order module
 ibkr\_api.classes.order\_state module
 -------------------------------------
 
-.. automodule:: ibkr_api.classes.order_state
+.. autoclass:::: ibkr_api.classes.order_state
     :members:
     :undoc-members:
     :show-inheritance:
@@ -50,7 +50,7 @@ ibkr\_api.classes.order\_state module
 ibkr\_api.classes.scanner module
 --------------------------------
 
-.. automodule:: ibkr_api.classes.scanner
+.. autoclass:: ibkr_api.classes.scanner
     :members:
     :undoc-members:
     :show-inheritance:
@@ -58,7 +58,7 @@ ibkr\_api.classes.scanner module
 ibkr\_api.classes.soft\_dollar\_tier module
 -------------------------------------------
 
-.. automodule:: ibkr_api.classes.soft_dollar_tier
+.. autoclass:: ibkr_api.classes.soft_dollar_tier
     :members:
     :undoc-members:
     :show-inheritance:
