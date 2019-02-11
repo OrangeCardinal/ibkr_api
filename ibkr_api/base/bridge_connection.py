@@ -152,30 +152,27 @@ class BridgeConnection:
     #############################################################################
     def make_message(self, values:list):
         """
-        will replace make_msg in a few minutes
-        :param values:
+        Generate the null terminated message string expected by the bridge
+
+        :param values:i List of message fields to be encoded
         :return:
         """
         message = ""
         for val in values:
-            message += self.make_field(val)
+            # Convert None to an empty string
+            if val is None:
+                val = ""
+
+            # Convert boolean data to an integer
+            if type(val) is bool:
+                val = int(val)
+
+            # Append to any previously created fields
+            field = str(val) + '\0'
+            message += field
 
         message = struct.pack("!I%ds" % len(message), len(message), str.encode(message))
         return message
-
-    def make_field(self, val) -> str:
-        """ adds the NULL string terminator """
-
-        if val is None:
-            raise ValueError("Cannot send None to TWS")
-
-        # bool type is encoded as int
-        if type(val) is bool:
-            val = int(val)
-
-        field = str(val) + '\0'
-        return field
-
 
     def read_message(self, buf: bytes) -> tuple:
         """ first the size prefix and then the corresponding msg payload """
