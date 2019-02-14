@@ -8,6 +8,7 @@ from ibkr_api.base.constants                        import UNSET_DOUBLE
 from ibkr_api.base.constants                        import UNSET_INTEGER
 from ibkr_api.classes.bar                           import Bar
 from ibkr_api.classes.contracts.contract            import Contract
+from ibkr_api.classes.contracts.stock               import Stock
 from ibkr_api.classes.contracts.contract_details    import ContractDetails
 from ibkr_api.classes.enum.tick_type                import TickType
 from ibkr_api.classes.execution                     import Execution
@@ -543,19 +544,25 @@ class MessageParser(object):
 
     @staticmethod
     def symbol_samples(fields):
-        request_id = int(fields[1])
+        request_id  = int(fields[1])
         num_samples = int(fields[2])
+        class_map   = {'STK':Stock()}
         field_index = 3
         contracts = []
         for index in range(num_samples):
-            contract = Contract()
-            contract.id               = int(fields[field_index])
-            contract.symbol           = fields[field_index+1]
-            contract.security_type    = fields[field_index+2]
-            contract.primary_exchange = fields[field_index+3]
-            contract.currency         = fields[field_index+4]
+            security_type               = fields[field_index + 2]
+            #todo: switch this for a dict based lookup
+            if security_type == 'STK':
+                contract                = Stock()
+            else:
+                contract                = Contract()
 
-            num_security_types = int(fields[field_index+5])
+            contract.id                 = int(fields[field_index])
+            contract.symbol             = fields[field_index + 1]
+            contract.security_type      = security_type
+            contract.primary_exchange   = fields[field_index+3]
+            contract.currency           = fields[field_index+4]
+            num_security_types          = int(fields[field_index+5])
             field_index += 6
             for j in range(num_security_types):
                 derivative_security_type = str(fields[field_index])
