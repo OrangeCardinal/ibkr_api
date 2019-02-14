@@ -479,14 +479,21 @@ class IBKR_API(ApiCalls):
         :param exchange:
         :return:
         """
-        # Get a
+        # Get a local request id
         request_id = self.get_local_request_id()
 
-        # Check if we have a valid contract id, if not attempt to get it
+        # See if we got an ambiguous contract, if so try to find a unique contract with options
+        contracts_with_derivatives = []
         if underlying.id == 0:
-            print("Get Contract Data")
-            #underlying2 = self.request_contract_data(underlying)
-            #print(underlying2)
+            request_id, contracts = self.request_matching_symbols(underlying.symbol)
+            for c in contracts:
+                if len(c.derivative_security_types) > 0:
+                    contracts_with_derivatives.append(c)
+            if len(contracts_with_derivatives) == 1:
+                underlying = contracts_with_derivatives[0]
+            else:
+                logger.warning("Contract supplied is ambiguous and work can not proceed.")
+                return
 
         super().request_security_definition_option_parameters(request_id, underlying.symbol, exchange,
                                                               underlying.security_type, underlying.id)
