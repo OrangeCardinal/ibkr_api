@@ -57,6 +57,29 @@ This can be done with a call to `request_open_orders` which will return a list o
     print(open_order)
 
 
+====================
+Working With Options
+====================
+List all the option chains for TSLA
+-----------------------------------
+.. code-block:: python
+        tsla_stock = Stock('TSLA')
+        tsla_option_chains = ibkr.request_option_chains(tsla_stock)
+        for opt_chain in tsla_option_chains:
+            print(opt_chain)
+
+Get the option chains for all Dow 30 Stocks
+-------------------------------------------
+.. code-block:: python
+
+   dow30 = Dow30()
+   for stk in dow30.stocks():
+       stk = ibkr.request_contract_data(stk)
+       option_chains = ibkr.request_option_chains(stk)
+       for opt_chain in option_chains:
+           print(opt_chain)
+
+
 ===================
 Other Functionality
 ===================
@@ -76,8 +99,6 @@ Find All Contracts that Match 'TSLA'
     request_id, contracts = ibkr.request_matching_symbols('TSLA')
     for c in contracts:
         print(c)
-        for deriv_sec_type in c.derivative_security_types:
-            print(deriv_sec_type)
 
 Display Account Positions
 -------------------------
@@ -88,17 +109,6 @@ Display Account Positions
         c = data['contract']
         desc = "{0:<10} {1:<10} {2:>20} {3:>30}".format(data['account'], c.local_symbol, data['position'], data['average_cost'])
         print(desc)
-
-Get the option chains for all Dow 30 Stocks
--------------------------------------------
-.. code-block:: python
-
-   dow30 = Dow30()
-   for stk in dow30.stocks():
-       stk = ibkr.request_contract_data(stk)
-       option_chains = ibkr.request_option_chains(stk)
-       for opt_chain in option_chains:
-           print(opt_chain)
 
 
 Get the Last Year of Daily Prices for XOM
