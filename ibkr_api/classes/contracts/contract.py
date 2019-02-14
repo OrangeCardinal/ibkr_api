@@ -62,6 +62,9 @@ class Contract(object):
         desc += "Exchange: {0}\n".format(self.exchange)
         desc += "Local Symbol: {0}\n".format(self.local_symbol)
 
+        if len(self.derivative_security_types) > 0:
+            desc += "\nAvailable Derivatives\n"
+            desc += "{0}\n".format(",".join(self.derivative_security_types))
 
         if len(self.regular_trading_hours) > 0:
             desc += "\nRegular Trading Hours\n"
@@ -73,6 +76,8 @@ class Contract(object):
                                                        info['end_date'],info['end_time'])
                 else:
                     desc += "{0}: Closed\n".format(day)
+
+
 
         """
         if self.combo_legs:
